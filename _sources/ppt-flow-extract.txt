@@ -1,0 +1,164 @@
+CAMPUS CONNECT — UI/Flow deck (2025-05-19 v14), 55 slides
+
+=== Slide 1 ===
+
+=== Slide 2 ===
+LOGIN 01 | (Main Page) Açılış Sayfası | 3 saniye bekle? | İlk Giriş? | YES | NO | LOGIN 03 | MENU 01 | By Hi Speed Team | Secure &amp; Private | Communication | MEMBERS ONLY! | .  .  . | tanıtımı geç | tanıtım bittikten sonra
+
+=== Slide 3 ===
+
+=== Slide 4 ===
+Beni Hatırla | LOGIN 03 | Şimdilik Türkçe ve İngilizce olacak | Her kurum için seçenekleri ADMIN belirleyecek | Tıklandığında? | Yalnızca kurulum sırasında çıkacak, sonraki girişlerde çıkmayacak | Her üyenin cep telefonu numarası var | Bir üye bir ya da daha çok kuruma üye olabilir | Bir üyenin tüm kurumlar için tek şifresi var | Üyelerin minimum bilgileri: | Telefon No | Ad-Soyad | Kategori | CC uygulaması indirilip çalıştırıldığında üye, sistemde kayıtlı cep telefonunu girdikten sonra alacağı OTP ile giriş yapıyor | Girilen telefon numarası ile bir üye var ise OTP gidiyor; | Numara yok ise OTP gitmiyor, fakat kullanıcıya söylenmiyor ve yalnızca OTP’yi girmesinden sonra «Telefon Numarası ya da OTP» hatalı deniyor, böylece kullanıcı neyin hatalı olduğunu bilmiyor. | Numara yanlış girilse bile telefon numarası herhangi bir üyeye ait değil ise OTP gönderilmeyeceği için büyük bir sorun yok, yine de iki OTP arasında ilk iki sefer 1 dk, sonrakilerde 5, 10, 15 dk olacağı için SPAM olasılığı azalıyor. 5 OTP girişinden sonra admin ile iletişim kurulması zorunlu | Buraya odaklanıldığında | LOGIN 05
+
+=== Slide 5 ===
+Odaklanıldığında numpad görünecek | LOGIN 05 | Seçenekler: | DEVAM ET, ülkeye göre yeterli uzunlukta olunca enabled olacak, bu durumda uyarı hiç olmayacak (bu seçenek belirli ülkeler için uygun değil, liste sağda. | DEVAM ET, her zaman aktif olacak fakat ona basılmadan OTP gitmeyecek | DEVAM ET hiç olmayacak, yeterli uzunlukta digit girilince OTP ekranı otomatik açılacak | ADMIN Tercihleri | Name | Description | Unit | Range | Can User Overwrite? | Explanation | Hangi ülkelerin telefon numaraları kullanılabilir | 0..120 | No | SIFIR ise hiç beklenmez
+
+=== Slide 6 ===
+LOGIN 07 09 | Ülkeye göre kontrol edilecek | LOGIN 11
+
+=== Slide 7 ===
+LOGIN 11 13 | (Yalnızca Not olarak koydum) | Gerek var mı:
+
+=== Slide 8 ===
+Telefon Numarası ya da OTP hatalı. Yeniden dene, ya da telefon numaranı güncellemek için önceki sayfaya dön. | LOGIN 15 17 19
+
+=== Slide 9 ===
+LOGIN 21 | ALGORITHM: | 01 Tüm basamaklar girildiğinde otomatik kontrol et | 02     OTP Doğru ise  | 04         İlk girişi ise | 05            Tek Kurumu Var ise  | PROFILE 01 | 06 | Birden Çok Kurumu Var ise  | LOGIN 25 | 07         Else (Daha önce girdi ise) seçenekler: | 08 |               MENU 01 | 09 |               REHBER 01 | 10     Else (OTP Yanlış ise) | 11         HATA mesajı göster  | LOGIN 19 | 12 (İki kez hatalı giriş yapıldı ise OTP geçerlik süresi bitene kadar bekle) | 13 YENİDEN GÖNDER enabled | 14 HATA mesajını visible ise, invisible | 15 GOTO 01 | ADMIN Tercihleri | Name | Description | Unit | Range | Can User Overwrite? | Explanation | 1. round OTP arası beklenecek olan süre | second | 0..120 | No | SIFIR ise hiç beklenmez | 2. round OTP arası beklenecek olan süre | 0..300 | No | SIFIR ise hiç beklenmez | 3. round ve sonrası OTP arası beklenecek olan süre | 0..3600 | No | 3600 ise, OTP gitmeyecek, kullanıcı admin'e başvuracak, admin kontrol edip userlocked'i 0 yapacak
+
+=== Slide 10 ===
+LOGIN 25 | Onayla | Birden Çok Kurumdan Seçim Ekranı | LOGIN'den geldiyse ve İlk girişi ise PROFILE 01 | ELSE (MENU'den geldiyse ya da daha önce giriş yaptı ise) MENU 01 | LOGIN'den geldiyse, LOGIN 09’a döner, fakat telefon numarası yazılı olur.  | O ekranda da yeniden ŞIFRE GONDER'e basıldığında LOGIN 21’e, yani buraya gelmiş olduğu sayfaya dönmüş olur. | İptal | İşlem yapmak istediğiniz Kurumu Seçiniz
+
+=== Slide 11 ===
+Nickname  | (olacak mı?) | PROFILE 01 | Kendi Profilim | MENU 01 | LOGIN 21 | LOGIN 09 | MENU 01 | (save) | Motto | Onayla | Herkes (sormadan) | Onay Sonrasında | Rehbere Ekleme Yetkisi | Her zaman | Mesai Saatlerinde | Gündüz Saatlerinde | ARAMA İZNİ | (Tüm) Arama izni verdiklerim ne zaman arayabilir? | Telefon | Video | Arama Yetkisi | Rehberine Ekleyenleri Haber Ver | ADMIN Tercihleri | Name | Description | Unit | Range | Can User Overwrite? | Explanation | Rehbere Ekleme Yetkisi (Kategori iiçin farklı) | Herkes, Onayılı
+
+=== Slide 12 ===
+MENU 01 | Ana Menu | MENU 03 | CC Hakkında | yalnızca birden çok kuruma kayıtlı ise görünür | ANKET 01 | Anket | LOGIN 25 | Kurum Değiştir | GRUP 01 | Gruplar &amp; Kulüpler | PROFIL 01 | Profilim | UD 13 | Üyelik Davetiyeleri | REHBER 01 | Kişilerim (Rehberim) | Çıkış Yap | UD 15 | Beni Rehberlerine Ekleyenler
+
+=== Slide 13 ===
+MENU 03 | Hakkında Sayfası | dolacak | MENU 01
+
+=== Slide 14 ===
+ARAMA01 (Arama yaparak rehbere ekle) | REHBER 01 | REHBER İÇİNDEKİ BİR KİŞİYİ BULMA alternatifleri: | Scroll ederek kişi bulunabilir. | Search içine yazılacak karakterlere göre liste otomatik filtrelenir. | Sağdaki A..Z harflerine tıklandığında, o harf'e scroll edecek şekilde tüm liste kayar. | Rehberim | (o sayfada olduğumuzdan dolayı disabled) | FAVORITES 01 | MENU 01 | CHAT 03 | (CHAT penceresi çıkıyor. Arama yapacaksak o sayfadan yapılacak)
+
+=== Slide 15 ===
+Kişi Arama | ARAMA01 | Bilgi Girerek Tüm Listeden Arama | ONAY istemeyen kişi → UD 09 | ONAY isteyen kişi → UD 11 | MENU01 | Daire No | Üye No | … | Ad Soyad | Seç | Nergis 1 | Kişi 1 | Nergis 2 | Kişi 2 | 345345 | Kişi 3 | İsme Göre | Numaraya Göre | Arama Kriteri | Hangi gruptan arama yapılacaksa ona göre değiştirilecek. | Akademisyen | Öğrenci | Arama Yapılacak Kategori | Hangi bilgi ile arama yapacaksak onu seçeceğiz | Gruptan Seç | ARAMA03 | Seçilen kategori burada liste olarak görünecek ve SEARCH’e bilgi yazdıkça ya da ARA butonuna basıldığında Filtrelenecek | Ara | ADMIN Tercihleri | Name | Description | Unit | Range | Can User Overwrite? | Explanation | Numaraya göre arama olacak mı | Boolean | Yes No | No | «Numaraya Göre» yerine yazılacak ifade |  Text | En fazla 10 karakter | No
+
+=== Slide 16 ===
+ARAMA03 | Grup Seçme | ARAMA05 | Grup / Kulüp Seçme | MENU01 | ARAMA01
+
+=== Slide 17 ===
+Gruptan Arama | ARAMA05 | Gruptan Arama | Zaten Rehberimde ise  → PROFILE XXX | İlk defa yazıyorsam  → CHAT01 | Daha önceden yazdıysam  → ? | MENU01 | ARAMA01 | Daire No | Üye No | … | Ad Soyad | Seç | Nergis 1 | Kişi 1 | Nergis 2 | Kişi 2 | 345345 | Kişi 3 | Bir önceki sayfada seçilmiş olan grupta ve bu sayfada seçilen kategorideki kişiler liste olarak gelir | Liste, arama kriterine göre sıralanır | ALTERNATİF (hangisi?): | SEARCH’e bilgi yazdıkça liste güncellenir | ARA butonuna basınca liste güncellenir | İsme Göre | Numaraya Göre | Arama Kriteri | Akademisyen | Öğrenci | Arama Yapılacak Kategori | Ara
+
+=== Slide 18 ===
+Online olup olmadığı belli değil, çünkü henüz rehberime eklemedim | CHAT01 | ARAMA05 | Merhaba Jenny. Ben Testing dersinden Vedat. Nasılsın? | Henüz Rehberimde olmadığından Contact bilgisi görünmeyecek | Gönder
+
+=== Slide 19 ===
+Ad | Mesaj | Kendi | Rehberime | Ekle | Blok | Alice | xxxx | Bob | xxxx | Elif | xxxx | Ayşe | xxxx | UD 13 | Davetiyeler | İlgili kişilerin XXXXXX sayfası güncellenecek | Blokladıklarım bir sonraki girişimde görünmeyecek | İşaretlemediklerim buraya her gelişimde görünecek | Bir kişinin üzerine tıklarsam cevap yazmam için  | CHAT03 | sayfası açılacak | MENU 01 | Gönderdiğim Mesajlar | Aldığım Mesajlar | MENU 01 | Tamam | İzin verdiğim kişileri KENDİ REHBERİME EKLE yapabileceğim.
+
+=== Slide 20 ===
+UD 15 | Rehberine Eklendiklerim | Rehberine Eklendiklerim | Ad | Statü | Benim rehberime de ekle | Yazı | Ses | Video | Alice | Öğr. | Bob | H. | Elif | Öğr. | Tamam | MENU 01
+
+=== Slide 21 ===
+Bireysel Mesajlaşma | CHAT 00
+
+=== Slide 22 ===
+VIDEO 01 | VOICE 01 | (Online) | Sesli Arayabilirsem görünecek | Görüntülü Arayabilirsem görünecek | REHBER 03 | CHAT 03 | REHBER 03 | (başka?)
+
+=== Slide 23 ===
+REHBER 03 | CHAT 05 | VIDEO 01 | Mesaj gönderebilirsem görünecek | Sesli Arayabilirsem görünecek | Görüntülü Arayabilirsem görünecek | Favorilerde yer alıyor ise icon canlı, değil ise silik | Silik iken basılırsa kullanıcı favorilere eklenecek ve ikon canlı olacak | Canlı iken basılırsa favorilerden silinecek ve ikon silik olacak | Rehberden sil | Gerekli mi? | Hangisi Gerekli? | Sil | Vazgeç | REHBER 01 CHAT 01 | REHBER 07 | VOICE 01 | Gerekli mi? | CHAT 03
+
+=== Slide 24 ===
+FAVORITES 01 | REHBER 03 | Favorilerden Çıkar | Vazgeç | Çıkar | Favoriler | FAVORITES 03 | REHBER 01 | (disabled)
+
+=== Slide 25 ===
+FAVORITES 03 | Favorilere Contact Ekle | Cancel | Tıklanma Seçenekleri: | Tıklanan kişi doğrudan favorilere eklenir | Tıklanıldığında EKLE ve İPTAL seçeneği çıkar | Bir kişi eklendiğinde görüntü seçenekleri: | bu ekran devam eder | FAVORITES01’e döner | FAVORITES 01
+
+=== Slide 26 ===
+REHBER 07 | Ortak Gruplarımız | REHBER 03 | GRUP 01 sayfası çıkar, ilk üye olarak bu contact otomatik dahil olur.
+
+=== Slide 27 ===
+CHAT 05 - b | Ek Gönderme | Indoor | Indoor Navigation planlayalım. | Bu sayfa, CHAT 05 – A'nın uzantısı, oradaki unsurlar aynen olacak, yalnızca EK ile ilgili icon'lar kondu buraya. | WhatsApp gibi, fakat yalnızca One-Time location. | WhatsApp gibi | Galeriden fotograf gonder | Kamerayı aç
+
+=== Slide 28 ===
+Mesaj yazma kısmına tıklayınca klavye görünür olur | Başka bir yere tıklanırsa, klavye kaybolur | sesli mesaj göndermek için | Metni sesli olarak yazdırmak için | Birden çok klavye tanımlı ise, değiştirmek için | Klavye türünü değiştirmek için | CHAT 05 - c | Klavye Kullanımı | Bu sayfa, CHAT 05 – A'nın uzantısı, oradaki unsurlar aynen olacak, yalnızca EK ile ilgili icon'lar kondu buraya.
+
+=== Slide 29 ===
+Groups | CHATS 0X | Bu şekilde farklı tab’lar olsun mu?
+
+=== Slide 30 ===
+VOICE 01 | Sesli Arama | REHBER 03 – CHAT03 | REHBER 03 – CHAT03
+
+=== Slide 31 ===
+VIDEO 01 | Görüntülü Arama | REHBER 03 – CHAT03 | REHBER 03 – CHAT03
+
+=== Slide 32 ===
+Club | GROUP 00
+
+=== Slide 33 ===
+Grup (Formal Grup) | Kulüp (Informal Grup) | Oda | Sistem Admin  | tarafından yaratılır | Bir Kullanıcı tarafından yaratılır | Grup ya da Kulüp Kullanıcısı tarafından yaratılır | Sistem Admin tarafından bir (kaç) Grup  | Admin |  belirlenebilir | Yaratan, Admin olur. | Yaratan, Admin olur. | Silinmez | Admin tarafından silinebilir. | Admin tarafından silinebilir. | Tüm mesajlar SUNUCUDA, ŞİFRELİ olarak kayıt altındadır | Tüm mesajlar kişiseldir, yalnızca üyeler tarafından görülebilir ve kayıt altına alınmaz | (KULÜP ile aynı) | CLOSED (üye girişi ya da çıkışı olmayan). | OPEN (herkesin üye olabileceği) ya da  | RESTRICTED (seçilecek kişilerin üye olabileceği) olabilir | OPEN (Gruptaki herkesin mesaj almak ya da başka bir amaçla üye de olabileceği, ama girip çıkmak için üye olmak gerekmeyen, giren kişinin çıkış da yapabileceği) | GRUP 00
+
+=== Slide 34 ===
+Üye Olduklarım | Katılabileceklerim | MENU 01 | Yeni | YEŞİL’de tıklarsam KIRMIZI (MUTE) olacak | vice versa. | GROUPCHAT 21 | GRUP 01 | Üyesi Olduğum Gruplar | GROUP 07 | GROUP 03
+
+=== Slide 35 ===
+Buraya REHBER 07'den gelinmiş ise, oradan gelmiş olan ilk üye doğrudan yazılacak  | Kendim doğrudan ADMIN olarak eklenmiş olacağım | Kulüp Yarat | GRUP 05 | İSMİ | Giriniz | TANIMI | Giriniz | LOGO | Giriniz | Davet Mesajı | Giriniz | Kapalı Kulüp Üyelerini Belirle | Açık Kulüp Katılımcı Kategorileri | Yalnız Admin mesaj gönderebilir ve Oda yaratabilir | Herkes mesaj gönderebilir ve Oda yaratabilir | me | GRUP 03 | REHBER 07 | Grup Yaratma | GRUP 01 | Akademisyenler | Öğrenciler
+
+=== Slide 36 ===
+Klasik rehber işlemleri ile seçim yapılabilir: | Listeden kaydırarak | Baş harfine tıklayarak | Arama çubuğuna karakterler yazarak | GRUP 05 | Davetiye göndermek için seçim yapıldı, tıklanırsa geri alınacak | Zaten Kulüp üyesi | Davetiye göndermek için seçim yapılmadı | Rehberdeki Kişiye Davet Gönderme | GRUP 03 | Davet Gönder | GRUP 07’de görünecek şekilde daveti ilgili kişinin kutusuna gönder
+
+=== Slide 37 ===
+Üye Olduklarım | Katılabileceklerim | MENU 01 | Yarat | GRUP 07 | Katılabileceğim Gruplar | GROUP 03 | Açık (Public) Kulüp: | Emin misiniz? | Kapalı (Private) Kulüp: | Bu listede artık gösterme | Kişisel Davet Edildiklerim: | Grup-Kisi tablosuna Ekle
+
+=== Slide 38 ===
+Grup Mesajlaşma | GROUPCHAT 20
+
+=== Slide 39 ===
+GROUPCHAT 21 | Grup İçinde Mesajlaşma | Admin mesaj gönderebilir ve Oda açabilir | Herkes mesaj gönderebilir ve Oda açabilir | CHAT 23 (Gruptaki Sohbet Odaları) | Her grup için başlangıçta GENEL odası otomatik olarak oluşur ve yazılın tüm mesajlar o odaya aktarılır. | Admin (ya da yetki verdi ise herkes), grup içinde belirli bir konudaki konuşmaların diğerlerinden ayrılması için ODA oluşturabilir.
+
+=== Slide 40 ===
+GROUPCHAT 23 | Sohbet Odaları | CHAT 23 (Gruptaki Sohbet Odaları) | Odalar | Yarat | Misafir Olmuşum | (Ayrılmak için Click et) | Misafir Olmamışım ya da Ayrılmışım | GROUPCHAT 25
+
+=== Slide 41 ===
+GROUPCHAT 25 | Odalarda Sohbet | CHAT 23 (Gruptaki Sohbet Odaları) | (Hangisi, bir tanesi mi olsun?) | CLUB | ROOM | Misafir Olmuşum | (Ayrılmak için Click et) | Misafir Olmamışım ya da Ayrılmışım
+
+=== Slide 42 ===
+Kendim doğrudan EV SAHİBİ olarak eklenmiş olacağım | Sohbet Odası Yarat | İSMİ | Giriniz | TANIMI | Giriniz | KULUP ADMIN Tercihleri | Name | Description | Option | Explanation | LOGO | Giriniz | Davet Mesajı | Giriniz | SOHBET ODALARI KURALLARI: | Gruptaki herkes Odaya girebilir | Odaya giren herkes mesaj gönderebilir | Odaya girip mesaj gönderen herkes Misafir olur | Misafirlikten çıkmak isteyen, çıkış işareti koymalıdır. | SORU: Gruba gönderilen mesajlar kişilere bildirim olarak gitmeli mi? | me | GRUPCHAT 05 | REHBER 07 | OdaYaratma | GRUP 01
+
+=== Slide 43 ===
+Anket | ANKET 00
+
+=== Slide 44 ===
+ANKET 01 | Anketleri Yönet | Anketlerim: | Neden? | ARCHIVE etmemiş olduğum tüm anketler görünür. | Hiç anket oluşturmadı isem, boş liste çıkar | Yeni anket oluşturmak için          seçilir. | Diğer anketler alt alta | Yeni Anket | ilk anketin çevresindeki icon (lar) hepsinin çevresinde olacak | Diğer anketler alt alta | arşivle (ANKET 03) | Edit et (YAYINLANMAMIŞ (ya da yayından çekilmiş) Anket için bu ikon enabled olur ve tıklanırsa edit edilebilir.) (ANKET 07) | Yeni Anket (ANKET 05) | (yalnızca) arşivlenmiş Anketlerimi göster (ANKET 09) | Yayınla (Yayınlanmamış anket için bu icon enabled) (ANKET 11) | Listeyi Filtrele (seçenekler aşağıda) | (yalnızca) Arşivlenmiş (bu durumda soldaki icon gereksiz) | Yayınlanmış | Başlama gelmiş | Bitiş gelmiş (ya da herkes cevaplamış) | Yayınlanmış anketin cevaplarını gör (ANKET 13) | Yayınlanmış ve süresi bitmiş, ya da herkes cevaplamış (ANKET 13)
+
+=== Slide 45 ===
+Arşivle 'ye Basıldı. | ANKET 03 | Seçenekler: | Ekrana seçilen Anket 'in tüm bilgileri gelsin | &quot;Arşivlenecek, emin misiniz?&quot; sorsun | Evet seçilirse &quot;Arşivlendi&quot; mesajı, &quot;Ok&quot; butonu sonrasında Anketler listesine geri dönüş | Hayır seçilirse Anketler listesine geri dönüş | &quot;Arşivlendi&quot; mesajı, &quot;Ok&quot; butonu sonrasında Anketler listesine geri dönüş
+
+=== Slide 46 ===
+Rehberime Ekle | Anket Oluşturma | Anket Sorusu:  | Anket sorusunu giriniz | Kaydet | KAYDET'e basma işlevi olabilir mi? | Seçenekler: | En az bir karakter girince aktif olabilir, o karakter silinirse yeniden pasif olabilir. | Basıldığında en az bir karakter yok ise uyarı ekranı çıkıp, TAMAM basıldığında buraya dönebilir. | ANKET 05
+
+=== Slide 47 ===
+ANKET 07 | Anket Cevap Seçenekleri Oluşturma | Anket Cevapları:  | Kaydet | Seçenekler: | En az bir karakter girince aktif olabilir, o karakter silinirse yeniden pasif olabilir. | Basıldığında en az bir karakter yok ise uyarı ekranı çıkıp, TAMAM basıldığında buraya dönebilir. | Evet  | 1. seçeneği giriniz | Şu anda Anket sorusu en azından evet / hayır içermesi gerektiği için en az iki seçenek düşünülüyor. | Eğer metin, resim vb. girişli soru düşünülür ise sonra bu kısım değiştirilebilir. | Default olarak 1. seçenek Evet, ikinci seçenek Hayır, tıklanırsa içindeki metin silinecek. | Hayır  | 2. seçeneği giriniz | 2. seçenek yanında ARTI son seçenek yanında ARTI EKSI olacak | son seçenekteki ARTI EKSI yeni ekleme olursa yenisinin yanına kayacak. | Dolayısı ile aradaki bir seçenek silinemeyecek, istendiğinde alttaki seçenekteki metin üste taşınıp en sonra seçenek boşaltılarak silinecek. | 3. seçeneği giriniz | 4. seçeneği giriniz | Anket Sorusu:  | Sınavı yarın yapalım mı? | Oluşturulmuş Anket 'i Edit Etme de aynı sayfa
+
+=== Slide 48 ===
+ANKET 09 | Arşivlenmiş Anketleri Yönetme | Arşivlenmiş Anketlerim: | Kaydet | Neden? | Arşivlenmiş anketler geri alınabilir. | Ne Zaman? | Arşivden normal listeye al
+
+=== Slide 49 ===
+ANKET 11 | Anket Yayınlama | Yayınla | Şu anda Anket sorusu en azından evet / hayır içermesi gerektiği için en az iki seçenek düşünülüyor. | Eğer metin, resim vb. girişli soru düşünülür ise sonra bu kısım değiştirilebilir. | Anket bir (den çok) gruba gönderilebilir. | Her bir gruba gönderme işlemi yapıldığında, o gruptaki her bir kişi için bir kayıt açılır ve anket cevapları doldurulur. Bu aşamadan sonra grup listesindeki değişiklikler, anket yapılacak kişileri değiştirmez. | Alternatif olarak &quot;Anket Grubunu Güncelle&quot; butonuna bağlı olarak grubun o anki üyelerine göre kayıtları güncelleyebilir miyiz? | Seçenekler:  | Evet | Hayır | Anket Sorusu:  | Sınavı yarın yapalım mı? | Yayın Başlama: | Yayın Bitiş: | Güncelle | Güncelle | BAŞLAMA zamanı gelmemiş ise güncellenebilir. | BİTİŞ zamanı gelmemiş ise güncellenebilir.
+
+=== Slide 50 ===
+ANKET 13 | Anket Durumu | Yayından Çek | Şu anda Anket sorusu en azından evet / hayır içermesi gerektiği için en az iki seçenek düşünülüyor. | Eğer metin, resim vb. girişli soru düşünülür ise sonra bu kısım değiştirilebilir. | Seçenekler:  | Evet | Hayır | Anket Sorusu:  | Sınavı yarın yapalım mı? | Yayın Başlama: | Yayın Bitiş: | Sayfa açıldığında ilk (tek) grubun bilgileri otomatik görünür. | Başka bir grup seçilirse güncellenir. | 10 | 8 | 10 / 40 | 11 / 30 | 18 / 21 | Her grup için cevap / üye sayısı | Sayfa açıldığında ilk (tek) grubun bilgileri otomatik görünür. | Başka bir grup seçilirse güncellenir. | Yayınlanmış bir anket yayından çekilirse, varsa tüm cevapları silinir; (o nedenle en az bir cevap var ise uyarı yapılır ve sonrasında cevaplar silinip) yayından çekilir. | Bu durumda anket edit edilebilir (hatta silinebilir) duruma gelmiş olur.
+
+=== Slide 51 ===
+Finale
+
+=== Slide 52 ===
+Issues | Notifications nasıl yönetilecek? | Keyboard kullanılan yerlerde minimize – maximize standart olacak | Bilgi girilecek yere tıklayınca numpad ya da klavye otomatik açılacak | Minimize icon'una tıklandığında küçülecek | Klavye ya da numpad içeren tüm örneklerde aynı şekilde olacak | veritabanında ülke country_code, bayrak, minimum ve maksimum tel no uzunluğu | Bazı sayfalarda yapısal nedenle BACK butonu yok (uygulamadan swipe ile çıkılabilir), o sayfalara Quit butonu koymalı mı? | ek bir id konulacak. telefon no değişikliği log ile kayıt altına alınacak
+
+=== Slide 53 ===
+XXXX 01 | Rehberime Ekle | xxxxxxxxxxx | Arama Sonrası Rehbere Kayıt: | Benden Onay İstensin | Herkes | Onayla | Organize Gruba Gönderme | gönder | Description | Seni Rehberine Eklemek İstiyor: | Telefonu: +90 555 55 55 55 | Adı Soyadı: John Doe | Mesaj gönderebilsin | Sesli Arayabilsin | Görüntülü Arayabilsin | Ret | Secildiginde, o kişinin contact sayfasi çıkar, oradaki GeriDön okuna basılır ise yeniden bu sayfaya döner. | ÖRNEKLERİN OLDUĞU SAYFA | Bu ekrana geldiği yer
+
+=== Slide 54 ===
+Resources | Invisible | Static Visible | Dinamik Visible | Done
+
+=== Slide 55 ===
+NOTE | ENABLED / DISABLED modeli kullanılacak. | Burada bir örnek var. | ÖZELLİKLER: | MEMBERS ONLY (CLOSED GROUP) | FORMAL GROUPS | FLEXIBLE AND PRIVATE SOCIETIES | GROUP CHATTING IN SOCIETIES | MESSAGING &amp; VOICE CALL &amp; VIDEO CALL | SECURE | E2E ENCRYPTED | PRIVACY THROUGH ENCRYPTED MESSAGES AND CALLS | EASY TO USE

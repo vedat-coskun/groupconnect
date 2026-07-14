@@ -1,0 +1,238 @@
+Özet
+CampusConnect, bir organizasyona içindeki kişiler arasında iletişime olanak sağlayacak şekilde kapalı devre çalışan, (mesaj, sesli görüşme ve görüntülü görüşme içeriklerini uçtan uca şifrelenmiş şekilde göndere(bil)cek şekilde) güvenli, hem (organizasyon yönetimi tarafından tanımlanacak) organize gruplar hem de (herhangi bir kullanıcının oluşturabileceği) özel gruplar içindeki kişilerin Akıllı Telefonları üzerindeki CC uygulaması üzerinden iletişim kurulabilmesini hedefleyen bir iletişim platformudur.
+CampusConnect, (aşağıda bazı örnekleri verilmiş olan) farklı tipteki organizasyonlar tarafından kullanılabilecek jenerik bir uygulamadır. 
+Üniversite içinde kullanıldığında:
+Roller: akademisyen, öğrenci
+Organize Grup Örnekleri: Fakülte, Bölüm, Ders, Öğrenci Kulübü, Tün Akademisyenler, Tüm Öğrenciler
+Özel Grup Örnekleri: Arkadaş Grubu
+Site içinde kullanıldığında:
+Roller: idari personel, ev sahipleri, sakinler
+Organize Grup Örnekleri: İdari Personel Grubu, Ev Sahipleri Grubu, Oturanlar Grubu, 
+Özel Grup Örnekleri: Arkadaş Grubu
+Dernek içinde kullanıldığında:
+Roller: Yöneticiler, İdari Personel, Üyeler
+Organize Grup Örnekleri: Yönetim Kurulu, Üye Grubu, Belirli Konulardaki Çalışma Grupları
+Özel Grup Örnekleri: Çalışma Grupları
+CampusConnect Projesinin Beklenen Faydaları
+İletişim Ortamı: Bir Organizasyon içindeki kişilerin kendi aralarında yazılı, sesli, görüntülü iletişimi için kullanılabilecektir.
+Kapalı Çevrim İletişim Yapısı: Organizasyon üyeleri, Yönetici tarafından (web uygulama üzerinden) tanımlanacak olup, CC yalnızca tanımlı üyeler tarafından ve diğer üyeler ile iletişim amaçlı olarak kullanılacaktır.
+Güvenlik konusunda halen iki alternatif arasında değerlendirme yapılmaktadır. Bu konuya ilişkin bir parametre, örneğin bir Üniversite tarafından kullanılma durumunda öğrencilerin kendi aralarında ya da akademisyenlerin kendi aralarındaki iletişimin özel (private) olabileceği, fakat bir akademisyen ile öğrenci arasındaki iletişimin gerektiğinde yasal kovuşturmaya konu olabileceği konusudur.
+Seçenek 1: Kişiler arasındaki tüm iletişim uçtan uca şifreli olarak gerçekleştirilecektir. Verilerin P2P (peer-to-peer) yerine veya bunun yanı sıra sunucu üzerinden iletilmesi ya da sunucuda saklanması durumunda dahi, bu bilgiler dış erişime tamamen kapalı olacaktır. Böylece her bir iletişim verisi yalnızca gönderici ve alıcı(lar) tarafından, kendi akıllı telefonları üzerinden görüntülenebilecektir.
+Seçenek 2: Organizasyon bünyesinde tanımlanacak gruplardaki üyeler arasında gerçekleşen iletişim, tıpkı Seçenek 1’de olduğu gibi uçtan uca şifreli ve gizli olacaktır. Ancak farklı grupların üyeleri arasında gerçekleşen iletişime ait meta veriler, yalnızca adli makamlarca resmi talep durumunda iletilebilecek; bunun dışında iletişim içeriklerine hiçbir şekilde erişim sağlanamayacaktır.
+Bir kullanıcı, üyesi olduğu birden fazla organizasyonun da CampusConnect’i kullanması durumunda birden çok kullanıcı adı ile bu sisteme üye olabilir. Böyle bir durumda bu kullanıcı CampusConnect’i Telefonuna bir kez yükleyecek, fakat her bir organizasyon ile ilgili işlem yapmak üzere ayrı ayrı login yapacak, bağlı olduğu organizasyonlardaki kullanım birbirinden tamamen yalıtılmış olarak gerçekleşecektir.
+Soru: Aynı anda birden çok organizasyona login yapabilecek mi, yoksa login yapmış olduğu organizasyondan çıkmadan diğer bir organizasyona ilişkin işlem yapamayacak mı?
+Kullanıcılar her bir organizasyon için CampusConnect’e aşağıdaki iki seçenekten birisi (organizasyon’un admin’i tarafından belirlenecek şekilde) ile login yapabilecektir:
+eposta: Üniversite ya da Firma gibi her üyenin eposta sahibi olduğu durumlarda kullanılacaktır.
+telefon numarası: Dernek ya da Site gibi kurumsal bir eposta üyeliği söz konusu olmayan durumlarda kullanılacaktır. Buna karşın Telefon Numarası CampusConnect tarafından internal olarak kullanılacak, UserDiscovery ya da diğer işlemlerde hiç bir şekilde diğer üyelere görünür olmayacaktır.
+Bu durumda kullanıcıların diğer üyelere görünür kimliği (Visible Identifier) admin tarafından belirlenerek kişilere atanacaktır.
+Soru: eposta kullanılması durumunda da kullanıcının telefon numarası zorunlu olsa ve böylece -her ne kadar bir kişinin farklı organizasyonlardaki iletişimleri birbirinden yalıtılmış olarak gerçekleşse de- aynı kişinin farklı organizasyonlardaki aynı kişi olduğunun bilinmesi iyi midir?
+Çözülmesi Amaçlanan Problemler (Üniversite Örneği)
+Üniversiteler, gençlerin bir yandan kendilerini profesyonel ve sosyal olarak geliştirme fırsatını buldukları, diğer yandan da büyük bir arkadaş grubu potansiyeli içinde keyifli zamanlar geçirebilecekleri inanılmaz bir yapıdır. 
+Üniversiteler dinamik insanların bir arada olduğu ve dinamik olarak ders, proje çalışması, tez çalışması, grup çalışması ve ders dışı diğer aktivitelerin yüksek tempoda gerçekleştiği bir eğitim ve eğlence ortamıdır. Hızlı, Güvenli ve Gizli iletişim, bu ortamdan en büyük faydanın elde edilmesi için gerek şarttır.
+Üniversite yönetimleri, derslerin etkinliğini yüksek tutmak için bazıları yaygın, bazıları açık kaynaklara dayalı (moodle), bazıları yerel çözüm içeren web ve mobil arayüzlere sahip uygulamalar kullanmaktadır. Genellikle bir dersin öğretim üyesinin dersi alan öğrencilere eposta ya da web tabanlı mesaj gönderiminden ya da web üzerindeki duyurulara dayanan bu iletişim şekli üniversitelerdeki dinamik ihtiyaçları karşılamaktan uzak kalmaktadır. Ders içi duyurular ve öğretim üyesi mesajları birçok öğrenci tarafından ya hiç okunmamakta ya da önemli gecikmelerle fark edilmektedir. 
+Eposta ya da web tabanlı iletişimin karakterinden ve kişilerin bu ortamları kullanma alışkanlıklarından kaynaklanan gecikmeli iletişim (ders iptali gibi) bazı durumlarda mesajın zaman kritik yapısı ile insanların alışkanlıkları arasındaki uyumsuzluk nedeni ile amacına ulaşılamamakta (ve örneğin iptal edilmiş derse öğrenciler yine de gelmekte), ya da karşılıklı birkaç mesajlaşma gerektiren iletişim ihtiyacında gönderme – alma arasındaki zaman farkı ya da yalnızca metin tabanlı iletişim özelliği, kişiler arasında istenen bilginin aktarılması mümkün olmamaktadır.
+Öğretim üyeleri, gecikme yaşamamak ya da daha iyi anlaşmak üzere öğrencilerle hızlı iletişim kurmak istediklerinde kişisel cep telefonu numaralarını paylaşmak zorunda kalmakta, bu durumda bir yandan öğretim üyeleri istemeseler de telefon numaralarını paylaşmak durumunda kaldığı için kişisel gizlilik (privacy) ihlal edilmekte, hem kurumsal iletişim, kurumsal yapıların dışına çıktığı için uygunsuz bir durum oluşabilmekte, hem de diğer kurumsal iletişim ve veri yapıları ile entegre olmayan yeni kanallar açılması nedeni ile etkin olmayan bir süreç kullanılmış olmaktadır.
+Öğrenciler kendi aralarında iletişim kurabilmek için her zaman NIICS uygulamalarına yönelmekte, bu da Üniversite içindeki kişiler ile bir NIICS (kurumsal olmayan anlık iletişim uygulamaları; WhatsApp, Telegram, vb.) üzerinden iletişim kurmanın Dezavantajları bölümünde anlatılan dezavantajları yaratmaktadır.
+Yukarıda özet olarak verdiğimiz problemlerin detayları aşağıda verilmiştir: 
+E-posta ve Web Tabanlı Mesajlaşmanın Etkisizliği: Üniversitelerin mevcut iletişim sistemleri (e-posta, web platformları) öğrenciler tarafından düzenli kullanılmadığı için iletilen mesajlar genellikle hiç okunmamakta veya çok geç ulaşmaktadır. Bu da bilgi akışında ciddi aksamalara sebep olmaktadır.
+Moodle veya Mevcut LMS Üzerinden Anlık İletişimin Zor Olması: Mevcut sistemler materyal ve resmi duyuru paylaşımı için uygundur, ancak öğrenci-öğretim üyesi arasında hızlı ve doğrudan iletişimi doğal bir şekilde desteklememektedir.
+Öğretim Üyelerinin Telefon Numarası Paylaşımı Zorunluluğu: Öğretim üyeleri acil iletişim ihtiyacında kişisel telefon numaralarını paylaşmak zorunda kalmakta, bu da gizlilik ve güvenlik sorunlarına yol açabilmektedir.
+Kurumsal İletişim Araçlarının (Teams vb.) Uygunsuzluğu: Microsoft Teams gibi kurumsal araçlar, lisans maliyetleri, kullanıcı karmaşıklığı ve öğrenci dostu olmamaları nedeniyle üniversitelerde yaygın kullanılamamakta; bu araçlar, öğrenci-öğretim üyesi arası hızlı ve doğal iletişimi desteklememektedir.
+Mevcut Üniversite Sistemleri Arasında Entegrasyon Eksikliği: LMS, ERP ve Öğrenci Bilgi Sistemleri gibi yapılar arasında gerçek zamanlı ve çift yönlü entegrasyon eksikliği, iletişimi manuel ve dağınık hale getirmekte; bu da iletişim kalitesini ve veri yönetimini olumsuz etkilemektedir.
+Gizlilik ve Güvenlik Riskleri: Geleneksel iletişim yöntemlerinde kullanıcı verileri korunamamakta, kişisel bilgiler ve yazışmalar üçüncü taraflara açık kalabilmektedir.
+Öğrenciler ve Öğretim Üyeleri Arasında Doğrudan Erişim Eksikliği: Ders bazlı asenkron iletişim yerine anlık, iki yönlü ve birebir iletişim kanalı ihtiyacı bulunmaktadır.
+Telefon Numarası ve Kişisel Bilgilerin Korunamaması: WhatsApp gibi platformlarda telefon numarası paylaşımı zorunlu olup, bu durum GDPR gibi veri koruma düzenlemeleri açısından risk taşımaktadır.
+Öğrenciler Arasındaki Organize Olmayan İletişim: Öğrenciler arası iletişim genellikle WhatsApp gibi kişisel platformlara kaymakta; bu platformlarda gruplar resmi olmayan yapılarla oluşturulduğundan, bazı öğrenciler dışlanabilmekte ve bilgi paylaşımı düzensiz olabilmektedir.
+Organize Olmamış Grup İletişimi: Ders veya proje grupları, genellikle manuel ve resmi olmayan şekilde oluşturulduğu için eksik ya da hatalı grup yapıları ortaya çıkmakta; bu da hem güvenlik açıklarına hem de güncel bilginin sağlanamamasına neden olmaktadır.
+Resmi Olmayan İletişim Kanallarının Riskleri: Üniversiteler, WhatsApp gibi kontrolsüz platformlarda bilgi sızıntısı, yanlış bilgilendirme ve güvenlik açıklarına karşı savunmasız kalmaktadır.
+[TABLE]
+ Üniversite içindeki kişiler ile bir NIICS üzerinden iletişim kurmanın DezavantajlarıGizlilik Sorunları: NIICS platformlarında kullanıcı verileri merkezi sunucularda saklanabilir, bu durumda üniversite içi iletişimde gizliliğin tam kontrolü sağlanamayabilir.Erişim Kontrolünün Zayıflığı: NIICS platformları tüm internet kullanıcılarına açık olabilir ve bu durumda üniversite dışından yetkisiz erişim riskleri doğabilir.Veri Güvenliği Riskleri: Mesajların, dosyaların veya kullanıcı bilgilerinin üçüncü taraflar tarafından ele geçirilme riski artar.Telefon Numarası ve Kişisel Veri Paylaşım Zorunluluğu: Bazı NIICS sistemlerinde kullanıcıların kişisel verilerini (telefon, e-posta vb.) paylaşması gerekir.Yönetim Zorluğu ve Denetim Eksikliği: Üniversite, NIICS platformları üzerinde tam kontrol sahibi olmadığından dolayı kullanıcı gruplarının, mesajlaşmanın ve içeriklerin yönetimi sınırlı kalır.Kullanıcı Deneyimindeki Memnuniyetsizlik: NIICS platformları çok amaçlı tasarlandıkları için üniversite ortamına göre fazla karmaşık ve kullanıcı dostu olmayan bir deneyim sunabilir.Organizasyonel Yapı Kurma Problemleri: Üniversiteye özgü ders, bölüm, fakülte gibi hiyerarşik yapılar NIICS platformlarında doğrudan desteklenmeyebilir.Performans Problemi: NIICS platformlarındaki yoğun kullanım ve genel kullanım alışkanlıklarına bağlı performans kayıpları, üniversite kullanıcılarını da olumsuz etkileyebilir.Engellenme Problemi: Bir NIICS platformunun idari makamlarca tamamen veya kısmen engellenmesi ya da yavaşlatılması, bu durumla ilgisi olmayan üniversite kullanıcılarını da etkileyebilir.Teknik Sorunlar: Belirli kullanıcıların kendi cihazlarından veya bağlantılarından kaynaklanan teknik problemler nedeniyle NIICS erişiminde yaşanacak kesintiler, bu kullanıcılarla iletişimi imkânsız veya zor hale getirebilir.Politikalar ve Regülasyon Uyumsuzluğu: Üniversitenin veri koruma ve gizlilik politikaları, kullanılan NIICS platformlarının küresel veri işleme standartlarıyla uyumsuz olabilir. Bu durum, yasal sorumluluk ve uyum risklerini artırır.Kullanıcı Kimlik Doğrulama Zorlukları: NIICS platformlarında kullanıcı doğrulaması dış sistemlere bağlı olduğundan, gerçekten üniversite mensubu olup olmadığı tam garanti edilemeyebilir. Sahte kimlikli kullanıcılar riski vardır.Özelleştirme ve Esneklik Eksikliği: Üniversitenin özel ihtiyaçlarına (örneğin, farklı fakülteler arası mesaj sınırları, akademik takvime göre grup yapıları) göre uyarlamalar NIICS üzerinde mümkün olmayabilir veya sınırlı kalabilir.Bağımlılık Riski: Üniversite iletişim süreçleri dış bir NIICS sağlayıcısına bağımlı hale gelir. Sağlayıcı politikası değişirse veya hizmet kesilirse üniversitenin iletişim altyapısı zarar görebilir.Platform Kullanımının Yaygın Olmaması: Belirli öğrencileri bir grupta bir araya getirmek istendiğinde, ilgili NIICS platformunun tüm öğrenciler tarafından aktif olarak kullanılmaması durumunda iletişim kurulamayan kişiler olabilir, ya da bu kişiler istemeden yeni üyelikler katlanmak zorunda kalabilir.
+[/TABLE]
+Use Case List
+Rehber:
+Organizasyon içindeki tüm kişilerin listesi
+xxxxx 
+Contact List:
+Bir kişi ile iletişim kurmak için, öncelikle o kişiyi Contact List’e eklemek gerekir. 
+Contact List iki tür kişi barındırabilir: (XXXXX????)
+Geçici (yalnızca erişim amaçlı olarak eklenen kişiler)
+Daimi (Rehberde her zaman görünmesi istenen kişiler)
+Contact List, başlangıçta ne şekilde olmalı? Seçenekler:
+Boş olabilir.
+Öğrencinin aldığı derslerin hepsindeki tüm öğrenciler olabilir.
+Öğrencinin bölümündeki tüm öğrenciler olabilir.
+Tüm Üniversite öğrencileri olMAMALI bence.
+Bir öğrenci tarafından Contact List’e öğrenci eklemek için, User Discovery işlemi gerçekleştirilir.
+Bir kişi UD’de görünür olmamayı Ayarlar’da seçebilir, bu durumda görünmez olur.
+Ders – Grup – Community:
+Birden çok öğrenci içeren aşağıdaki yapıların ortak ve farklı olan yönleri mevcuttur:
+Ders
+Admin tarafından yaratılır ve dönem sonuna kadar kalıcıdır
+Admin tarafından üyeleri belirlenir
+Giriş / çıkış söz konusu değildir.
+Bir ders içindeki herkes diğer herkes için visible’dır. (Öyle mi yapalım?)
+Grup
+Tüm Öğrenciler, Fakülte Öğrencileri, Bölüm Öğrencileri gibi ders dışındaki oluşumlar.
+Admin tarafından üyeleri belirlenir
+Giriş / çıkış söz konusu değildir.
+Bir Grup içindeki herkes diğer herkes için visible’dır. (Öyle mi yapalım?)
+Community
+Öğrenci (community admin) tarafından yaratılır ve silinebilir, başka kişi de community admin yapılabilir.
+Herkese açık ya da Kısıtlı üye kabul edebilir.
+Onay gerektirmeyen ya da Gerektiren üyelik olabilir
+Üye olanlar, ayarlara bağlı olarak birbirine visible (ve discoverable) olabilir ya da olmayabilir. (epostadaki cc ile bcc farki gibi)
+Temporary Community (?)
+Bir kişinin kişisel olarak birden çok kişi ile aynı anda mesaj, konuşma, görüşme yapabilmek için birden çok kişiyi bir arada tanımlama yapısıdır.
+(Temporary Community üyeleri birbirleri ile mesajlaşabilir mi, Community ile benzetsek mi bilemedim)
+CampusConnect Kullanım Durumları, bu kullanımı başlatan role göre gruplanmış şekilde aşağıda yer almaktadır.
+Öğrenci Tarafından Başlatılanlar:
+Bir kullanıcıyı bulması (User Discovery): Bir kullanıcı, üniversitedeki herhangi bir kullanıcıyı iki şekilde bulabilir:
+Kullanıcı Listesi İçinden Seçerek: Kullanıcı listesi kullanıcı türü (akademisyen – öğrenci), fakülte / bölüm, ders / grup ismi, mark (ilerde anlatılmaktadır) ile filtrelenebilir ve sonra numara, ad+soyad, soyad+ad ile sıralandıktan sonra içinden bir kişi seçilebilir.
+Arama Yaparak: Ad, Soyad, Numara ile arama (pattern matching) görünen liste içinden bir kişi seçilebilir.
+Diğer öğrenciler tarafından bulunabilmesine ilişkin User Discovery görünürlüğünü belirlemesi ve güncellemesi: Bir öğrenci, hangi öğrenciler tarafından bulunabilir olacağını belirleyebilir.
+Bulunan bir kişinin CL’e eklenmesi: Bir Öğrenci bulduğu kişiye davet gönderir ve bu davet kabul edilir ise o kişi Rehbere eklenir.
+Rehberdeki bir kişiye / gruba / community’ye:
+Mesaj Göndermesi
+Sesli Arama Yapması
+Görüntülü Arama Yapması
+Sesli ya da Görüntülü arandığında Kabul / Red etmesi
+Grup:
+Özel Grup Kurması: Bir öğrenci, kendi belirlediği öğrenciler veya akademisyenlerle özel bir grup oluşturabilir.
+Bir Gruba Katılması: Öğrenci, davet aldığı özel bir gruba katılabilir veya isteğe bağlı olarak katılmaktan vazgeçebilir.
+Grup Üzerinden İletişim Kurması: Öğrenci, üyesi olduğu bir grup üzerinden mesaj gönderebilir, sesli ya da görüntülü grup araması başlatabilir.
+Community:
+Community Kurması: Bir öğrenci, dilediği şekilde grup kurabilir ve bu durumda o Community’nin admin’i olur.
+Kimlerin katılmayacağı konusunda filtre koyabilir. Bu filtre kategorik ve / veya kişi bazlı olabilir.
+Görünür / görünmez yapabilir.
+Kullanıcıları, Admin olduğu Community’nin davet etmesi: 
+Admin, Contact List’indeki kişilere davetiye gönderebilir.
+Admin Fakülte (ler) ile Bölüm (leri) seçerek topluca davet broadcast edebilir.
+Bir Community’ye Katılması: Kendisine davet gelen kişi, ACCEPT edebilir.
+xxxx
+Akademisyen Tarafından Başlatılanlar:
+Dersindeki (tüm ya da seçtiği) Öğrencilere Mesaj Göndermesi: Öğretim üyesi, dersindeki tüm öğrencilere veya belirli bir öğrenci grubuna mesaj gönderebilir.
+Dersindeki (tüm ya da seçtiği) Öğrenciler ile sesli ya da görüntülü arama (konuşma / sohbet) yapması: Öğretim üyesi, ders grubundaki öğrencilerle birebir ya da grup halinde sesli veya görüntülü görüşme başlatabilir.
+Özel Grup Kurması: Öğretim üyesi, ders dışı bir çalışma grubu (örneğin bir proje grubu) oluşturabilir.
+Öğrencileri Bir Gruba Davet Etmesi: Öğretim üyesi, oluşturduğu özel gruba öğrencileri doğrudan davet edebilir.
+Admin Tarafından Başlatılanlar:
+Kullanıcıları ve Grupları Sisteme Tanıtması: Kullanıcılar, Excel tablo üzerinden robotik süreç, ya da web form üzerinden manuel süreç ile kaydedilecektir (registration phase)
+Ders ve Bölüm Bazlı Grup Yapılarını Oluşturması: Admin, fakülte, bölüm, ders bazlı grupları oluşturur ve kullanıcılara otomatik olarak atar.
+Gizlilik ve Kullanıcı Ayarlarının Yönetimi: Admin, sistem genelinde geçerli olacak gizlilik politikalarını ve kullanıcı erişim ayarlarını belirleyebilir.
+Sistem Performansını ve Erişim Loglarını İzlemesi: Admin, CC sisteminin erişim kayıtlarını ve performans verilerini izleyerek sistem sağlığını takip eder.
+CampusConnect Projesinden Beklenen Faydalar
+Öğrenciler Açısından:
+Üniversitedeki herhangi bir öğrencinin erişim kanalını Rehber’den -ad, soyad, numara vb.- arama parametrelerini kullanarak bulabilirler.
+Erişim Kanalını buldukları herhangi bir öğrenciye -bu öğrenci tarafından bir engelleme yapılmamış olması durumunda- mesaj gönderebilirler, sesli ya da görüntülü arayabilirler.
+Kendilerini arayan herhangi bir öğrenci, öğretim elemanı ya da idari personelin mesajını okuyabilirler, sesli ya da görüntülü çağrısına karşılık verebilirler.
+Diledikleri kişinin kendisine mesaj, sesli arama, görüntülü arama çağrılarında bulunmasını engelleyebilirler.
+Bir dersi alan, bir sınıftaki, bir bölümdeki, bir aktivite grubundaki, ya da diğer amaçlarla oluşturulmuş olan herhangi bir grubun tamamına mesaj gönderebilirler. (ses ya da video?)
+Diğer öğrenciler ya da personel ile iletişim kurmak için cep telefon numaralarını paylaşmalarına gerek yoktur.
+Pek çok konuda hızlı bilgilenirler. Örneğin:
+İçinde bulundukları bir gruptan paylaşılan mesajları görebilirler.
+Örneğin bir dersin iptal edildiği bilgisini öğretim elemanından anlık olarak alabilirler.
+Öğretim Elemanları Açısından:
+Herhangi bir öğrenciye hızla ulaşabilir.
+Sınıfındaki öğrencilere herhangi bir duyuruyu hızlıca yapabilir, örneğin dersini İptal edeceği bilgisini anlık olarak sınıftaki öğrencilerle paylaşabilir
+Yaptığı bir duyuruyu kimlerin okuduğunu anlayabilir
+Bir öğrencinin sorusuna verdiği cevap tüm öğrenciler tarafından görülür.
+Üniversite Yönetimi Açısından:
+Yalnızca öğrenciler ile personelin kendi aralarında iletişim kurabileceği bir platforma sahip olur
+Öğrenciler ile hocalar arasında o hızlı iletişim sayesinde dersler daha etkin şekilde işlenir
+Öğrencilerin üniversiteye aidiyeti artar
+Öğretim ile ilgili hızlı olarak iletilmesi gerekli olan duyuruları paylaşabilir
+Personel ya da öğrenci ekleme ya da çıkarma işlemini hızlıca gerçekleştirebilir
+Üniversitenin öğrenciler ile ilgili Moodle, LMS, OIS ve benzeri sistemleri ile bütünleşmiş (integrated) çalışacak olan CC, masadaki önemli bir eksikliği tamamlamış olacaktır. 
+Ana Özellikler
+CPC, mevcut mesajlaşma yapılarının sahip oldukları özellikleri sağlarken, aşağıdaki Yenilikçi Özellikleri ile ayrışacaktır. Karşılaştırma, CPC tarafından yalnızca Kurumsal Kullanıcılara hizmet vereceği göz önüne alınarak yalnızca Kurumsal süreçler dikkate alarak yapılmıştır.
+[TABLE]
+Özellik | Teams | WhatsApp Business | CC
+Ana Amacı | Kurumsal İş birliği ve Toplantılar | İşletmeler ile Müşteriler arasında İletişim | Eğitim Kurumları içinde özel iletişim
+Kayıt Olma | Mümkün | WhatsApp Business ile mümkün | Yalnızca Yönetici tarafından yapılabilir.
+Kayıt Silme | Yalnızca Yönetici tarafından yapılabilir. | Yalnızca Yönetici tarafından yapılabilir. | Yalnızca Yönetici tarafından yapılabilir.
+Kurumsal Hiyerarşik Yapı | Mümkün |  | Mümkün
+Özel Grup oluşturma | Mümkün | Mümkün değil | Mümkün
+UserID | Kurumsal Eposta Adresi | Telefon numarası zorunlu (kişisel veri paylaşımı gerekir) | Kurumsal Eposta Adresi
+Gizlilik |  |  | 
+User Discovery |  | Herkese açık | Yalnızca üniversite içi roller bazında filtrelenebilir XXXX
+Uçtan uca şifreleme |  |  | Evet
+Hedef Kurum Tipi | Her türlü kurum | Her türlü kurum | Öncelikle eğitim kurumları, sonra büyük ölçekli üretim (fabrika, atelye) ve hizmet kurumları
+Kapalı Devre | Evet |  | Evet
+Kurumsal Entegrasyon | Evet | Hayır | Evet (özelleştirilebilir API’lar ile)
+Ağ Bağımsızlığı | Microsoft Azure Cloud | WhatsApp Servers | CC Cloud / Kendi sunucusunda çalışabilir
+Tele Konferans | Evet | Evet | Evet
+Ücret | Microsoft 365 Lisansı ile | Yalnızca opsiyonel API'leri ücretli | Düşük
+Kullanıcı Dostu | Orta (karmaşık yapı, eğitim gerektirir) | Yüksek | Yüksek (öğrenci ve eğitmen odaklı sade arayüz)
+Bireysel Mesajlaşma | Var | Var | Var
+Grup Mesajlaşma | Var (kanallar, takımlar) | Var (basit grup sohbeti) | Var (özel grup, ders, bölüm, fakülte, genel)
+Sesli Bireysel Görüşme | Var | Var | Var
+Sesli Grup Görüşmesi | Var (ileri düzey toplantı) | Sınırlı (küçük gruplar) | Var (küçük ölçekli)
+Görüntülü Bireysel Görüşme |  Var | Var | Var
+Görüntülü Grup Görüşmesi | Var (gelişmiş toplantılar) | Sınırlı | Var (küçük ölçekli)
+Ekran Paylaşımı | Var | Yok | Yok
+Dosya Paylaşımı | Var | Var | Var
+Görev Yönetimi (To-Do / Tasks) | Var (Planner entegrasyonu) | Yok | Yok
+Takvim Entegrasyonu | Var (Outlook entegrasyonu) | Yok | Yok
+Bot ve Uygulama Entegrasyonu | Var | Sınırlı (API ile mümkün) | Yok
+Şifreli Mesajlaşma | Temel seviye | Uçtan uca şifreleme | Uçtan uca şifreleme
+Kullanıcı Yönetimi | Gelişmiş rol ve izin yönetimi | Basit kullanıcı yönetimi | Temel (Admin + kullanıcı)
+Üniversite Yapısına Göre Grup Yapısı | Yok (manüel yapılır) | Yok | Var (otomatik ders/bölüm/fakülte bazlı)
+Özelleştirilebilirlik | Yüksek (kanallar, eklentiler) | Sınırlı | Sınırlı (basit kullanım)
+[/TABLE]
+Campus Connect projesinin temel özellikleri:
+Üniversiteler için özel olarak tasarlanmıştır.
+Bireysel ya da Grup olarak hızlı ve etkili mesajlaşma, sesli konuşma ve görüntülü görüşme yöntemleri desteklenir.
+Öğrenci ve Akademisyen olmak üzere iki Kullanıcı Türü vardır.
+Kullanıcılar sisteme CC Sistem Yöneticisi (admin) tarafından eklenir (registration) ya da eksiltilir (removal).
+Kullanıcılar üniversite e posta ve şifresini kullanarak login olurlar.
+Akademisyenler ya da Öğrencilerin projeyi kullanmak için cep telefon numaralarını vermeleri gerekmez.
+Mesajlar tercihe bağlı olarak yalnızca uygulamalar arasında e2e şifreli olarak, ya da sunucu üzerinden iletilebilir; 
+Telefon Numarası ya da Kişisel E-posta Paylaşımı Gerekmeden Anlık Mesajlaşma
+Kullanıcılar birbirine kişisel verilerini paylaşmadan mesaj gönderebilir
+Gizliliğe önem verilir: Kullanıcı adı, öğrenci numarası, ders kaydı gibi iç sistem verileri üzerinden kişi tanımlanır.
+Şifreleme ile yazışmaların üçüncü kişiler (sistem yöneticileri dahil) tarafından görüntülenememesi sağlanır
+Anlık Bireysel ve Grup Mesajlaşma
+Gerçek zamanlı sohbet altyapısı (Firebase Realtime Database veya Firestore tabanlı kurulabilir).
+1’e 1 mesajlaşma ve çok kullanıcılı grup sohbetleri desteklenir
+Grup içi @mention sistemi ile bireyler etiketlenebilir?
+Mesajlara dosya, görsel, bağlantı, belge eklenebilir?
+Hiyerarşik Grup Yapısı
+Üniversite yapısına uygun katmanlı gruplar otomatik oluşturulur veya yönetici tarafından tanımlanabilir. Bunlar örnektir:
+Düzey 1: Bir Derse Kayıtlı Öğrenciler
+Düzey 2: Bir Bölüm Öğrencileri
+Düzey 3: Bir Fakülte Öğrencileri
+Düzey 4: Tüm Üniversite Öğrencileri
+Bu yapıların bir kısmı ERP ya da LMS üzerinden otomatik oluşturulabilir.
+Öğretim Üyeleri ve Yetkili Kullanıcılar İçin Özel Yetkiler
+Hocalar, proje grubu, araştırma ekibi gibi özel gruplar oluşturabilir.
+Bildirim gönderme, grup içeriğini yönetme, grup üyelerini ekleme ve çıkarma gibi yetkileri bulunur
+Bildirim ve Uyarı Sistemi
+Push bildirimler kullanıcıya anlık olarak iletilir
+Bildirimler:
+Yeni mesaj
+Yeni grup oluşturma
+Duyuru / bildiri paylaşımı
+Sistem güncellemeleri
+Firebase Cloud Messaging (FCM) kullanılabilir. Alternatiflere de bakabiliriz
+Güvenlik ve Gizlilik (Şifreli İletişim)
+Tüm yazışmalar uçtan uca şifrelenir. Gruplar dahil şifrelenecektir.
+Mesajlar dışa aktarılamaz / ekran görüntüsü koruması konulabilir mi.
+Uygulama yöneticileri ve hoca dahi mesajlara erişemez
+ERP / Öğrenci Bilgi Sistemi / LMS Entegrasyonu
+Üniversitenin mevcut altyapısıyla entegre çalışır:
+Kullanıcı bilgileri (isim, mail, numara, bölüm vs.)
+Ders / sınıf / section listesi
+LMS üzerindeki sınıflar ve yüklenen içerikler (örn. Moodle)
+API ya da veri aktarımı yoluyla bu bilgilerle dinamik gruplar oluşturulabilir.
+Tanımlar
+[TABLE]
+User DiscoveryBir kullanıcı tarafından başka bir kullanıcının erişim bilgilerinin arama yolu ile (access-code) edinebilmesi süreci, User Discovery olarak tanımlanır. Visibility (Görünürlük, Görünür Olma)Bir öğrenci (Alice), başka bir öğrenci ile iletişim kurmak istediğinde, bu kişinin erişim bilgisine (access-code) sahip olmalıdır. Alice tarafından Bob’un erişim bilgisinin elde edilmesi için iki seçenek vardır:Bob tarafından erişim kodunun Alice’e iletilmesi. CC üzerinden iletilmesi için öncelikle Alice’in Bob için Görünür olması gerekir.Başka bir kanaldan (sesli olarak, epostai ile, sms ile, başka bir NIICS üzerinden vb.)  iletilebilir.Alice tarafından UD gerçekleştirilmesi.Bob’un Görünür olması gerekir.Opt-out: Başlangıçta herkes Görünür olursa, kendi ayarlarını değiştirene değin Görünür olan bir kullanıcı açısından privacy problemi söz konusudur.Opt-In: Başlangıçta herkes Görünmez olursa, ayarlarını değiştirene değin kullanıcıların Görünmez olmaları sistemin etkinliğini azaltır.Görünürlük ayarlarında aşağıdaki gibi farklı yaklaşımlarda bulunulabilir. Sadece aynı bölümdeki öğrencilere Görünür olma,Sadece kayıtlı olunan derslerdeki öğrencilere Görünür olma,Hiçbir öğrenciye görünür olmama,Sadece seçili öğrencilere Görünür olma.. . Kullanıcının tercihlerini kolay yapabilmesini sağlamak üzere, filtreleme ekranında kullanıcıya esnek olarak seçim yapmasını sağlayacak seçenekler görüntülenecektir. Örnek olarak:Bölüm bazlı tercih checkbox’ı görüntülecek, seçilirse bölümler bir liste olarak çıkacak, en üstte kendi bölümü, yanındaki checkbox default olarak Seçili olacaktır.Ders bazlı tercih checkbox’ı görüntülecek, seçilirse kendisinin almakta olduğu dersler default olarak seçili olarak görüntülecektir.Seçili öğrencilere görünür olma konusunda bir risk var. Başlangıçta herkes Görünmez olur ise, hiç kimse başka öğrenciyi Görünür olarak seçemeyecektir.Görünürlük ayarları, kullanıcı deneyimini kişiselleştirmenin yanı sıra, güvenlik ve kolay iletişim ortamı sağlanmasına da katkıda bulunur.EngellemeKullanıcılar bireysel olarak belirli öğrencileri engelleyebilir. Bir öğrenci (Alice) başka bir öğrenciyi (Bob), engeller ise:Bob, UD yaparak Alice’in herhangi bir bilgisini görüntüleyemez. (Not: Bu durum, Alice’in kendi Görünürlüğünde Bob’u hariç tutması ile de sağlanabilir)Bob, Alice’in erişim kodunu kullanır ise Uygulama, “user not found” mesajı döner ve yazılı, sesli, görüntülü iletişime izin vermez.
+[/TABLE]
+[TABLE]
+Organize grup yapısı:Otomatik ve resmi kayıtlarla oluşmuş,Tüm doğru kişilerin grup içinde bulunduğu, yanlış kişilerin olmadığı,Yönetici iradesi dışında dağılmayan veya eksilmeyen,Sistemde belirlenen kurallara uygunbir düzenli iletişim ağı demektir. CampusConnect’te Organize Gruplar:Ders kayıtlarına,Bölüm bilgilerine,Öğrenci ve öğretim üyesi rollerine göre otomatik ve doğru oluşturulacak ve böylece her grup kontrollü, tam katılımlı ve güncel olacaktır.CampusConnect’te Bireysel Gruplar:Herhangi bir CC Üyesi tarafından (Group Admin) oluşturulabilir,İstenen her CC Üyesi davet edilebilir,Davet edilen CC Üyelerinden kabul edenler dahil edilir,Dileyen Grup Üyesi dilediği zaman gruptan ayrılabilir,Grup Admin, dilediği Grup Üyesini dilediği zaman gruptan ayırabilir.
+[/TABLE]
+[TABLE]
+CC – Directory (Rehber)Her kullanıcının telefonu üzerindeki uygulamada oluşturulmuş ve o kullanıcıya özel bir Rehber yer almaktadır; bu rehberde Kişi Kaydı (Personal Contact) ile Grup Kaydı iki ayrı tab’de yer alır.Kişi Kaydı, başka bir arama – bulma vb. gerekmeden iletişim kurabileceği kişilerin bilgilerini içerir:Erişim Anahtarı (Access – code)Ad SoyadÖğrenci NumarasıBölümüRehber Sahibi tarafından eklenen ek bilgilerGrup Kaydı, kişinin ait olduğu grupların bilgilerini içerirErişim Anahtarı (Access – code)Grup AdıGrup Kategorisi (Ders grubu, Bölüm grubu, Fakülte Grubu, Genel Grup, DersHoca grubu, BölümBaşkan Grubu, FakülteDekan Grubu, GenelRektör Grubu, Özel Grup)Rehber Sahibi tarafından eklenen ek bilgilerCC Uygulaması ilk kurulduğunda, aşağıdaki Contact’lar Rehber’e kayıtlı halde olur:KendisiBölüm BaşkanıAkademik DanışmanıBölüm Öğretim ElemanlarıAldığı Derslerin Öğretim Elemanları (içinde bulunduğu döneme ilişkin)Ait olduğu gruplarRehber, yeni kişiler ve gruplar ile genişleyebilirÖğretim Elemanları, User Discovery işlemi sonrasında doğrudan, Öğrenciler ise onay verildiğinde Rehbere eklenebilir; Onay vermiş olan bir öğrenci onayını iptal ettiğinde erişim bilgisi rehberden silinir, fakat diğer bilgileri Contact içinde kalır.Öğrencinin dahil olduğu organize gruplar uygulama ilk kurulduğunda Rehbere eklenir ve süreklidir; tercihe bağlı gruplara ilişkin gelen davetler kabul edildiğinde Rehbere eklenir ve istendiğinde grup terk edilerek rehberden silinebilir.
+[/TABLE]
+[TABLE]
+MarkAdmin tarafından kişilerin kendilerini ait olduğunu işaretleyebileceği İşaret’ler tanımlanır; bu işaretler tutulan bir takım, beğenilen bir sanatçı, sevilen bir renk gibi farklı kapsamlarda tanımlanabilir. Bir Mark’ın tanımlanması için en az 10 kişinin talebi gereklidir. Bir kişi, kendisini tanımlanmış olan Mark’ların istediği kadarı ile markalayabilir.
+[/TABLE]
