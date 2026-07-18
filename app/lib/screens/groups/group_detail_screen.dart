@@ -301,8 +301,19 @@ class GroupDetailScreen extends StatelessWidget {
     return ListTile(
       leading: MemberAvatar(member: m),
       // İsim düzeni tek satır: "Ad SOYAD, Ünvan, Bölüm [rakam]".
-      title: Text(
-        isMe ? '${m.rowLabel(context)} (${s.you})' : m.rowLabel(context),
+      title: Text.rich(
+        TextSpan(
+          children: [
+            m.rowLabelSpan(context),
+            if (isMe)
+              TextSpan(
+                text: ' (${s.you})',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+          ],
+        ),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(fontWeight: FontWeight.w600),

@@ -236,7 +236,7 @@ class ContactDetailScreen extends StatelessWidget {
     if (m.addPolicy == AddPolicy.everyone) {
       state.addContact(m.id);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(s.addedDirectly)),
+        SnackBar(content: Text(s.addedDirectly(m.nameSurnameUpper(context)))),
       );
     } else {
       _showInviteSheet(context, m.id, s);

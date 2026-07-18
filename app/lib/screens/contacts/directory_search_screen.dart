@@ -292,8 +292,8 @@ class _DirectorySearchScreenState extends State<DirectorySearchScreen> {
                               MemberAvatar(member: m),
                             ],
                           ),
-                          title: Text(
-                            m.rowLabel(context),
+                          title: Text.rich(
+                            m.rowLabelSpan(context),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(

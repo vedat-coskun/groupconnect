@@ -55,8 +55,16 @@ class ContactsScreen extends StatelessWidget {
   }
 }
 
-class _PeopleList extends StatelessWidget {
+class _PeopleList extends StatefulWidget {
   const _PeopleList();
+
+  @override
+  State<_PeopleList> createState() => _PeopleListState();
+}
+
+class _PeopleListState extends State<_PeopleList> {
+  // Rol başlığına dokununca o bölüm katlanır/açılır (yalnız bu ekran içinde).
+  final Set<String> _collapsedRoles = {};
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +89,8 @@ class _PeopleList extends StatelessWidget {
         if (favs.isNotEmpty) ...[
           _SectionHeader(s.favoritesTitle),
           // Favoriler içinde de aynı rol sırası (başlıksız, düz).
-          for (final m in _byRoleOrder(context, favs)) _contactTile(context, m),
+          for (final m in _byRoleOrder(context, favs))
+            _contactTile(context, m, removable: true),
         ],
         // Kalanlar rol (kategori) bazında — admin'in tanımladığı rol sırasıyla.
         // Ortak kural: rol (kategori) başlıkları, admin sırasıyla.
@@ -91,8 +100,19 @@ class _PeopleList extends StatelessWidget {
           roles: AppScope.of(context).tenantRoles,
           roleName: AppScope.of(context).roleName,
           row: (m) => _contactTile(context, m, removable: true),
-          header: (t) => _SectionHeader(t),
+          header:
+              (label) => _SectionHeader(
+                label,
+                isCollapsed: _collapsedRoles.contains(label),
+                onToggle:
+                    () => setState(() {
+                      if (!_collapsedRoles.remove(label)) {
+                        _collapsedRoles.add(label);
+                      }
+                    }),
+              ),
           otherLabel: s.contactsTitle,
+          collapsed: (label) => _collapsedRoles.contains(label),
         ),
       ],
     );
@@ -113,7 +133,6 @@ class _PeopleList extends StatelessWidget {
     });
     return sorted;
   }
-
 }
 
 // Özel Row (ListTile değil): dar ekranda leading'deki kalp+avatar ListTile'ı
@@ -122,9 +141,11 @@ Widget _contactTile(
   BuildContext context,
   Member m, {
   bool removable = false,
+  bool showAddToContacts = false,
 }) {
     final state = AppScope.of(context);
     final fav = state.isFavorite(m.id);
+    final isContact = state.isContact(m.id);
     return InkWell(
       onTap:
           () => Navigator.of(context).push(
@@ -136,9 +157,10 @@ Widget _contactTile(
           children: [
             IconButton(
               visualDensity: VisualDensity.compact,
-              icon: Icon(
-                fav ? Icons.favorite : Icons.favorite_border,
-                color: fav ? Colors.red : null,
+              icon: _favoriteHeart(
+                context,
+                isContact: isContact,
+                isFavorite: fav,
               ),
               onPressed:
                   () =>
@@ -148,13 +170,48 @@ Widget _contactTile(
             const SizedBox(width: 12),
             // İsim düzeni tek satır: "Ad SOYAD, Ünvan, Bölüm [rakam]".
             Expanded(
-              child: Text(
-                m.rowLabel(context),
+              child: Text.rich(
+                m.rowLabelSpan(context),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
+            // HERKES'te Rehberim durumu: tek dokunuşla ekle/çıkar — ikisi de
+            // matris-doğrudan-görünür için onaysız (FR-23, NFR-18).
+            if (showAddToContacts)
+              isContact
+                  ? IconButton(
+                    tooltip: context.s.removeFromContacts,
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.person_remove_outlined),
+                    onPressed: () {
+                      final messenger = ScaffoldMessenger.of(context);
+                      final name = m.nameSurnameUpper(context);
+                      AppScope.of(context, listen: false).removeContact(m.id);
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text(context.s.removedFromContacts(name)),
+                        ),
+                      );
+                    },
+                  )
+                  : IconButton(
+                    tooltip: context.s.addToContacts,
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.person_add_alt),
+                    onPressed: () {
+                      final messenger = ScaffoldMessenger.of(context);
+                      final name = m.nameSurnameUpper(context);
+                      AppScope.of(
+                        context,
+                        listen: false,
+                      ).addContactDirect(m.id);
+                      messenger.showSnackBar(
+                        SnackBar(content: Text(context.s.addedDirectly(name))),
+                      );
+                    },
+                  ),
             // Rehberim'de silme (kurum sahibi hükmü): onaysız (NFR-18).
             // Onayla eklenmişse kişi DAVETLER → Onaylananlar'a düşer (rıza
             // kaybolmaz); doğrudan eklenmişse tamamen silinir.
@@ -165,10 +222,11 @@ Widget _contactTile(
                 icon: const Icon(Icons.person_remove_outlined),
                 onPressed: () {
                   final messenger = ScaffoldMessenger.of(context);
+                  final name = m.nameSurnameUpper(context);
                   AppScope.of(context, listen: false).removeContact(m.id);
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text(context.s.removeFromContacts),
+                      content: Text(context.s.removedFromContacts(name)),
                     ),
                   );
                 },
@@ -179,10 +237,45 @@ Widget _contactTile(
     );
 }
 
+// Kalp: REHBERDE ⇒ dolu, FAVORİ ⇒ kırmızı kenarlı. İkisi bağımsız eksen,
+// birleşimleri 4 durumu ayırır (kullanıcı hükmü):
+// - favori, rehberde değil : boş, kırmızı kenarlı
+// - favori ve rehberde     : dolu, kırmızı kenarlı
+// - favori değil, rehberde : dolu, kenarsız (rehber rengi)
+// - ikisi de değil          : hiçbir şey (dokunma alanı kalır, görünmez)
+Widget _favoriteHeart(
+  BuildContext context, {
+  required bool isContact,
+  required bool isFavorite,
+}) {
+  if (isFavorite) {
+    if (!isContact) return const Icon(Icons.favorite_border, color: Colors.red);
+    return const Stack(
+      alignment: Alignment.center,
+      children: [
+        Icon(Icons.favorite_border, color: Colors.red, size: 26),
+        Icon(Icons.favorite, color: Colors.red, size: 19),
+      ],
+    );
+  }
+  if (isContact) {
+    return Icon(Icons.favorite, color: Theme.of(context).colorScheme.primary);
+  }
+  return const SizedBox.shrink();
+}
+
 /// HERKES — rehbere eklemeden erişebildiğim herkes (matris; FR yeni).
 /// Satıra dokun → doğrudan sohbet. Kalp → hızlı erişim sabitlemesi.
-class _EveryoneList extends StatelessWidget {
+class _EveryoneList extends StatefulWidget {
   const _EveryoneList();
+
+  @override
+  State<_EveryoneList> createState() => _EveryoneListState();
+}
+
+class _EveryoneListState extends State<_EveryoneList> {
+  // Rol başlığına dokununca o bölüm katlanır/açılır (yalnız bu ekran içinde).
+  final Set<String> _collapsedRoles = {};
 
   @override
   Widget build(BuildContext context) {
@@ -204,10 +297,21 @@ class _EveryoneList extends StatelessWidget {
           members: people,
           roles: state.tenantRoles,
           roleName: state.roleName,
-          row: (m) => _contactTile(context, m),
-          header: (t) => _SectionHeader(t),
+          row: (m) => _contactTile(context, m, showAddToContacts: true),
+          header:
+              (label) => _SectionHeader(
+                label,
+                isCollapsed: _collapsedRoles.contains(label),
+                onToggle:
+                    () => setState(() {
+                      if (!_collapsedRoles.remove(label)) {
+                        _collapsedRoles.add(label);
+                      }
+                    }),
+              ),
           otherLabel: s.contactsTitle,
           pinned: (m) => state.isFavorite(m.id),
+          collapsed: (label) => _collapsedRoles.contains(label),
         ),
       ],
     );
@@ -372,22 +476,42 @@ class _AddedMeTab extends StatelessWidget {
   }
 }
 
-/// Section label.
+/// Section label. [onToggle] verilirse başlık dokunulabilir olur (rol
+/// bölümlerini katla/aç); verilmezse eskisi gibi düz etikettir.
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader(this.title);
+  const _SectionHeader(this.title, {this.isCollapsed = false, this.onToggle});
 
   final String title;
+  final bool isCollapsed;
+  final VoidCallback? onToggle;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
-      child: Text(
-        context.upper(title),
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.bold,
-        ),
+    final scheme = Theme.of(context).colorScheme;
+    final label = Text(
+      context.upper(title),
+      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+        color: scheme.primary,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+    return InkWell(
+      onTap: onToggle,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
+        child:
+            onToggle == null
+                ? label
+                : Row(
+                  children: [
+                    Expanded(child: label),
+                    Icon(
+                      isCollapsed ? Icons.expand_more : Icons.expand_less,
+                      size: 18,
+                      color: scheme.primary,
+                    ),
+                  ],
+                ),
       ),
     );
   }

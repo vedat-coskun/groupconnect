@@ -182,8 +182,8 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
             MemberAvatar(member: m),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                m.rowLabel(context),
+              child: Text.rich(
+                m.rowLabelSpan(context),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontWeight: FontWeight.w600),

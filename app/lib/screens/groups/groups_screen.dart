@@ -9,10 +9,11 @@ import 'group_chat_screen.dart';
 import 'group_detail_screen.dart';
 import 'group_tree_screen.dart';
 
-/// Groups home with two tabs: "My Groups" and "Joinable" (FR-42). Both tab
-/// names are always fully visible and active; when there is nothing to join,
-/// the Joinable tab simply shows an empty state (the tabs stay in place so the
-/// user can always switch back).
+/// Groups home with tabs: **Kurumsal** (org hiyerarşisi — yalnız hiyerarşisi
+/// olan kurumlarda), **Üye Olduklarım** ve **Katılabileceklerim** (FR-42,
+/// rev.4). Üç sekme de her zaman aynı görsel ağırlıkta; "Katılabileceklerim"de
+/// katılacak bir şey yoksa boş durum gösterilir (sekme yerinde kalır, hep
+/// erişilebilir).
 class GroupsScreen extends StatelessWidget {
   const GroupsScreen({super.key});
 
@@ -20,24 +21,13 @@ class GroupsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.s;
     final state = AppScope.of(context);
+    final hasHierarchy = state.hasGroupHierarchy;
     return DefaultTabController(
-      length: 2,
+      length: hasHierarchy ? 3 : 2,
       child: Scaffold(
         appBar: AppBar(
           title: Text(s.groupsTitle),
           actions: [
-            // Kurum Yapısı (hiyerarşi) — yalnız hiyerarşisi olan kurumlarda.
-            if (state.hasGroupHierarchy)
-              IconButton(
-                tooltip: s.orgStructureTitle,
-                icon: const Icon(Icons.account_tree_outlined),
-                onPressed:
-                    () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const GroupTreeScreen(),
-                      ),
-                    ),
-              ),
             // Özel Grup Yarat: sağ üstte "+" (Kişiler'deki "+" ile uyumlu).
             IconButton(
               tooltip: s.createGroupTitle,
@@ -51,11 +41,19 @@ class GroupsScreen extends StatelessWidget {
             ),
           ],
           bottom: TabBar(
-            tabs: [Tab(text: s.tabMyGroups), Tab(text: s.tabJoinable)],
+            tabs: [
+              if (hasHierarchy) Tab(text: s.organized),
+              Tab(text: s.tabMyGroups),
+              Tab(text: s.tabJoinable),
+            ],
           ),
         ),
-        body: const TabBarView(
-          children: [_MyGroupsTab(), _JoinableTab()],
+        body: TabBarView(
+          children: [
+            if (hasHierarchy) const GroupTreeScreen(),
+            const _MyGroupsTab(),
+            const _JoinableTab(),
+          ],
         ),
       ),
     );

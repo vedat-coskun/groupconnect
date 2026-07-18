@@ -127,7 +127,8 @@ abstract class AppStrings {
   String get commonGroups;
   String get noCommonGroups;
   String get removeFromContacts;
-  String get addedDirectly;
+  String addedDirectly(String name);
+  String removedFromContacts(String name);
   String get inviteSent;
   String get inviteMessageHint;
   String get favorite;
@@ -150,7 +151,6 @@ abstract class AppStrings {
 
   // Groups
   String get groupsTitle;
-  String get orgStructureTitle;
   String get parentGroupLabel;
   String get noneOption;
   String get tabMyGroups;
@@ -449,7 +449,9 @@ class _Tr extends AppStrings {
   @override
   String get removeFromContacts => 'Rehberden Çıkar';
   @override
-  String get addedDirectly => 'Rehbere eklendi';
+  String addedDirectly(String name) => 'Rehbere Eklendi: $name';
+  @override
+  String removedFromContacts(String name) => 'Rehberden Çıkartıldı: $name';
   @override
   String get inviteSent => 'Davet gönderildi — onay bekleniyor';
   @override
@@ -488,8 +490,6 @@ class _Tr extends AppStrings {
 
   @override
   String get groupsTitle => 'Gruplar';
-  @override
-  String get orgStructureTitle => 'Kurum Yapısı';
   @override
   String get parentGroupLabel => 'Üst grup (isteğe bağlı)';
   @override
@@ -859,7 +859,9 @@ class _En extends AppStrings {
   @override
   String get removeFromContacts => 'Remove from Contacts';
   @override
-  String get addedDirectly => 'Added to contacts';
+  String addedDirectly(String name) => 'Added to Contacts: $name';
+  @override
+  String removedFromContacts(String name) => 'Removed from Contacts: $name';
   @override
   String get inviteSent => 'Invitation sent — awaiting approval';
   @override
@@ -898,8 +900,6 @@ class _En extends AppStrings {
 
   @override
   String get groupsTitle => 'Groups';
-  @override
-  String get orgStructureTitle => 'Org Structure';
   @override
   String get parentGroupLabel => 'Parent group (optional)';
   @override

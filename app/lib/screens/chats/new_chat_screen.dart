@@ -108,8 +108,8 @@ class _NewChatScreenState extends State<NewChatScreen> {
       },
       secondary: MemberAvatar(member: m),
       // İsim düzeni tek satır: "Ad SOYAD, Ünvan, Bölüm [rakam]".
-      title: Text(
-        m.rowLabel(context),
+      title: Text.rich(
+        m.rowLabelSpan(context),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(fontWeight: FontWeight.w600),

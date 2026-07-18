@@ -165,16 +165,40 @@ String formatTime(DateTime? time) {
 /// rakamı (prototip kısayolu). Ünvan başa yazılmadığı için listeler ad-soyada
 /// göre doğru sıralanır.
 extension MemberRowLabel on Member {
-  String rowLabel(BuildContext context) {
+  /// "Ad SOYAD" — soyad Türkçe kurallarıyla büyük harfe çevrilir (FR-94).
+  /// Bildirim/snackbar gibi kısa yerlerde (ünvan/bölümsüz) kullanılır.
+  String nameSurnameUpper(BuildContext context) {
     final parts = fullName.trim().split(RegExp(r'\s+')).toList();
     final surname = parts.isEmpty ? '' : context.upper(parts.removeLast());
-    final name = [...parts, surname].join(' ');
-    final buf = StringBuffer(name);
-    if (title.isNotEmpty) buf.write(', $title');
-    if (department.isNotEmpty) buf.write(', $department');
+    return [...parts, surname].join(' ');
+  }
+
+  /// Ad SOYAD / Ünvan / Bölüm ayrı renkte — üçü tek bakışta ayrışsın diye.
+  /// Ad SOYAD çağıranın temel stilini (ör. kalın) miras alır; ünvan ve bölüm
+  /// kendi rengini taşır.
+  TextSpan rowLabelSpan(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final children = <TextSpan>[TextSpan(text: nameSurnameUpper(context))];
+    if (title.isNotEmpty) {
+      children.add(
+        TextSpan(text: ', $title', style: TextStyle(color: scheme.tertiary)),
+      );
+    }
+    if (department.isNotEmpty) {
+      children.add(
+        TextSpan(
+          text: ', $department',
+          style: TextStyle(color: scheme.onSurfaceVariant),
+        ),
+      );
+    }
     final d = loginDigit;
-    if (d != null) buf.write(' $d');
-    return buf.toString();
+    if (d != null) {
+      children.add(
+        TextSpan(text: ' $d', style: TextStyle(color: scheme.onSurfaceVariant)),
+      );
+    }
+    return TextSpan(children: children);
   }
 
   /// Sohbet balonu / başlık: "Ayşe Demir, Prof. Dr." (bölümsüz, rakamsız).
@@ -201,6 +225,9 @@ List<Widget> roleSections({
   String? otherLabel,
   // Verilirse her bölümün İÇİNDE bu kişiler üste sabitlenir (favoriler).
   bool Function(Member)? pinned,
+  // Verilirse ve bir bölümün (tam) başlık etiketi için true dönerse, o
+  // bölümün satırları gizlenir — başlık yine de eklenir (katlanır başlık).
+  bool Function(String label)? collapsed,
 }) {
   final out = <Widget>[];
   final known = <String>{};
@@ -217,14 +244,19 @@ List<Widget> roleSections({
     known.add(r.id);
     final inRole = order(members.where((m) => m.roleId == r.id).toList());
     if (inRole.isEmpty) continue;
-    out.add(header('${roleName(r)} (${inRole.length})'));
+    final label = '${roleName(r)} (${inRole.length})';
+    out.add(header(label));
+    if (collapsed != null && collapsed(label)) continue;
     out.addAll(inRole.map(row));
   }
   // Kurum rollerinde olmayan (beklenmez) üyeler en sona.
   final rest = order(members.where((m) => !known.contains(m.roleId)).toList());
   if (rest.isNotEmpty && otherLabel != null) {
-    out.add(header('$otherLabel (${rest.length})'));
-    out.addAll(rest.map(row));
+    final label = '$otherLabel (${rest.length})';
+    out.add(header(label));
+    if (!(collapsed != null && collapsed(label))) {
+      out.addAll(rest.map(row));
+    }
   }
   return out;
 }

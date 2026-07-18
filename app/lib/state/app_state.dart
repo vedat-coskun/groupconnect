@@ -858,11 +858,14 @@ class AppState extends ChangeNotifier {
   List<Member> membersOf(Group g) =>
       g.memberIds.map((id) => td.member(id)).whereType<Member>().toList();
 
-  /// Every member of [g] **including all descendant groups**.
+  /// Every member of [g] **including all descendant groups**, matris ile
+  /// süzülmüş (FR-21, rev.4 — kurum sahibi hükmü: HERKES'te görünmeyen kişi
+  /// Kurum Yapısı'nda da görünmez). Yapı düğümleri (Fakülte/Bölüm) bundan
+  /// etkilenmez — yalnız kişi listesi/sayısı bakana göre değişir.
   ///
   /// Membership lives only at the **leaf** level (intermediate/parent groups
   /// never get direct members), so a parent's people = the union of its
-  /// sub-groups' people. Sorted by name, de-duplicated.
+  /// sub-groups' (visible) people. Sorted by name, de-duplicated.
   List<Member> aggregateMembersOf(Group g) {
     final ids = <String>{};
     final seen = <String>{};
@@ -875,7 +878,12 @@ class AppState extends ChangeNotifier {
     }
 
     walk(g);
-    final list = ids.map((id) => td.member(id)).whereType<Member>().toList();
+    final list =
+        ids
+            .map((id) => td.member(id))
+            .whereType<Member>()
+            .where((m) => canSeeDirectly(me.roleId, m.roleId))
+            .toList();
     list.sort(
       (a, b) => a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase()),
     );
