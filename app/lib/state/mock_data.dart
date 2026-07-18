@@ -1,0 +1,797 @@
+import 'package:flutter/material.dart';
+
+import '../models/enums.dart';
+import '../models/models.dart';
+import 'tenant_data.dart';
+
+/// A prototype login identity: which tenants a phone belongs to (FR-7) and
+/// which [Member] the user is inside each tenant. Lets the prototype be tested
+/// from different people's perspective (e.g. an academic vs a student).
+class MockIdentity {
+  const MockIdentity({
+    required this.phone,
+    required this.name,
+    required this.tenantIds,
+    required this.myIdByTenant,
+  });
+
+  /// Full national number, e.g. '5555555501'.
+  final String phone;
+  final String name;
+  final List<String> tenantIds;
+  final Map<String, String> myIdByTenant;
+}
+
+/// In-memory seed data for the prototype. Two tenants demonstrate multi-tenant
+/// isolation (FR-7, FR-8, NFR-6): switching organizations swaps the entire
+/// data island. No phone numbers appear anywhere (NFR-5).
+class MockData {
+  MockData._();
+
+  static const uniId = 'uni';
+  static const liseId = 'lise';
+  static const siteId = 'site';
+  static const dernekId = 'dernek';
+  static const hastaneId = 'hastane';
+
+  // ---- Roles (tenant-configured) -----------------------------------------
+  static const _academic = Role(
+    id: 'academic',
+    labelTr: 'Akademisyen',
+    labelEn: 'Academic',
+    isAuthority: true,
+  );
+  static const _student = Role(
+    id: 'student',
+    labelTr: 'Öğrenci',
+    labelEn: 'Student',
+    isAuthority: false,
+  );
+  static const _staff = Role(
+    id: 'staff',
+    labelTr: 'İdari Personel',
+    labelEn: 'Staff',
+    isAuthority: true,
+  );
+  static const _owner = Role(
+    id: 'owner',
+    labelTr: 'Ev Sahibi',
+    labelEn: 'Home Owner',
+    isAuthority: false,
+  );
+  static const _resident = Role(
+    id: 'resident',
+    labelTr: 'Sakin',
+    labelEn: 'Resident',
+    isAuthority: false,
+  );
+  static const _teacher = Role(
+    id: 'teacher',
+    labelTr: 'Öğretmen',
+    labelEn: 'Teacher',
+    isAuthority: true,
+  );
+  static const _parent = Role(
+    id: 'parent',
+    labelTr: 'Veli',
+    labelEn: 'Parent',
+    isAuthority: false,
+  );
+  static const _manager = Role(
+    id: 'manager',
+    labelTr: 'Yönetici',
+    labelEn: 'Manager',
+    isAuthority: true,
+  );
+  static const _assocMember = Role(
+    id: 'assoc_member',
+    labelTr: 'Üye',
+    labelEn: 'Member',
+    isAuthority: false,
+  );
+  static const _doctor = Role(
+    id: 'doctor',
+    labelTr: 'Doktor',
+    labelEn: 'Doctor',
+    isAuthority: true,
+  );
+  static const _nurse = Role(
+    id: 'nurse',
+    labelTr: 'Hemşire',
+    labelEn: 'Nurse',
+    isAuthority: false,
+  );
+
+  static final uniTenant = Tenant(
+    id: uniId,
+    name: 'Atlas Üniversitesi',
+    roles: const [_academic, _student],
+    defaultVisibility: MemberVisibility.visible,
+    numberSearchEnabled: true,
+    numberSearchLabelTr: 'Numaraya göre',
+    numberSearchLabelEn: 'By number',
+  );
+
+  static final siteTenant = Tenant(
+    id: siteId,
+    name: 'Yeşil Vadi Sitesi',
+    roles: const [_staff, _owner, _resident],
+    defaultVisibility: MemberVisibility.visible,
+    numberSearchEnabled: false,
+    numberSearchLabelTr: 'Numaraya göre',
+    numberSearchLabelEn: 'By number',
+  );
+
+  static final liseTenant = Tenant(
+    id: liseId,
+    name: 'Atlas Anadolu Lisesi',
+    roles: const [_teacher, _student, _parent],
+    defaultVisibility: MemberVisibility.visible,
+    numberSearchEnabled: true,
+    numberSearchLabelTr: 'Numaraya göre',
+    numberSearchLabelEn: 'By number',
+  );
+
+  static final dernekTenant = Tenant(
+    id: dernekId,
+    name: 'Anadolu Kültür Derneği',
+    roles: const [_manager, _staff, _assocMember],
+    defaultVisibility: MemberVisibility.visible,
+    numberSearchEnabled: false,
+    numberSearchLabelTr: 'Numaraya göre',
+    numberSearchLabelEn: 'By number',
+  );
+
+  static final hastaneTenant = Tenant(
+    id: hastaneId,
+    name: 'Atlas Şehir Hastanesi',
+    roles: const [_doctor, _nurse, _staff],
+    defaultVisibility: MemberVisibility.visible,
+    numberSearchEnabled: true,
+    numberSearchLabelTr: 'Numaraya göre',
+    numberSearchLabelEn: 'By number',
+  );
+
+  static List<Tenant> tenants() =>
+      [uniTenant, liseTenant, siteTenant, dernekTenant, hastaneTenant];
+
+  // ---- Login identities (prototype multi-user) ----------------------------
+  // The login phone's last two digits pick WHO you are, so the prototype can be
+  // exercised from different perspectives. 01=Vedat (academic, all 5 tenants),
+  // 02=Suden, 03=Arda (students, university only). Real app: identity comes from
+  // the verified phone on the backend.
+  static const _idVedat = MockIdentity(
+    phone: '5555555501',
+    name: 'Vedat Coşkun',
+    tenantIds: [uniId, liseId, siteId, dernekId, hastaneId],
+    myIdByTenant: {
+      uniId: 'u_me',
+      liseId: 'l_me',
+      siteId: 's_me',
+      dernekId: 'd_me',
+      hastaneId: 'h_me',
+    },
+  );
+  static const _idSuden = MockIdentity(
+    phone: '5555555502',
+    name: 'Suden Çalışkan',
+    tenantIds: [uniId],
+    myIdByTenant: {uniId: 'u_zeynep'},
+  );
+  static const _idArda = MockIdentity(
+    phone: '5555555503',
+    name: 'Arda Yetkin',
+    tenantIds: [uniId],
+    myIdByTenant: {uniId: 'u_can'},
+  );
+
+  static const identities = <MockIdentity>[_idVedat, _idSuden, _idArda];
+
+  /// Resolve the login identity from a phone; defaults to the first identity
+  /// (Vedat) when the number doesn't match a seeded one.
+  static MockIdentity identityForPhone(String phone) {
+    for (final id in identities) {
+      if (id.phone == phone) return id;
+    }
+    return _idVedat;
+  }
+
+  static Map<String, TenantData> build() => {
+    uniId: _buildUniversity(),
+    liseId: _buildLise(),
+    siteId: _buildSite(),
+    dernekId: _buildDernek(),
+    hastaneId: _buildHastane(),
+  };
+
+  static Member _m(
+    String id,
+    String name,
+    String no,
+    String dept,
+    Role role, {
+    String? course,
+    List<String> groups = const [],
+    MemberVisibility visibility = MemberVisibility.visible,
+  }) {
+    // Ünvanı addan ayır: isim ÜNVANSIZ saklanır (sıralama ad-soyada göre),
+    // ünvan listede ismin arkasına yazılır ("Mehmet KAYA, Doç. Dr., ...").
+    const titles = [
+      'Prof. Dr.', 'Doç. Dr.', 'Dr. Öğr. Üyesi', 'Öğr. Gör.',
+      'Uzm. Dr.', 'Uzm. Psk.', 'Av.', 'Dr.',
+    ];
+    var fullName = name;
+    var title = '';
+    for (final t in titles) {
+      if (name.startsWith('$t ')) {
+        title = t;
+        fullName = name.substring(t.length + 1);
+        break;
+      }
+    }
+    return Member(
+      id: id,
+      fullName: fullName,
+      title: title,
+      memberNo: no,
+      department: dept,
+      roleId: role.id,
+      course: course,
+      groupIds: groups,
+      visibility: visibility,
+      isAuthorityRole: role.isAuthority,
+    );
+  }
+
+  static Message _msg(String id, String sender, String text, DateTime time) =>
+      Message(id: id, senderId: sender, text: text, time: time);
+
+  // ---- University tenant --------------------------------------------------
+  static TenantData _buildUniversity() {
+    final now = DateTime.now();
+    DateTime ago(Duration d) => now.subtract(d);
+
+    final me = _m(
+      'u_me',
+      'Vedat Coşkun',
+      'A-1010',
+      'Bilgisayar Mühendisliği',
+      _academic,
+      course: 'Yazılım Test Mühendisliği',
+      groups: ['g_cs', 'g_test', 'g_bitirme'],
+    );
+    final ayse = _m(
+      'u_ayse',
+      'Prof. Dr. Ayşe Demir',
+      'A-1021',
+      'Bilgisayar Mühendisliği',
+      _academic,
+      course: 'Yazılım Test Mühendisliği',
+      groups: ['g_cs', 'g_test'],
+    );
+    final mehmet = _m(
+      'u_mehmet',
+      'Doç. Dr. Mehmet Kaya',
+      'A-1044',
+      'Elektrik-Elektronik Müh.',
+      _academic,
+      groups: ['g_chess'],
+    );
+    final elif = _m(
+      'u_elif',
+      'Dr. Öğr. Üyesi Elif Yılmaz',
+      'A-1075',
+      'Bilgisayar Mühendisliği',
+      _academic,
+      course: 'Veri Yapıları',
+      groups: ['g_cs'],
+    );
+    final zeynep = _m(
+      'u_zeynep',
+      'Suden Çalışkan',
+      '2021510012',
+      'Bilgisayar Mühendisliği',
+      _student,
+      course: 'Yazılım Test Mühendisliği',
+      groups: ['g_cs', 'g_test', 'g_bitirme'],
+    );
+    final can = _m(
+      'u_can',
+      'Arda Yetkin',
+      '2021510033',
+      'Bilgisayar Mühendisliği',
+      _student,
+      groups: ['g_cs', 'g_test', 'g_bitirme'],
+    );
+    final merve = _m(
+      'u_merve',
+      'Merve Aydın',
+      '2020430077',
+      'Endüstri Mühendisliği',
+      _student,
+    );
+    final burak = _m(
+      'u_burak',
+      'Burak Arslan',
+      '2019360088',
+      'Elektrik-Elektronik Müh.',
+      _student,
+      groups: ['g_chess'],
+    );
+    final selin = _m(
+      'u_selin',
+      'Elif Türkmen',
+      '2022510099',
+      'Bilgisayar Mühendisliği',
+      _student,
+      course: 'Veri Yapıları',
+      groups: ['g_cs'],
+    );
+
+    final members = <Member>[
+      me,
+      ayse,
+      mehmet,
+      elif,
+      zeynep,
+      can,
+      merve,
+      burak,
+      selin,
+    ];
+
+    final groups = <Group>[
+      // Kurum yapısı (hiyerarşi): Dekanlık → Bölüm — Adım 2 demo (Vedat üye
+      // değil; ağaç tarayıcıdan kurum yapısı gezilir).
+      Group(
+        id: 'g_fac',
+        name: 'Mühendislik Fakültesi',
+        description: 'Fakülte geneli duyurular.',
+        type: GroupType.organized,
+        // Ara seviye (Dekanlık) → DOĞRUDAN üyesi yok. Üyelik yalnız en alt
+        // seviyededir (Bölüm); fakültenin kişileri = bölümlerinin toplamı.
+        memberIds: [],
+        logoIcon: Icons.account_balance_outlined,
+      ),
+      Group(
+        id: 'g_dept_cs',
+        name: 'Bilgisayar Mühendisliği',
+        description: 'Bilgisayar Mühendisliği bölümü.',
+        type: GroupType.organized,
+        parentGroupId: 'g_fac',
+        memberIds: ['u_ayse', 'u_elif', 'u_zeynep', 'u_can', 'u_selin'],
+        logoIcon: Icons.memory_outlined,
+      ),
+      Group(
+        id: 'g_dept_ee',
+        name: 'Elektrik-Elektronik Müh.',
+        description: 'Elektrik-Elektronik Mühendisliği bölümü.',
+        type: GroupType.organized,
+        parentGroupId: 'g_fac',
+        memberIds: ['u_mehmet', 'u_burak'],
+        logoIcon: Icons.bolt_outlined,
+      ),
+      Group(
+        id: 'g_cs',
+        name: 'BM Bölümü Duyuruları',
+        description: 'Bilgisayar Mühendisliği resmi duyuru grubu.',
+        type: GroupType.organized,
+        memberIds: ['u_me', 'u_ayse', 'u_elif', 'u_zeynep', 'u_can', 'u_selin'],
+        logoIcon: Icons.campaign_outlined,
+      ),
+      Group(
+        id: 'g_test',
+        name: 'Yazılım Test Dersi',
+        description: 'Yazılım Test Mühendisliği dersi grubu.',
+        type: GroupType.organized,
+        memberIds: ['u_me', 'u_ayse', 'u_zeynep', 'u_can'],
+        logoIcon: Icons.science_outlined,
+      ),
+      Group(
+        id: 'g_bitirme',
+        name: 'Bitirme Projesi Ekibi',
+        description: 'Bitirme projemiz için çalışma grubu.',
+        type: GroupType.private,
+        adminId: 'u_me',
+        memberIds: ['u_me', 'u_zeynep', 'u_can'],
+        inviteMessage: 'Bitirme ekibimize katıl!',
+        logoIcon: Icons.groups_2_outlined,
+      ),
+      Group(
+        id: 'g_photo',
+        name: 'Fotoğrafçılık Kulübü',
+        description: 'Kampüste fotoğraf gezileri. Herkes katılabilir.',
+        type: GroupType.private,
+        adminId: 'u_elif',
+        // FR-81: kurucusu "açık" işaretledi → davetsiz katılınır.
+        isOpen: true,
+        memberIds: ['u_elif', 'u_selin'],
+        inviteMessage: '',
+        logoIcon: Icons.photo_camera_outlined,
+      ),
+      Group(
+        id: 'g_chess',
+        name: 'Satranç Kulübü',
+        description: 'Kampüs satranç buluşmaları ve turnuvalar.',
+        type: GroupType.private,
+        adminId: 'u_mehmet',
+        memberIds: ['u_mehmet', 'u_burak'],
+        inviteMessage: 'Satranç kulübüne davetlisin!',
+        logoIcon: Icons.extension_outlined,
+      ),
+    ];
+
+    final invitations = <Invitation>[
+      // Incoming contact invite: a student wants to add me (FR-28).
+      Invitation(
+        id: 'inv_merve',
+        kind: InviteKind.contact,
+        direction: InviteDirection.incoming,
+        fromMemberId: 'u_merve',
+        toMemberId: 'u_me',
+        message: 'Merhaba, endüstri-yazılım ortak projesi için konuşabilir miyiz?',
+      ),
+      // Incoming group invite drives "Katılabileceklerim" (FR-42, FR-38).
+      Invitation(
+        id: 'inv_chess',
+        kind: InviteKind.group,
+        direction: InviteDirection.incoming,
+        fromMemberId: 'u_mehmet',
+        toMemberId: 'u_me',
+        groupId: 'g_chess',
+        message: 'Satranç kulübüne davetlisin!',
+      ),
+    ];
+
+    final threads = <String, List<Message>>{
+      'dm:u_ayse': [
+        _msg('a1', 'u_ayse', 'Merhaba Vedat, ödev teslimini aldım.',
+            ago(const Duration(hours: 2))),
+        _msg('a2', meId, 'Teşekkürler hocam, iyi günler.',
+            ago(const Duration(hours: 1, minutes: 55))),
+        _msg('a3', 'u_ayse', 'Yarınki derste test otomasyonuna bakacağız.',
+            ago(const Duration(minutes: 30))),
+      ],
+      'dm:u_zeynep': [
+        _msg('z1', meId, 'Suden, bitirme sunumunu ne zaman yapıyoruz?',
+            ago(const Duration(hours: 3))),
+        _msg('z2', 'u_zeynep', 'Cuma öğleden sonra uygun.',
+            ago(const Duration(hours: 2, minutes: 50))),
+      ],
+      'grp:g_cs': [
+        _msg('c1', 'u_ayse', 'Bu hafta bölüm semineri Cuma 14:00’te.',
+            ago(const Duration(hours: 5))),
+        _msg('c2', 'u_elif', 'Katılım zorunlu mu hocam?',
+            ago(const Duration(hours: 4))),
+        _msg('c3', 'u_ayse', 'Tavsiye edilir, zorunlu değil.',
+            ago(const Duration(hours: 3, minutes: 55))),
+      ],
+      'grp:g_test': [
+        _msg('t1', 'u_ayse', 'Proje raporlarını Pazar’a kadar yükleyin.',
+            ago(const Duration(hours: 6))),
+        _msg('t2', 'u_can', 'Grup halinde mi bireysel mi hocam?',
+            ago(const Duration(hours: 5, minutes: 30))),
+        _msg('t3', meId, 'Ben Suden ile grup yapıyorum.',
+            ago(const Duration(hours: 5))),
+      ],
+      'grp:g_bitirme': [
+        _msg('b1', 'u_zeynep', 'Arayüz kısmını ben hallederim.',
+            ago(const Duration(minutes: 90))),
+        _msg('b2', 'u_can', 'Ben de backend mock’unu yazıyorum.',
+            ago(const Duration(minutes: 80))),
+        _msg('b3', meId, 'Süper, yarın senkron olalım.',
+            ago(const Duration(minutes: 70))),
+      ],
+    };
+
+    return TenantData(
+      tenant: uniTenant,
+      myId: 'u_me',
+      members: {for (final m in members) m.id: m},
+      groups: groups,
+      invitations: invitations,
+      threads: threads,
+      // Rehber starts empty (FR-20). First-login profile setup is skipped:
+      // identity fields are admin-owned/read-only, so there is nothing for the
+      // user to set here (a photo can be added later from Profil).
+      contactIds: [],
+      profileComplete: true,
+    );
+  }
+
+  // ---- Housing-site tenant ------------------------------------------------
+  static TenantData _buildSite() {
+    final now = DateTime.now();
+    DateTime ago(Duration d) => now.subtract(d);
+
+    final me = _m(
+      's_me',
+      'Vedat Coşkun',
+      'A-12',
+      'A Blok - Daire 12',
+      _owner,
+    );
+    final ali = _m(
+      's_ali',
+      'Ali Vural',
+      'P-01',
+      'Site Yönetimi',
+      _staff,
+      groups: ['sg_ann'],
+    );
+    final fatma = _m(
+      's_fatma',
+      'Fatma Şen',
+      'B-08',
+      'B Blok - Daire 8',
+      _owner,
+      groups: ['sg_ann'],
+    );
+    final okan = _m(
+      's_okan',
+      'Okan Demir',
+      'C-03',
+      'C Blok - Daire 3',
+      _resident,
+      groups: ['sg_ann'],
+    );
+
+    final members = <Member>[me, ali, fatma, okan];
+    me.groupIds = ['sg_ann'];
+
+    final groups = <Group>[
+      Group(
+        id: 'sg_ann',
+        name: 'Site Duyuruları',
+        description: 'Tüm sakinler için resmi duyurular.',
+        type: GroupType.organized,
+        memberIds: ['s_me', 's_ali', 's_fatma', 's_okan'],
+        logoIcon: Icons.apartment_outlined,
+      ),
+    ];
+
+    final threads = <String, List<Message>>{
+      'grp:sg_ann': [
+        _msg('sa1', 's_ali', 'Su kesintisi yarın 09:00-12:00 arası olacaktır.',
+            ago(const Duration(hours: 4))),
+        _msg('sa2', 's_fatma', 'Bilgilendirme için teşekkürler.',
+            ago(const Duration(hours: 3))),
+      ],
+    };
+
+    return TenantData(
+      tenant: siteTenant,
+      myId: 's_me',
+      members: {for (final m in members) m.id: m},
+      groups: groups,
+      invitations: [],
+      threads: threads,
+      contactIds: [],
+      // Second tenant already onboarded, so switching to it skips setup.
+      profileComplete: true,
+    );
+  }
+
+  // ---- High-school tenant (Öğretmen / Öğrenci / Veli) ---------------------
+  static TenantData _buildLise() {
+    final now = DateTime.now();
+    DateTime ago(Duration d) => now.subtract(d);
+
+    final me = _m('l_me', 'Vedat Coşkun', 'Ö-204', 'Fen Bilimleri', _teacher,
+        groups: ['lg_9a', 'lg_ann', 'lg_veli']);
+    final ahmet = _m('l_ahmet', 'Ahmet Yıldız', '1024', '9-A', _student,
+        groups: ['lg_9a', 'lg_ann']);
+    final ogr2 = _m('l_ogr2', 'Fatih Şahin', 'Ö-118', 'Matematik', _teacher,
+        groups: ['lg_ann']);
+    final veli = _m('l_veli', 'Zehra Aksoy', 'V-1024',
+        'Veli (Ahmet Yıldız)', _parent, groups: ['lg_ann', 'lg_veli']);
+
+    final members = <Member>[me, ahmet, ogr2, veli];
+
+    final groups = <Group>[
+      Group(
+        id: 'lg_9a',
+        name: '9-A Sınıfı',
+        description: '9-A şubesi ders ve iletişim grubu.',
+        type: GroupType.organized,
+        memberIds: ['l_me', 'l_ahmet'],
+        logoIcon: Icons.class_outlined,
+      ),
+      Group(
+        id: 'lg_ann',
+        name: 'Okul Duyuruları',
+        description: 'Tüm okul için resmi duyurular.',
+        type: GroupType.organized,
+        memberIds: ['l_me', 'l_ahmet', 'l_ogr2', 'l_veli'],
+        logoIcon: Icons.campaign_outlined,
+      ),
+      Group(
+        id: 'lg_veli',
+        name: '9-A Veli Grubu',
+        description: '9-A velileri ile iletişim.',
+        type: GroupType.organized,
+        memberIds: ['l_me', 'l_veli'],
+        logoIcon: Icons.groups_outlined,
+      ),
+    ];
+
+    final threads = <String, List<Message>>{
+      'grp:lg_ann': [
+        _msg('la1', 'l_me',
+            'Yarın 1. ders veli toplantısı nedeniyle 1 saat geç başlayacaktır.',
+            ago(const Duration(hours: 3))),
+      ],
+      'grp:lg_9a': [
+        _msg('l9a1', 'l_me', 'Bugünkü fizik ödevini akşam paylaşacağım.',
+            ago(const Duration(hours: 1))),
+      ],
+    };
+
+    return TenantData(
+      tenant: liseTenant,
+      myId: 'l_me',
+      members: {for (final m in members) m.id: m},
+      groups: groups,
+      invitations: const [],
+      threads: threads,
+      contactIds: const [],
+      profileComplete: true,
+    );
+  }
+
+  // ---- Association tenant (Yönetici / İdari Personel / Üye) ---------------
+  static TenantData _buildDernek() {
+    final now = DateTime.now();
+    DateTime ago(Duration d) => now.subtract(d);
+
+    final me = _m('d_me', 'Vedat Coşkun', 'Y-01', 'Yönetim Kurulu', _manager,
+        groups: ['dg_yk', 'dg_uye', 'dg_etkinlik']);
+    final selim = _m('d_selim', 'Selim Kaya', 'Ü-231', 'Üye', _assocMember,
+        groups: ['dg_uye']);
+    final aylin = _m('d_aylin', 'Aylin Doğan', 'Ü-232', 'Üye', _assocMember,
+        groups: ['dg_uye', 'dg_etkinlik']);
+    final nur = _m('d_nur', 'Nur Aydın', 'P-05', 'İdari Personel', _staff,
+        groups: ['dg_yk', 'dg_uye']);
+
+    final members = <Member>[me, selim, aylin, nur];
+
+    final groups = <Group>[
+      Group(
+        id: 'dg_yk',
+        name: 'Yönetim Kurulu',
+        description: 'Yönetim kurulu iletişimi.',
+        type: GroupType.organized,
+        memberIds: ['d_me', 'd_nur'],
+        logoIcon: Icons.account_balance_outlined,
+      ),
+      Group(
+        id: 'dg_uye',
+        name: 'Üye Grubu',
+        description: 'Tüm dernek üyeleri.',
+        type: GroupType.organized,
+        memberIds: ['d_me', 'd_selim', 'd_aylin', 'd_nur'],
+        logoIcon: Icons.people_outline,
+      ),
+      Group(
+        id: 'dg_etkinlik',
+        name: 'Etkinlik Çalışma Grubu',
+        description: 'Yıl sonu etkinliği çalışma grubu.',
+        type: GroupType.private,
+        adminId: 'd_me',
+        memberIds: ['d_me', 'd_aylin'],
+        inviteMessage: 'Etkinlik ekibine katıl!',
+        logoIcon: Icons.workspaces_outlined,
+      ),
+    ];
+
+    final threads = <String, List<Message>>{
+      'grp:dg_yk': [
+        _msg('dy1', 'd_nur',
+            'Bütçe raporunu paylaştım, gözden geçirir misiniz?',
+            ago(const Duration(hours: 4))),
+        _msg('dy2', 'd_me', 'Teşekkürler, akşam bakıp döneceğim.',
+            ago(const Duration(hours: 3, minutes: 30))),
+      ],
+    };
+
+    return TenantData(
+      tenant: dernekTenant,
+      myId: 'd_me',
+      members: {for (final m in members) m.id: m},
+      groups: groups,
+      invitations: const [],
+      threads: threads,
+      contactIds: const [],
+      profileComplete: true,
+    );
+  }
+
+  // ---- Hospital tenant (Doktor / Hemşire / İdari Personel) ----------------
+  static TenantData _buildHastane() {
+    final now = DateTime.now();
+    DateTime ago(Duration d) => now.subtract(d);
+
+    final me = _m('h_me', 'Vedat Coşkun', 'D-77', 'Kardiyoloji', _doctor,
+        groups: ['hg_kardiyo', 'hg_nobet', 'hg_ann']);
+    final murat = _m('h_murat', 'Murat Aslan', 'D-45', 'Acil', _doctor,
+        groups: ['hg_nobet', 'hg_ann']);
+    final elif = _m('h_elif', 'Elif Kaya', 'H-210', 'Kardiyoloji', _nurse,
+        groups: ['hg_kardiyo', 'hg_nobet']);
+    final sema = _m('h_sema', 'Sema Yıldız', 'P-12', 'İnsan Kaynakları', _staff,
+        groups: ['hg_ann']);
+
+    final members = <Member>[me, murat, elif, sema];
+
+    final groups = <Group>[
+      Group(
+        id: 'hg_kardiyo',
+        name: 'Kardiyoloji Servisi',
+        description: 'Kardiyoloji servisi ekip iletişimi.',
+        type: GroupType.organized,
+        memberIds: ['h_me', 'h_elif'],
+        logoIcon: Icons.local_hospital_outlined,
+      ),
+      Group(
+        id: 'hg_nobet',
+        name: 'Nöbet Grubu',
+        description: 'Nöbet çizelgesi ve devir teslim.',
+        type: GroupType.organized,
+        memberIds: ['h_me', 'h_murat', 'h_elif'],
+        logoIcon: Icons.schedule_outlined,
+      ),
+      Group(
+        id: 'hg_ann',
+        name: 'Hastane Duyuruları',
+        description: 'Tüm personel için duyurular.',
+        type: GroupType.organized,
+        memberIds: ['h_me', 'h_murat', 'h_elif', 'h_sema'],
+        logoIcon: Icons.campaign_outlined,
+      ),
+    ];
+
+    final threads = <String, List<Message>>{
+      'grp:hg_nobet': [
+        _msg('hn1', 'h_murat', 'Bu gece acil nöbetini ben devralıyorum.',
+            ago(const Duration(hours: 2))),
+        _msg('hn2', 'h_elif',
+            'Kardiyolojide 3 hasta takipte, notları girdim.',
+            ago(const Duration(hours: 1, minutes: 40))),
+      ],
+    };
+
+    return TenantData(
+      tenant: hastaneTenant,
+      myId: 'h_me',
+      members: {for (final m in members) m.id: m},
+      groups: groups,
+      invitations: const [],
+      threads: threads,
+      contactIds: const [],
+      profileComplete: true,
+    );
+  }
+}
+
+/// PROTOTİP KISAYOLU — gereksinim dondurulurken kaldırılacak.
+///
+/// Prototipte kimlik telefonun son rakamıyla seçiliyor (1=Vedat, 2=Suden,
+/// 3=Arda). Listelerde kimin hangi rakamla giriş yapıldığını görebilmek için
+/// ismin yanına o rakamı yazıyoruz. Gerçek sürümde kimlik backend'den gelir ve
+/// böyle bir ipucu olmaz.
+extension MemberLoginHint on Member {
+  /// Bu üye login olunabilen bir test kimliğiyse telefonun son rakamı; yoksa null.
+  String? get loginDigit {
+    for (final i in MockData.identities) {
+      if (i.myIdByTenant.containsValue(id)) {
+        return i.phone.substring(i.phone.length - 1);
+      }
+    }
+    return null;
+  }
+
+  /// İsim + (varsa) boşluk + login rakamı — ör. "Arda Yetkin 3".
+  String get displayName {
+    final d = loginDigit;
+    return d == null ? fullName : '$fullName $d';
+  }
+}
