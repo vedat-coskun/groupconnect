@@ -184,7 +184,11 @@ Widget _contactTile(
                   ? IconButton(
                     tooltip: context.s.removeFromContacts,
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.person_remove_outlined),
+                    // Çıkarma = kırmızı, ekleme = yeşil (kullanıcı hükmü).
+                    icon: const Icon(
+                      Icons.person_remove_outlined,
+                      color: Colors.red,
+                    ),
                     onPressed: () {
                       final messenger = ScaffoldMessenger.of(context);
                       final name = m.nameSurnameUpper(context);
@@ -199,7 +203,10 @@ Widget _contactTile(
                   : IconButton(
                     tooltip: context.s.addToContacts,
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.person_add_alt),
+                    icon: const Icon(
+                      Icons.person_add_alt,
+                      color: Colors.green,
+                    ),
                     onPressed: () {
                       final messenger = ScaffoldMessenger.of(context);
                       final name = m.nameSurnameUpper(context);
@@ -219,7 +226,10 @@ Widget _contactTile(
               IconButton(
                 tooltip: context.s.removeFromContacts,
                 visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.person_remove_outlined),
+                icon: const Icon(
+                  Icons.person_remove_outlined,
+                  color: Colors.red,
+                ),
                 onPressed: () {
                   final messenger = ScaffoldMessenger.of(context);
                   final name = m.nameSurnameUpper(context);

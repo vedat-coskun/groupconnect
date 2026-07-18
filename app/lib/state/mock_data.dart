@@ -258,7 +258,7 @@ class MockData {
       'Bilgisayar Mühendisliği',
       _academic,
       course: 'Yazılım Test Mühendisliği',
-      groups: ['g_cs', 'g_test', 'g_bitirme'],
+      groups: ['g_dept_cs', 'g_test', 'g_bitirme'],
     );
     final ayse = _m(
       'u_ayse',
@@ -267,7 +267,7 @@ class MockData {
       'Bilgisayar Mühendisliği',
       _academic,
       course: 'Yazılım Test Mühendisliği',
-      groups: ['g_cs', 'g_test'],
+      groups: ['g_dept_cs', 'g_test'],
     );
     final mehmet = _m(
       'u_mehmet',
@@ -284,7 +284,7 @@ class MockData {
       'Bilgisayar Mühendisliği',
       _academic,
       course: 'Veri Yapıları',
-      groups: ['g_cs'],
+      groups: ['g_dept_cs'],
     );
     final zeynep = _m(
       'u_zeynep',
@@ -293,7 +293,7 @@ class MockData {
       'Bilgisayar Mühendisliği',
       _student,
       course: 'Yazılım Test Mühendisliği',
-      groups: ['g_cs', 'g_test', 'g_bitirme'],
+      groups: ['g_dept_cs', 'g_test', 'g_bitirme'],
     );
     final can = _m(
       'u_can',
@@ -301,7 +301,7 @@ class MockData {
       '2021510033',
       'Bilgisayar Mühendisliği',
       _student,
-      groups: ['g_cs', 'g_test', 'g_bitirme'],
+      groups: ['g_dept_cs', 'g_test', 'g_bitirme'],
     );
     final merve = _m(
       'u_merve',
@@ -325,7 +325,7 @@ class MockData {
       'Bilgisayar Mühendisliği',
       _student,
       course: 'Veri Yapıları',
-      groups: ['g_cs'],
+      groups: ['g_dept_cs'],
     );
 
     final members = <Member>[
@@ -341,8 +341,9 @@ class MockData {
     ];
 
     final groups = <Group>[
-      // Kurum yapısı (hiyerarşi): Dekanlık → Bölüm — Adım 2 demo (Vedat üye
-      // değil; ağaç tarayıcıdan kurum yapısı gezilir).
+      // Kurum yapısı (hiyerarşi): Dekanlık → Bölüm — Adım 2 demo. Vedat,
+      // Bilgisayar Müh. bölümünün (yaprak) üyesidir; FR-71 gereği Fakülteye
+      // üyeliği türetilmiştir (Üye Olduklarım + Sohbetler'de ikisi de çıkar).
       Group(
         id: 'g_fac',
         name: 'Mühendislik Fakültesi',
@@ -359,7 +360,7 @@ class MockData {
         description: 'Bilgisayar Mühendisliği bölümü.',
         type: GroupType.organized,
         parentGroupId: 'g_fac',
-        memberIds: ['u_ayse', 'u_elif', 'u_zeynep', 'u_can', 'u_selin'],
+        memberIds: ['u_me', 'u_ayse', 'u_elif', 'u_zeynep', 'u_can', 'u_selin'],
         logoIcon: Icons.memory_outlined,
       ),
       Group(
@@ -371,14 +372,10 @@ class MockData {
         memberIds: ['u_mehmet', 'u_burak'],
         logoIcon: Icons.bolt_outlined,
       ),
-      Group(
-        id: 'g_cs',
-        name: 'BM Bölümü Duyuruları',
-        description: 'Bilgisayar Mühendisliği resmi duyuru grubu.',
-        type: GroupType.organized,
-        memberIds: ['u_me', 'u_ayse', 'u_elif', 'u_zeynep', 'u_can', 'u_selin'],
-        logoIcon: Icons.campaign_outlined,
-      ),
+      // "BM Bölümü Duyuruları" kaldırıldı (kurum sahibi hükmü): hiyerarşideki
+      // "Bilgisayar Mühendisliği" (g_dept_cs) üyelikli gerçek grup olunca aynı
+      // kişileri içeren düz duyuru grubu gereksiz kopya haline geldi; bölüm
+      // duyuruları artık g_dept_cs sohbetinde yaşar (FR-68: duyuru = mesaj).
       Group(
         id: 'g_test',
         name: 'Yazılım Test Dersi',
@@ -458,7 +455,8 @@ class MockData {
         _msg('z2', 'u_zeynep', 'Cuma öğleden sonra uygun.',
             ago(const Duration(hours: 2, minutes: 50))),
       ],
-      'grp:g_cs': [
+      // Bölüm duyuruları hiyerarşi grubunun (g_dept_cs) sohbetinde (FR-68).
+      'grp:g_dept_cs': [
         _msg('c1', 'u_ayse', 'Bu hafta bölüm semineri Cuma 14:00’te.',
             ago(const Duration(hours: 5))),
         _msg('c2', 'u_elif', 'Katılım zorunlu mu hocam?',

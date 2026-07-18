@@ -65,4 +65,40 @@ void main() {
     expect(find.text('Açık'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Kurumsal sekmesi: bölüm satırı (mesaj ikonu + chevron) '
+      '393px\'te çizilir, accordion açılır', (tester) async {
+    tester.view.physicalSize = const Size(393 * 3, 852 * 3);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+
+    final state = AppState();
+    state.setPendingPhone('+90', '5555555501'); // Vedat (akademisyen)
+    state.selectTenant('uni');
+
+    await tester.pumpWidget(
+      AppScope(
+        state: state,
+        child: MaterialApp(theme: AppTheme.light(), home: const GroupsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Kurumsal ilk sekmedir (FR-42) — tek kök atlanır, içerik doğrudan gelir.
+    expect(find.text('Mühendislik Fakültesi'), findsOneWidget);
+    expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);
+    // Mesaj ikonu yalnız ÜYE olunan düğümlerde (FR-35): Fakülte (türetilmiş,
+    // FR-71) + Bilgisayar Müh. (yaprak). Elektrik-Elektronik'te üyelik yok
+    // → ikon da yok.
+    expect(find.byIcon(Icons.chat_bubble_outline), findsNWidgets(2));
+
+    // Bölüme dokun → satır accordion olarak açılır (chevron yön değiştirir).
+    // Not: rol başlığı sayısı SAYILMAZ — ListView lazy olduğundan viewport
+    // dışına itilen başlıklar hiç build edilmez.
+    expect(find.byIcon(Icons.expand_less), findsNothing);
+    await tester.tap(find.text('Bilgisayar Mühendisliği'));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.expand_less), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

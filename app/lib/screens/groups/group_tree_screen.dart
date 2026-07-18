@@ -87,16 +87,21 @@ class _GroupTreeScreenState extends State<GroupTreeScreen> {
           ),
           // Seviye adı yerine toplam kişi (alt gruplar dahil).
           subtitle: Text('${members.length} kişi'),
-          trailing: IconButton(
-            tooltip: s.openChat,
-            icon: const Icon(Icons.chat_bubble_outline),
-            onPressed:
-                () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => GroupChatScreen(groupId: g.id),
-                  ),
-                ),
-          ),
+          // Sohbet yalnız üyeye (türetilmiş dahil — FR-71): üye olmadığım
+          // kurumsal grubun sohbetine giremem/yazamam (FR-35).
+          trailing:
+              state.isEffectiveMember(g)
+                  ? IconButton(
+                    tooltip: s.openChat,
+                    icon: const Icon(Icons.chat_bubble_outline),
+                    onPressed:
+                        () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => GroupChatScreen(groupId: g.id),
+                          ),
+                        ),
+                  )
+                  : null,
         ),
         const Divider(),
 
@@ -191,10 +196,29 @@ class _GroupTreeScreenState extends State<GroupTreeScreen> {
                 '$people kişi'
             : '$people kişi',
       ),
-      trailing: Icon(
-        !expandable
-            ? Icons.chevron_right
-            : (isExpanded ? Icons.expand_less : Icons.expand_more),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Her hiyerarşi düğümü gerçek bir kurumsal gruptur — sohbeti vardır;
+          // ama sohbete yalnız ÜYE girer (türetilmiş dahil — FR-71): üyesi
+          // olmadığım bölümün satırında mesaj ikonu çıkmaz (FR-35).
+          if (state.isEffectiveMember(g))
+            IconButton(
+              tooltip: context.s.openChat,
+              icon: const Icon(Icons.chat_bubble_outline),
+              onPressed:
+                  () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => GroupChatScreen(groupId: g.id),
+                    ),
+                  ),
+            ),
+          Icon(
+            !expandable
+                ? Icons.chevron_right
+                : (isExpanded ? Icons.expand_less : Icons.expand_more),
+          ),
+        ],
       ),
       onTap: () {
         if (!expandable) {

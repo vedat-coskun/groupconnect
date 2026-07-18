@@ -98,12 +98,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
       final items = all.where(test).toList();
       if (items.isEmpty) return;
       children.add(_SectionHeader(title));
-      for (var i = 0; i < items.length; i++) {
-        children.add(_ChatTile(summary: items[i]));
-        if (i < items.length - 1) {
-          children.add(const Divider(height: 1, indent: 72));
-        }
-      }
+      children.addAll(items.map((c) => _ChatTile(summary: c)));
     }
 
     section(_ChatFilter.personal, s.chatsFilterPersonal, (c) => !c.isGroup);
@@ -183,6 +178,10 @@ class _FilterBar extends StatelessWidget {
   }
 }
 
+/// Sohbet satırı — **Gruplar → Üye Olduklarım satırıyla aynı düzen** (FR-100):
+/// son mesaj/saat YOK (liste ekranı içerik sızdırmaz — E2E ilkesiyle uyumlu);
+/// alt yazı grupta açıklama, 1:1'de "Ünvan · Bölüm"; grup satırının sağında
+/// tür rozeti + üye sayısı, sessizse 🔕.
 class _ChatTile extends StatelessWidget {
   const _ChatTile({required this.summary});
 
@@ -190,59 +189,91 @@ class _ChatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.s;
+    final state = AppScope.of(context);
     final scheme = Theme.of(context).colorScheme;
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading:
-          summary.isGroup
-              ? GroupAvatar(group: summary.group!, radius: 26)
-              : MemberAvatar(member: summary.member!, radius: 26),
-      title: Text(
-        summary.title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text(
-        summary.subtitle.isEmpty ? '—' : summary.subtitle,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            formatTime(summary.time),
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-            ),
-          ),
-          if (summary.muted) ...[
-            const SizedBox(height: 4),
-            Icon(
-              Icons.notifications_off_outlined,
-              size: 16,
-              color: scheme.onSurfaceVariant,
-            ),
-          ],
-        ],
-      ),
+    final g = summary.group;
+    final m = summary.member;
+    final subtitle =
+        g != null
+            ? g.description
+            : [
+              if (m!.title.isNotEmpty) m.title,
+              if (m.department.isNotEmpty) m.department,
+            ].join(' · ');
+    return InkWell(
       onTap: () {
-        if (summary.isGroup) {
+        if (g != null) {
           Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => GroupChatScreen(groupId: summary.group!.id),
-            ),
+            MaterialPageRoute(builder: (_) => GroupChatScreen(groupId: g.id)),
           );
         } else {
           Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => ChatScreen(memberId: summary.member!.id),
-            ),
+            MaterialPageRoute(builder: (_) => ChatScreen(memberId: m!.id)),
           );
         }
       },
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 6, 12, 6),
+        child: Row(
+          children: [
+            g != null
+                ? GroupAvatar(group: g, radius: 22)
+                : MemberAvatar(member: m!, radius: 22),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    summary.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  if (subtitle.isNotEmpty)
+                    Text(
+                      subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: scheme.onSurfaceVariant),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (g != null) ...[
+                  TagChip(
+                    label: g.isOrganized ? s.organized : s.privateGroup,
+                    icon:
+                        g.isOrganized
+                            ? Icons.verified_outlined
+                            : Icons.lock_open,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    // Hiyerarşi düğümünde alt ağacın toplamı (FR-71).
+                    s.memberCount(state.groupMemberCount(g)),
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                ],
+                if (summary.muted) ...[
+                  const SizedBox(height: 4),
+                  Icon(
+                    Icons.notifications_off_outlined,
+                    size: 16,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

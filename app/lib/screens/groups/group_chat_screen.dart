@@ -60,7 +60,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       ),
                     ),
                     Text(
-                      s.memberCount(group.memberIds.length),
+                      // Hiyerarşi düğümünde alt ağacın toplamı (FR-71).
+                      s.memberCount(state.groupMemberCount(group)),
                       style: Theme.of(context).textTheme.labelSmall,
                     ),
                   ],

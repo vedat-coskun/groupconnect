@@ -152,7 +152,8 @@ class _MyGroupsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  s.memberCount(g.memberIds.length),
+                  // Hiyerarşi düğümünde alt ağacın toplamı (FR-71).
+                  s.memberCount(state.groupMemberCount(g)),
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
               ],

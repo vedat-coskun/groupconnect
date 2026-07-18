@@ -25,7 +25,7 @@ class GroupDetailScreen extends StatelessWidget {
     if (g == null) {
       return const Scaffold(body: Center(child: Text('—')));
     }
-    final isMember = state.isGroupMember(g);
+    final isMember = state.isEffectiveMember(g);
     final isAdmin = g.adminId == state.td.myId && !g.isOrganized;
     final members = state.membersOf(g);
     // Grubu kuran kişi — listenin başında kendi ayracıyla gösterilir.

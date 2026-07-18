@@ -20,8 +20,6 @@ class ChatSummary {
   ChatSummary({
     required this.threadId,
     required this.title,
-    required this.subtitle,
-    required this.time,
     required this.isGroup,
     required this.muted,
     this.member,
@@ -30,8 +28,6 @@ class ChatSummary {
 
   final String threadId;
   final String title;
-  final String subtitle;
-  final DateTime? time;
   final bool isGroup;
   final bool muted;
   final Member? member;
@@ -392,10 +388,13 @@ class AppState extends ChangeNotifier {
           if (roleId != null && m.roleId != roleId) return false; // FR-14
           if (department != null && m.department != department) return false;
           if (course != null && m.course != course) return false;
-          // Grup üyeliği grubun memberIds'ine göre (org/hiyerarşi grupları dahil).
-          if (groupId != null &&
-              !(td.group(groupId)?.memberIds.contains(m.id) ?? false)) {
-            return false;
+          // Grup üyeliği alt-ağaç birleşimine göre (FR-71): Fakülte seçilince
+          // bölümlerinin üyeleri de eşleşir (yaprak-dışı düğümde memberIds boş).
+          if (groupId != null) {
+            final grp = td.group(groupId);
+            if (grp == null || !aggregateMemberIdsOf(grp).contains(m.id)) {
+              return false;
+            }
           }
           return true;
         }).toList();
@@ -724,19 +723,23 @@ class AppState extends ChangeNotifier {
   }
 
   /// Unified chat list: group chats the user is in + surfaced 1:1 threads.
+  ///
+  /// FR-100: satırlar **son mesajı/saatini taşımaz** (liste ekranı içerik
+  /// sızdırmaz — E2E ilkesinin liste düzeyi karşılığı) — alt yazı görünüm
+  /// katmanında kimlik bilgisinden (grup açıklaması / ünvan · bölüm) üretilir.
+  /// Sıralama ada göre alfabetiktir (Gruplar/Kişiler ile tutarlı; "son
+  /// aktivite" sırası saat gösterilmeyince açıklanamaz olurdu).
   List<ChatSummary> get chatSummaries {
     final list = <ChatSummary>[];
 
     for (final g in td.groups) {
       if (g.archived) continue; // arşivlenen grubun sohbeti de listelenmez
-      if (!g.memberIds.contains(td.myId)) continue;
-      final last = lastMessage(grpThread(g.id));
+      // Türetilmiş üyelik dahil (FR-71): bölüme üyeysem Fakülte sohbeti de.
+      if (!isEffectiveMember(g)) continue;
       list.add(
         ChatSummary(
           threadId: grpThread(g.id),
           title: g.name,
-          subtitle: _summaryText(last, group: true),
-          time: last?.time,
           isGroup: true,
           muted: g.muted,
           group: g,
@@ -747,13 +750,10 @@ class AppState extends ChangeNotifier {
     for (final peerId in td.dmVisible) {
       final m = td.member(peerId);
       if (m == null) continue;
-      final last = lastMessage(dmThread(peerId));
       list.add(
         ChatSummary(
           threadId: dmThread(peerId),
           title: m.fullName,
-          subtitle: _summaryText(last, group: false),
-          time: last?.time,
           isGroup: false,
           muted: isDmMuted(peerId),
           member: m,
@@ -761,36 +761,22 @@ class AppState extends ChangeNotifier {
       );
     }
 
-    list.sort((a, b) {
-      final ta = a.time;
-      final tb = b.time;
-      if (ta == null && tb == null) return 0;
-      if (ta == null) return 1;
-      if (tb == null) return -1;
-      return tb.compareTo(ta);
-    });
+    list.sort(
+      (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+    );
     return list;
   }
 
-  String _summaryText(Message? last, {required bool group}) {
-    if (last == null) return '';
-    if (!group) {
-      return last.senderId == meId ? 'Sen: ${last.text}' : last.text;
-    }
-    if (last.senderId == meId) return 'Sen: ${last.text}';
-    final sender = td.member(last.senderId);
-    final name = sender?.fullName.split(' ').last ?? '';
-    return name.isEmpty ? last.text : '$name: ${last.text}';
-  }
-
   // ---- Groups (FR-34..FR-45) ----------------------------------------------
-  bool isGroupMember(Group g) => g.memberIds.contains(td.myId);
+  // (Tek üyelik kavramı: isEffectiveMember — FR-71 türetilmiş üyelik dahil.
+  // Eski isGroupMember yalnız yaprak memberIds'e bakıyordu ve Fakülte gibi
+  // türetilmiş-üye olunan düğümlerde Grup Bilgisi'ni yanıltıyordu.)
 
   // Arşivlenmiş gruplar hiçbir listede görünmez (yalnız Menü → Arşiv'de).
+  // Üyelik türetilmiştir (FR-71): yaprak bölüme üyeysem Fakülte/Dekanlık
+  // gibi ataları da "Üye Olduklarım"dadır (kurum sahibi hükmü, 2026-07-18).
   List<Group> get myGroups =>
-      td.groups
-          .where((g) => !g.archived && g.memberIds.contains(td.myId))
-          .toList();
+      td.groups.where((g) => !g.archived && isEffectiveMember(g)).toList();
 
   /// Groups the user has a pending incoming invite for (FR-42).
   /// "Katılabileceklerim" (FR-82) — **yalnız ÖZEL gruplar**, iki kümenin
@@ -855,18 +841,18 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Grubun üye listesi — hiyerarşi düğümlerinde (Fakülte/Bölüm üstü) alt
+  /// ağacın birleşimi (FR-71). Grup üyelik bilgisi ortak bağlamdır ve
+  /// matrisle SÜZÜLMEZ (FR-21 istisnası — Grup Bilgisi/FR-89 yüzeyleri).
   List<Member> membersOf(Group g) =>
-      g.memberIds.map((id) => td.member(id)).whereType<Member>().toList();
+      aggregateMemberIdsOf(
+        g,
+      ).map((id) => td.member(id)).whereType<Member>().toList();
 
-  /// Every member of [g] **including all descendant groups**, matris ile
-  /// süzülmüş (FR-21, rev.4 — kurum sahibi hükmü: HERKES'te görünmeyen kişi
-  /// Kurum Yapısı'nda da görünmez). Yapı düğümleri (Fakülte/Bölüm) bundan
-  /// etkilenmez — yalnız kişi listesi/sayısı bakana göre değişir.
-  ///
-  /// Membership lives only at the **leaf** level (intermediate/parent groups
-  /// never get direct members), so a parent's people = the union of its
-  /// sub-groups' (visible) people. Sorted by name, de-duplicated.
-  List<Member> aggregateMembersOf(Group g) {
+  /// Ham (süzülmemiş) alt-ağaç üye kümesi: [g] + tüm torunlarının üyeleri.
+  /// Üyelik yalnız yaprakta yaşar (FR-71); çocuksuz grupta bu küme grubun
+  /// kendi `memberIds`'ine eşittir.
+  Set<String> aggregateMemberIdsOf(Group g) {
     final ids = <String>{};
     final seen = <String>{};
     void walk(Group node) {
@@ -878,8 +864,30 @@ class AppState extends ChangeNotifier {
     }
 
     walk(g);
+    return ids;
+  }
+
+  /// FR-71 türetilmiş üyelik: yaprağa üyeysem tüm atalarına da üyeyim.
+  /// (Atanın alt-ağaç birleşimi beni içeriyorsa üyeyim — tek koşulda hem
+  /// doğrudan hem türetilmiş üyeliği kapsar.)
+  bool isEffectiveMember(Group g) =>
+      aggregateMemberIdsOf(g).contains(td.myId);
+
+  /// Satırlarda gösterilen üye sayısı — türetilmiş üyelikle tutarlı, ham
+  /// (matris-süzülmemiş) toplam.
+  int groupMemberCount(Group g) => aggregateMemberIdsOf(g).length;
+
+  /// Every member of [g] **including all descendant groups**, matris ile
+  /// süzülmüş (FR-21, rev.4 — kurum sahibi hükmü: HERKES'te görünmeyen kişi
+  /// Kurum Yapısı'nda da görünmez). Yapı düğümleri (Fakülte/Bölüm) bundan
+  /// etkilenmez — yalnız kişi listesi/sayısı bakana göre değişir.
+  ///
+  /// Membership lives only at the **leaf** level (intermediate/parent groups
+  /// never get direct members), so a parent's people = the union of its
+  /// sub-groups' (visible) people. Sorted by name, de-duplicated.
+  List<Member> aggregateMembersOf(Group g) {
     final list =
-        ids
+        aggregateMemberIdsOf(g)
             .map((id) => td.member(id))
             .whereType<Member>()
             .where((m) => canSeeDirectly(me.roleId, m.roleId))
