@@ -219,6 +219,9 @@ class MockData {
     const titles = [
       'Prof. Dr.', 'Doç. Dr.', 'Dr. Öğr. Üyesi', 'Öğr. Gör.',
       'Uzm. Dr.', 'Uzm. Psk.', 'Av.', 'Dr.',
+      // Site (Yeşil Vadi) — idari personel ünvanları.
+      'Müdür', 'Muhasebeci', 'Güvenlikçi', 'Bahçe İşleri Görevlisi',
+      'Temizlikçi',
     ];
     var fullName = name;
     var title = '';
@@ -353,6 +356,7 @@ class MockData {
         // seviyededir (Bölüm); fakültenin kişileri = bölümlerinin toplamı.
         memberIds: [],
         logoIcon: Icons.account_balance_outlined,
+        writerIds: {'u_ayse'}, // FR-90: fakülte duyurularını Prof. Demir yazar
       ),
       Group(
         id: 'g_dept_cs',
@@ -362,6 +366,7 @@ class MockData {
         parentGroupId: 'g_fac',
         memberIds: ['u_me', 'u_ayse', 'u_elif', 'u_zeynep', 'u_can', 'u_selin'],
         logoIcon: Icons.memory_outlined,
+        writerIds: {'u_ayse'}, // FR-90: bölüm duyuruları
       ),
       Group(
         id: 'g_dept_ee',
@@ -371,6 +376,7 @@ class MockData {
         parentGroupId: 'g_fac',
         memberIds: ['u_mehmet', 'u_burak'],
         logoIcon: Icons.bolt_outlined,
+        writerIds: {'u_mehmet'}, // FR-90
       ),
       // "BM Bölümü Duyuruları" kaldırıldı (kurum sahibi hükmü): hiyerarşideki
       // "Bilgisayar Mühendisliği" (g_dept_cs) üyelikli gerçek grup olunca aynı
@@ -383,6 +389,8 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['u_me', 'u_ayse', 'u_zeynep', 'u_can'],
         logoIcon: Icons.science_outlined,
+        // FR-90: ders sahibi (Vedat) + Prof. Demir yazar; öğrenciler okur.
+        writerIds: {'u_me', 'u_ayse'},
       ),
       Group(
         id: 'g_bitirme',
@@ -441,7 +449,7 @@ class MockData {
     ];
 
     final threads = <String, List<Message>>{
-      'dm:u_ayse': [
+      'dm:u_ayse:u_me': [
         _msg('a1', 'u_ayse', 'Merhaba Vedat, ödev teslimini aldım.',
             ago(const Duration(hours: 2))),
         _msg('a2', meId, 'Teşekkürler hocam, iyi günler.',
@@ -449,7 +457,7 @@ class MockData {
         _msg('a3', 'u_ayse', 'Yarınki derste test otomasyonuna bakacağız.',
             ago(const Duration(minutes: 30))),
       ],
-      'dm:u_zeynep': [
+      'dm:u_me:u_zeynep': [
         _msg('z1', meId, 'Suden, bitirme sunumunu ne zaman yapıyoruz?',
             ago(const Duration(hours: 3))),
         _msg('z2', 'u_zeynep', 'Cuma öğleden sonra uygun.',
@@ -498,44 +506,104 @@ class MockData {
   }
 
   // ---- Housing-site tenant ------------------------------------------------
+  // Kurum sahibi hükmü: Vedat = Müdür (idari personel); iki blok (Mavi,
+  // Yeşil — üçer daire) + iki bağımsız villa (Deniz, Orman) hiyerarşisi.
   static TenantData _buildSite() {
     final now = DateTime.now();
     DateTime ago(Duration d) => now.subtract(d);
 
+    // --- İdari personel (hepsi sg_ann üyesi) ---
     final me = _m(
       's_me',
-      'Vedat Coşkun',
-      'A-12',
-      'A Blok - Daire 12',
-      _owner,
-    );
-    final ali = _m(
-      's_ali',
-      'Ali Vural',
+      'Müdür Vedat Coşkun',
       'P-01',
       'Site Yönetimi',
       _staff,
       groups: ['sg_ann'],
     );
-    final fatma = _m(
-      's_fatma',
-      'Fatma Şen',
-      'B-08',
-      'B Blok - Daire 8',
-      _owner,
+    final muhasebeci = _m(
+      's_muhasebe',
+      'Muhasebeci Kemal Öztürk',
+      'P-02',
+      'Site Yönetimi',
+      _staff,
       groups: ['sg_ann'],
     );
-    final okan = _m(
-      's_okan',
-      'Okan Demir',
-      'C-03',
-      'C Blok - Daire 3',
-      _resident,
+    final guvenlik1 = _m(
+      's_guv1',
+      'Güvenlikçi Hasan Güneş',
+      'P-03',
+      'Güvenlik',
+      _staff,
+      groups: ['sg_ann'],
+    );
+    final guvenlik2 = _m(
+      's_guv2',
+      'Güvenlikçi İsmail Kurt',
+      'P-04',
+      'Güvenlik',
+      _staff,
+      groups: ['sg_ann'],
+    );
+    final bahce1 = _m(
+      's_bahce1',
+      'Bahçe İşleri Görevlisi Yusuf Aydemir',
+      'P-05',
+      'Bahçe Bakımı',
+      _staff,
+      groups: ['sg_ann'],
+    );
+    final bahce2 = _m(
+      's_bahce2',
+      'Bahçe İşleri Görevlisi Mustafa Bulut',
+      'P-06',
+      'Bahçe Bakımı',
+      _staff,
+      groups: ['sg_ann'],
+    );
+    final temizlik1 = _m(
+      's_temiz1',
+      'Temizlikçi Hatice Şimşek',
+      'P-07',
+      'Temizlik',
+      _staff,
+      groups: ['sg_ann'],
+    );
+    final temizlik2 = _m(
+      's_temiz2',
+      'Temizlikçi Emine Korkmaz',
+      'P-08',
+      'Temizlik',
+      _staff,
       groups: ['sg_ann'],
     );
 
-    final members = <Member>[me, ali, fatma, okan];
-    me.groupIds = ['sg_ann'];
+    // --- Sakinler: Mavi Blok (3 daire) ---
+    final mavi1 = _m('s_mavi1', 'Kerem Yalçın', 'K-01', 'Mavi Blok - Daire 1',
+        _owner, groups: ['sg_ann', 'sg_mavi_1']);
+    final mavi2 = _m('s_mavi2', 'Derya Aksakal', 'K-02', 'Mavi Blok - Daire 2',
+        _resident, groups: ['sg_ann', 'sg_mavi_2']);
+    final mavi3 = _m('s_mavi3', 'Tolga Erdem', 'K-03', 'Mavi Blok - Daire 3',
+        _owner, groups: ['sg_ann', 'sg_mavi_3']);
+
+    // --- Sakinler: Yeşil Blok (3 daire) ---
+    final yesil1 = _m('s_yesil1', 'Pınar Çelik', 'K-04',
+        'Yeşil Blok - Daire 1', _owner, groups: ['sg_ann', 'sg_yesil_1']);
+    final yesil2 = _m('s_yesil2', 'Volkan Tunç', 'K-05',
+        'Yeşil Blok - Daire 2', _resident, groups: ['sg_ann', 'sg_yesil_2']);
+    final yesil3 = _m('s_yesil3', 'Gizem Polat', 'K-06',
+        'Yeşil Blok - Daire 3', _owner, groups: ['sg_ann', 'sg_yesil_3']);
+
+    // --- Bağımsız villalar (bloklara bağlı değil, kendi başına kök) ---
+    final deniz = _m('s_deniz', 'Cem Yıldırım', 'K-07', 'Deniz Villa', _owner,
+        groups: ['sg_ann', 'sg_deniz']);
+    final orman = _m('s_orman', 'Ebru Kaplan', 'K-08', 'Orman Villa', _owner,
+        groups: ['sg_ann', 'sg_orman']);
+
+    final members = <Member>[
+      me, muhasebeci, guvenlik1, guvenlik2, bahce1, bahce2, temizlik1,
+      temizlik2, mavi1, mavi2, mavi3, yesil1, yesil2, yesil3, deniz, orman,
+    ];
 
     final groups = <Group>[
       Group(
@@ -543,16 +611,118 @@ class MockData {
         name: 'Site Duyuruları',
         description: 'Tüm sakinler için resmi duyurular.',
         type: GroupType.organized,
-        memberIds: ['s_me', 's_ali', 's_fatma', 's_okan'],
+        memberIds: [for (final m in members) m.id],
         logoIcon: Icons.apartment_outlined,
+        // FR-90: müdür + muhasebeci yazar (aidat/duyuru); herkes okur.
+        writerIds: {'s_me', 's_muhasebe'},
+      ),
+      // Mavi Blok — üyelik yalnız yaprakta (FR-71); blok kendisi düğüm.
+      Group(
+        id: 'sg_mavi',
+        name: 'Mavi Blok',
+        description: 'Mavi Blok sakinleri.',
+        type: GroupType.organized,
+        memberIds: const [],
+        logoIcon: Icons.apartment_outlined,
+      ),
+      Group(
+        id: 'sg_mavi_1',
+        name: 'Daire 1',
+        description: 'Mavi Blok Daire 1.',
+        type: GroupType.organized,
+        parentGroupId: 'sg_mavi',
+        memberIds: const ['s_mavi1'],
+        logoIcon: Icons.door_front_door_outlined,
+        writerIds: const {'s_mavi1'}, // kendi dairesinde sakin yazar
+      ),
+      Group(
+        id: 'sg_mavi_2',
+        name: 'Daire 2',
+        description: 'Mavi Blok Daire 2.',
+        type: GroupType.organized,
+        parentGroupId: 'sg_mavi',
+        memberIds: const ['s_mavi2'],
+        logoIcon: Icons.door_front_door_outlined,
+        writerIds: const {'s_mavi2'},
+      ),
+      Group(
+        id: 'sg_mavi_3',
+        name: 'Daire 3',
+        description: 'Mavi Blok Daire 3.',
+        type: GroupType.organized,
+        parentGroupId: 'sg_mavi',
+        memberIds: const ['s_mavi3'],
+        logoIcon: Icons.door_front_door_outlined,
+        writerIds: const {'s_mavi3'},
+      ),
+      // Yeşil Blok
+      Group(
+        id: 'sg_yesil',
+        name: 'Yeşil Blok',
+        description: 'Yeşil Blok sakinleri.',
+        type: GroupType.organized,
+        memberIds: const [],
+        logoIcon: Icons.apartment_outlined,
+      ),
+      Group(
+        id: 'sg_yesil_1',
+        name: 'Daire 1',
+        description: 'Yeşil Blok Daire 1.',
+        type: GroupType.organized,
+        parentGroupId: 'sg_yesil',
+        memberIds: const ['s_yesil1'],
+        logoIcon: Icons.door_front_door_outlined,
+        writerIds: const {'s_yesil1'},
+      ),
+      Group(
+        id: 'sg_yesil_2',
+        name: 'Daire 2',
+        description: 'Yeşil Blok Daire 2.',
+        type: GroupType.organized,
+        parentGroupId: 'sg_yesil',
+        memberIds: const ['s_yesil2'],
+        logoIcon: Icons.door_front_door_outlined,
+        writerIds: const {'s_yesil2'},
+      ),
+      Group(
+        id: 'sg_yesil_3',
+        name: 'Daire 3',
+        description: 'Yeşil Blok Daire 3.',
+        type: GroupType.organized,
+        parentGroupId: 'sg_yesil',
+        memberIds: const ['s_yesil3'],
+        logoIcon: Icons.door_front_door_outlined,
+        writerIds: const {'s_yesil3'},
+      ),
+      // Bağımsız villalar: alt birimi yok ama yine de hiyerarşi kökü —
+      // düz bir kurumsal grup (ör. bir ders grubu) değiller (isHierarchyRoot).
+      Group(
+        id: 'sg_deniz',
+        name: 'Deniz Villa',
+        description: 'Bağımsız villa.',
+        type: GroupType.organized,
+        memberIds: const ['s_deniz'],
+        logoIcon: Icons.villa_outlined,
+        writerIds: const {'s_deniz'},
+        isHierarchyRoot: true,
+      ),
+      Group(
+        id: 'sg_orman',
+        name: 'Orman Villa',
+        description: 'Bağımsız villa.',
+        type: GroupType.organized,
+        memberIds: const ['s_orman'],
+        logoIcon: Icons.villa_outlined,
+        writerIds: const {'s_orman'},
+        isHierarchyRoot: true,
       ),
     ];
 
     final threads = <String, List<Message>>{
       'grp:sg_ann': [
-        _msg('sa1', 's_ali', 'Su kesintisi yarın 09:00-12:00 arası olacaktır.',
+        _msg('sa1', 's_me', 'Su kesintisi yarın 09:00-12:00 arası olacaktır.',
             ago(const Duration(hours: 4))),
-        _msg('sa2', 's_fatma', 'Bilgilendirme için teşekkürler.',
+        _msg('sa2', 's_muhasebe', 'Aidat son ödeme tarihi bu ayın 10\'u.',
             ago(const Duration(hours: 3))),
       ],
     };
@@ -594,6 +764,7 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['l_me', 'l_ahmet'],
         logoIcon: Icons.class_outlined,
+        writerIds: {'l_me'}, // FR-90
       ),
       Group(
         id: 'lg_ann',
@@ -602,6 +773,7 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['l_me', 'l_ahmet', 'l_ogr2', 'l_veli'],
         logoIcon: Icons.campaign_outlined,
+        writerIds: {'l_me', 'l_ogr2'}, // FR-90: öğretmenler yazar
       ),
       Group(
         id: 'lg_veli',
@@ -610,6 +782,7 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['l_me', 'l_veli'],
         logoIcon: Icons.groups_outlined,
+        writerIds: {'l_me'}, // FR-90
       ),
     ];
 
@@ -661,6 +834,7 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['d_me', 'd_nur'],
         logoIcon: Icons.account_balance_outlined,
+        writerIds: {'d_me', 'd_nur'}, // FR-90
       ),
       Group(
         id: 'dg_uye',
@@ -669,6 +843,7 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['d_me', 'd_selim', 'd_aylin', 'd_nur'],
         logoIcon: Icons.people_outline,
+        writerIds: {'d_me', 'd_nur'}, // FR-90: yönetici + idari personel
       ),
       Group(
         id: 'dg_etkinlik',
@@ -728,6 +903,7 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['h_me', 'h_elif'],
         logoIcon: Icons.local_hospital_outlined,
+        writerIds: {'h_me'}, // FR-90
       ),
       Group(
         id: 'hg_nobet',
@@ -736,6 +912,7 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['h_me', 'h_murat', 'h_elif'],
         logoIcon: Icons.schedule_outlined,
+        writerIds: {'h_me', 'h_murat'}, // FR-90
       ),
       Group(
         id: 'hg_ann',
@@ -744,6 +921,7 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['h_me', 'h_murat', 'h_elif', 'h_sema'],
         logoIcon: Icons.campaign_outlined,
+        writerIds: {'h_sema'}, // FR-90: duyuruları İK yazar; doktorlar okur
       ),
     ];
 

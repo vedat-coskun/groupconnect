@@ -66,7 +66,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Kurumsal sekmesi: bölüm satırı (mesaj ikonu + chevron) '
+  testWidgets('Kurumsal sekmesi: yazar olmayan üyede mesaj ikonu yok (FR-90), '
       '393px\'te çizilir, accordion açılır', (tester) async {
     tester.view.physicalSize = const Size(393 * 3, 852 * 3);
     tester.view.devicePixelRatio = 3.0;
@@ -87,10 +87,10 @@ void main() {
     // Kurumsal ilk sekmedir (FR-42) — tek kök atlanır, içerik doğrudan gelir.
     expect(find.text('Mühendislik Fakültesi'), findsOneWidget);
     expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);
-    // Mesaj ikonu yalnız ÜYE olunan düğümlerde (FR-35): Fakülte (türetilmiş,
-    // FR-71) + Bilgisayar Müh. (yaprak). Elektrik-Elektronik'te üyelik yok
-    // → ikon da yok.
-    expect(find.byIcon(Icons.chat_bubble_outline), findsNWidgets(2));
+    // İkon = "buraya yazabilirim" (kullanıcı hükmü), üyelik değil (FR-90).
+    // Vedat her iki düğümde de ÜYE ama yazar değil (yalnız Prof. Demir) —
+    // ikon hiç çıkmaz. Test kimliği olması özel muamele hakkı vermez.
+    expect(find.byIcon(Icons.chat_bubble_outline), findsNothing);
 
     // Bölüme dokun → satır accordion olarak açılır (chevron yön değiştirir).
     // Not: rol başlığı sayısı SAYILMAZ — ListView lazy olduğundan viewport
@@ -100,5 +100,24 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byIcon(Icons.expand_less), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Kurumsal sekmesi: yazar-işaretli üyede mesaj ikonu çıkar '
+      '(FR-90 pozitif dal)', (tester) async {
+    final state = AppState();
+    state.setPendingPhone('+90', '5555555501'); // Vedat
+    state.selectTenant('uni');
+    // Vedat'ı Bölüm'ün yazarı yap — kuralın pozitif dalını da doğrula.
+    state.td.group('g_dept_cs')!.writerIds.add('u_me');
+
+    await tester.pumpWidget(
+      AppScope(
+        state: state,
+        child: MaterialApp(theme: AppTheme.light(), home: const GroupsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.chat_bubble_outline), findsOneWidget);
   });
 }

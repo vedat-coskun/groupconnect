@@ -40,14 +40,19 @@ class AdminSettings {
   /// Sensible defaults from the tenant: visibility from the tenant, authority
   /// roles get bulk-add + direct-add. [twoLevel] seeds a 2-level hierarchy
   /// (e.g. Dekanlık → Bölüm) to demonstrate the parametric depth.
-  factory AdminSettings.defaults(Tenant t, {bool twoLevel = false}) {
+  factory AdminSettings.defaults(
+    Tenant t, {
+    bool twoLevel = false,
+    List<String>? levelLabels,
+  }) {
     return AdminSettings(
       defaultVisibility: t.defaultVisibility,
       groupMaxDepth: twoLevel ? 2 : 1,
       levelLabels:
-          twoLevel
+          levelLabels ??
+          (twoLevel
               ? ['Dekanlık', 'Bölüm', 'Anabilim Dalı']
-              : ['Grup', 'Alt Grup', 'Alt Alt Grup'],
+              : ['Grup', 'Alt Grup', 'Alt Alt Grup']),
       roleLabels: {for (final r in t.roles) r.id: r.label(AppLanguage.tr)},
       // Varsayılan matris: yetkili roller herkesi görür; temel roller yalnız
       // yetkili rolleri görür (öğrenci → akademisyen; öğrenci → öğrenci onaylı).

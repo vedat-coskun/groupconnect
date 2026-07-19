@@ -49,7 +49,14 @@ class AppState extends ChangeNotifier {
   /// seeds a 2-level hierarchy (Dekanlık → Bölüm) to demo parametric depth.
   late final Map<String, AdminSettings> _admin = {
     for (final t in _tenants)
-      t.id: AdminSettings.defaults(t, twoLevel: t.id == MockData.uniId),
+      t.id: AdminSettings.defaults(
+        t,
+        twoLevel: t.id == MockData.uniId || t.id == MockData.siteId,
+        levelLabels:
+            t.id == MockData.siteId
+                ? ['Site Birimleri', 'Daire', 'Alt Birim']
+                : null,
+      ),
   };
 
   AppLanguage _language = AppLanguage.tr;
@@ -222,6 +229,10 @@ class AppState extends ChangeNotifier {
   }
 
   /// Apply the cached user blob for (tenant, identity) into the tenant island.
+  ///
+  /// KİMLİK KAPSAMI: kişisel durumun TAMAMI takas edilir — rehber, favoriler,
+  /// engellenenler, notlar, 1:1 görünürlüğü ve sessize almalar. Blob yoksa
+  /// hepsi boşa döner; bir kimliğin kişisel verisi diğerine asla sızmaz.
   void _applyUser(String tenantId, String myId) {
     final d = _data[tenantId]!;
     final blob = _userCache['$tenantId::$myId'] ?? const <String, dynamic>{};
@@ -237,6 +248,23 @@ class AppState extends ChangeNotifier {
     d.favoriteGroupIds
       ..clear()
       ..addAll((blob['fg'] as List?)?.cast<String>() ?? const []);
+    d.blockedIds
+      ..clear()
+      ..addAll((blob['b'] as List?)?.cast<String>() ?? const []);
+    d.notes
+      ..clear()
+      ..addAll(
+        ((blob['n'] as Map?)?.cast<String, String>()) ?? const {},
+      );
+    d.dmVisible
+      ..clear()
+      ..addAll((blob['dv'] as List?)?.cast<String>() ?? const []);
+    d.mutedDms
+      ..clear()
+      ..addAll((blob['md'] as List?)?.cast<String>() ?? const []);
+    d.mutedGroupIds
+      ..clear()
+      ..addAll((blob['mg'] as List?)?.cast<String>() ?? const []);
   }
 
   /// Fire-and-forget save of the active (tenant, identity) user data.
@@ -248,6 +276,11 @@ class AppState extends ChangeNotifier {
       'c': List<String>.from(d.contactIds),
       'f': d.favoriteIds.toList(),
       'fg': d.favoriteGroupIds.toList(),
+      'b': d.blockedIds.toList(),
+      'n': Map<String, String>.from(d.notes),
+      'dv': d.dmVisible.toList(),
+      'md': d.mutedDms.toList(),
+      'mg': d.mutedGroupIds.toList(),
     };
     _userCache['$id::${d.myId}'] = blob;
     _persist(id, d.myId, blob);
@@ -572,6 +605,7 @@ class AppState extends ChangeNotifier {
     } else {
       td.notes[id] = text.trim();
     }
+    _saveUser();
     notifyListeners();
   }
 
@@ -585,6 +619,7 @@ class AppState extends ChangeNotifier {
 
   void unblock(String id) {
     td.blockedIds.remove(id);
+    _saveUser();
     notifyListeners();
   }
 
@@ -642,7 +677,15 @@ class AppState extends ChangeNotifier {
   // (FR-80). Tek gelen kutusu "Onay Bekleyenler"dir (FR-67, incomingInvites).
 
   // ---- Chats (FR-29..FR-33, text only) ------------------------------------
-  static String dmThread(String memberId) => 'dm:$memberId';
+  /// 1:1 dizi anahtarı **taraf-çiftine** aittir (sıralı `dm:<a>:<b>`), tek
+  /// tarafa değil. Eski `dm:<peerId>` anahtarı bakan kimliği yok sayıyordu:
+  /// üçüncü bir kimlik başkasının yazışmasını "kendi sohbeti" gibi görüyor,
+  /// karşı taraf ise kendi sohbetini bulamıyordu.
+  String dmThread(String memberId) {
+    final pair = [td.myId, memberId]..sort();
+    return 'dm:${pair[0]}:${pair[1]}';
+  }
+
   static String grpThread(String groupId) => 'grp:$groupId';
 
   List<Message> messagesOf(String threadId) => td.threads[threadId] ?? const [];
@@ -677,6 +720,8 @@ class AppState extends ChangeNotifier {
   void sendDm(String memberId, String text, {String? replyToId}) {
     final t = text.trim();
     if (t.isEmpty) return;
+    // FR-18: engellediğim kişiye mesaj gidemez (veri katmanı — NFR-17).
+    if (td.blockedIds.contains(memberId)) return;
     final id = dmThread(memberId);
     td.threads.putIfAbsent(id, () => []);
     td.threads[id]!.add(
@@ -689,12 +734,25 @@ class AppState extends ChangeNotifier {
       ),
     );
     td.dmVisible.add(memberId); // surfaces the thread in the chat list (FR-32)
+    _saveUser(); // dmVisible kişiseldir — kimlik başına saklanır
     notifyListeners();
   }
+
+  /// FR-90: bu grupta ben yazabilir miyim? Kurumsal grupta yalnız admin'in
+  /// işaretlediği yazarlar (varsayılan: hiç kimse — herkes okur); özel grupta
+  /// her (etkin) üye.
+  bool canWriteInGroup(Group g) =>
+      g.isOrganized
+          ? g.writerIds.contains(td.myId)
+          : isEffectiveMember(g);
 
   void sendGroupMessage(String groupId, String text, {String? replyToId}) {
     final t = text.trim();
     if (t.isEmpty) return;
+    final g = td.group(groupId);
+    // FR-90 + NFR-17: yazar-işareti olmayanın gönderimi veri katmanında düşer
+    // (UI zaten composer yerine salt-okur şerit gösterir).
+    if (g == null || !canWriteInGroup(g)) return;
     final id = grpThread(groupId);
     td.threads.putIfAbsent(id, () => []);
     td.threads[id]!.add(
@@ -712,13 +770,17 @@ class AppState extends ChangeNotifier {
   bool isDmMuted(String memberId) => td.mutedDms.contains(memberId);
   void toggleDmMute(String memberId) {
     if (!td.mutedDms.remove(memberId)) td.mutedDms.add(memberId);
+    _saveUser();
     notifyListeners();
   }
 
+  /// Sessize alma KİŞİSELDİR (FR-49): bakan kimliğin görünümüdür, grubun
+  /// kendisinin değil — bu yüzden Group.muted değil, kimlik-başına saklanan
+  /// mutedGroupIds kümesidir.
+  bool isGroupMuted(String groupId) => td.mutedGroupIds.contains(groupId);
   void toggleGroupMute(String groupId) {
-    final g = td.group(groupId);
-    if (g == null) return;
-    g.muted = !g.muted;
+    if (!td.mutedGroupIds.remove(groupId)) td.mutedGroupIds.add(groupId);
+    _saveUser();
     notifyListeners();
   }
 
@@ -741,7 +803,7 @@ class AppState extends ChangeNotifier {
           threadId: grpThread(g.id),
           title: g.name,
           isGroup: true,
-          muted: g.muted,
+          muted: isGroupMuted(g.id),
           group: g,
         ),
       );
@@ -902,9 +964,14 @@ class AppState extends ChangeNotifier {
   List<Group> childGroupsOf(String? parentId) =>
       td.groups.where((g) => g.parentGroupId == parentId).toList();
 
-  /// Top-level groups that actually head a hierarchy (have children).
-  List<Group> get treeRootGroups =>
-      childGroupsOf(null).where((g) => childGroupsOf(g.id).isNotEmpty).toList();
+  /// Top-level groups that actually head a hierarchy: either they have
+  /// children, or they're explicitly marked as a (leaf) hierarchy root
+  /// (`isHierarchyRoot` — e.g. a standalone villa next to apartment blocks).
+  /// Plain flat organized groups (a course, a one-off announcement group)
+  /// have neither and are correctly excluded.
+  List<Group> get treeRootGroups => childGroupsOf(null)
+      .where((g) => g.isHierarchyRoot || childGroupsOf(g.id).isNotEmpty)
+      .toList();
 
   bool get hasGroupHierarchy => treeRootGroups.isNotEmpty;
 

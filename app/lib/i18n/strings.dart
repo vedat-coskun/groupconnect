@@ -96,6 +96,9 @@ abstract class AppStrings {
   String get chatsFilterEmpty;
   String get newChatTitle;
   String get messageHint;
+
+  /// FR-90: yazar olmayan uyeye composer yerine gosterilen serit.
+  String get readOnlyGroup;
   String get reply;
   String get copy;
   String get editedTag;
@@ -137,6 +140,7 @@ abstract class AppStrings {
   String get notes;
   String get notesHint;
   String get memberNoLabel;
+  String get titleLabel;
   String get roleLabel;
   String get departmentLabel;
   String get alreadyInContacts;
@@ -388,6 +392,9 @@ class _Tr extends AppStrings {
   @override
   String get messageHint => 'Mesaj yaz';
   @override
+  String get readOnlyGroup =>
+      'Bu grupta yalnızca yetkili kişiler yazabilir.';
+  @override
   String get reply => 'Yanıtla';
   @override
   String get copy => 'Kopyala';
@@ -468,6 +475,8 @@ class _Tr extends AppStrings {
   String get notesHint => 'Bu kişi hakkında not ekle';
   @override
   String get memberNoLabel => 'Üye No';
+  @override
+  String get titleLabel => 'Ünvan';
   @override
   String get roleLabel => 'Rol';
   @override
@@ -798,6 +807,9 @@ class _En extends AppStrings {
   @override
   String get messageHint => 'Type a message';
   @override
+  String get readOnlyGroup =>
+      'Only authorized people can post in this group.';
+  @override
   String get reply => 'Reply';
   @override
   String get copy => 'Copy';
@@ -878,6 +890,8 @@ class _En extends AppStrings {
   String get notesHint => 'Add a note about this contact';
   @override
   String get memberNoLabel => 'Member No';
+  @override
+  String get titleLabel => 'Title';
   @override
   String get roleLabel => 'Role';
   @override

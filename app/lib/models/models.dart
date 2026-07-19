@@ -163,10 +163,11 @@ class Group {
     this.adminId,
     this.inviteMessage = '',
     this.logoIcon,
-    this.muted = false,
     this.parentGroupId,
     this.isOpen = false,
     this.archived = false,
+    this.writerIds = const {},
+    this.isHierarchyRoot = false,
   });
 
   final String id;
@@ -180,8 +181,11 @@ class Group {
   String inviteMessage;
   IconData? logoIcon;
 
-  /// Per-conversation notification mute (FR-49).
-  bool muted;
+  /// FR-90: kurumsal grupta YAZABİLEN üyeler (admin işaretler; varsayılan
+  /// kimse yazamaz — tüm üyeler okur). Özel gruplarda anlamsızdır: orada her
+  /// üye yazar. (Sessize alma burada DEĞİL — kişisel görünümdür, bakan
+  /// kimliğe aittir: TenantData.mutedGroupIds.)
+  final Set<String> writerIds;
 
   /// Parent group id for the hierarchy tree (null = top level).
   ///
@@ -189,6 +193,15 @@ class Group {
   /// defines (Dekanlık → Bölüm → …, see admin `levelLabels`). **Private groups
   /// are always flat** — they never have a parent.
   final String? parentGroupId;
+
+  /// Çocuksuz bir kök düğüm yine de Kurum Yapısı'nda kök olarak sayılsın mı
+  /// (ör. alt birimi olmayan bir villa, Bölümlü bir Blok'un yanında)? Var
+  /// olan kökler (çocuğu olanlar — ör. Mühendislik Fakültesi) bunu hiç
+  /// gerektirmez; yalnız "gerçekten hiyerarşinin bir parçası ama yaprak"
+  /// düğümler için. Ayırt edilmesi gereken şey: normal düz kurumsal grup
+  /// (ör. bir ders grubu) Kurum Yapısı'nda HİÇ görünmemeli — bu bayrak
+  /// olmadan `treeRootGroups` ikisini ayıramazdı.
+  final bool isHierarchyRoot;
 
   /// "Açık" grup: davetsiz katılınabilir (FR-81).
   ///

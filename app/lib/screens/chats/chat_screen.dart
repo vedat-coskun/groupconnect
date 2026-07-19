@@ -35,7 +35,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return const Scaffold(body: Center(child: Text('—')));
     }
     final role = state.roleOf(member);
-    final messages = state.messagesOf('dm:$memberId');
+    final messages = state.messagesOf(state.dmThread(memberId));
     // Matrisin doğrudan gördüğü kişi rehberdeymiş gibidir — şerit/intro yok.
     final isContact = state.treatAsContact(memberId);
 
@@ -128,7 +128,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     : MessageList(
                       messages: List.of(messages),
                       isGroup: false,
-                      threadId: 'dm:$memberId',
+                      threadId: state.dmThread(memberId),
                       resolveSender: (id) => state.td.member(id),
                       onReply: (m) => setState(() => _replyingTo = m),
                     ),

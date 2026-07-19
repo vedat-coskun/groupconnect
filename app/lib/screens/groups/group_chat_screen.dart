@@ -100,28 +100,69 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       onReply: (m) => setState(() => _replyingTo = m),
                     ),
           ),
-          if (_replyingTo != null)
-            _ReplyBar(
-              name:
-                  _replyingTo!.senderId == meId
-                      ? s.you
-                      : (state.td.member(_replyingTo!.senderId)?.namePlusTitle ??
-                          ''),
-              text: _replyingTo!.text,
-              onCancel: () => setState(() => _replyingTo = null),
+          // FR-90: kurumsal grupta yalnız yazar-işaretli üyeler yazar; yazar
+          // olmayana composer yerine salt-okur şerit gösterilir (NFR-17:
+          // "arayüzdeki hiçbir kontrol sessiz no-op olamaz" — composer'ı
+          // bırakıp gönderimi yutmak yasak).
+          if (state.canWriteInGroup(group)) ...[
+            if (_replyingTo != null)
+              _ReplyBar(
+                name:
+                    _replyingTo!.senderId == meId
+                        ? s.you
+                        : (state.td
+                                .member(_replyingTo!.senderId)
+                                ?.namePlusTitle ??
+                            ''),
+                text: _replyingTo!.text,
+                onCancel: () => setState(() => _replyingTo = null),
+              ),
+            MessageComposer(
+              hint: s.messageHint,
+              onSend: (text) {
+                AppScope.of(context, listen: false).sendGroupMessage(
+                  groupId,
+                  text,
+                  replyToId: _replyingTo?.id,
+                );
+                if (_replyingTo != null) setState(() => _replyingTo = null);
+              },
             ),
-          MessageComposer(
-            hint: s.messageHint,
-            onSend: (text) {
-              AppScope.of(context, listen: false).sendGroupMessage(
-                groupId,
-                text,
-                replyToId: _replyingTo?.id,
-              );
-              if (_replyingTo != null) setState(() => _replyingTo = null);
-            },
-          ),
+          ] else
+            _ReadOnlyBar(text: s.readOnlyGroup),
         ],
+      ),
+    );
+  }
+}
+
+/// FR-90: yazar olmayan üyeye composer yerine gösterilen salt-okur şerit.
+class _ReadOnlyBar extends StatelessWidget {
+  const _ReadOnlyBar({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      color: scheme.surfaceContainerHighest,
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Icon(Icons.lock_outline, size: 18, color: scheme.onSurfaceVariant),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(color: scheme.onSurfaceVariant),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

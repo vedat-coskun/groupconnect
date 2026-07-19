@@ -179,7 +179,8 @@ class GroupDetailScreen extends StatelessWidget {
             SwitchListTile(
               secondary: const Icon(Icons.notifications_off_outlined),
               title: Text(s.mute),
-              value: g.muted,
+              // Kişisel görünüm (FR-49): bakan kimliğe ait, grup-üstü değil.
+              value: state.isGroupMuted(groupId),
               onChanged:
                   (_) => AppScope.of(
                     context,

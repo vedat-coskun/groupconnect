@@ -66,8 +66,8 @@ class ProfileScreen extends StatelessWidget {
             child: Wrap(
               spacing: 8,
               children: [
-                TagChip(label: state.roleName(role)),
                 TagChip(label: tenant.name, icon: Icons.business_outlined),
+                TagChip(label: state.roleName(role)),
               ],
             ),
           ),
@@ -85,6 +85,15 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
+          // "Ad SOYAD, Ünvan, Bölüm" satır düzenindeki sırayla (FR-94):
+          // ünvan yalnız varsa gösterilir (herkeste yok — ör. akademisyen
+          // ama unvansız); rol ayrı bir alan/rozet olarak zaten duruyor.
+          if (me.title.isNotEmpty)
+            _InfoRow(
+              icon: Icons.school_outlined,
+              label: s.titleLabel,
+              value: me.title,
+            ),
           _InfoRow(
             icon: Icons.badge_outlined,
             label: s.memberNoLabel,

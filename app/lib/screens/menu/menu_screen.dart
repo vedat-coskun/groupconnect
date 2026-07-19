@@ -61,16 +61,16 @@ class MenuScreen extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => push(const SettingsScreen()),
           ),
-          // Yalnız yetkili rollere (akademisyen/yönetici/… ). Prototip: gerçek
-          // sürümde Web Admin paneline taşınacak.
-          if (state.isAuthority(state.me))
-            ListTile(
-              leading: const Icon(Icons.admin_panel_settings_outlined),
-              title: Text(s.adminSettingsTitle),
-              subtitle: const Text('Prototip — Web Admin paneline taşınacak'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => push(const AdminSettingsScreen()),
-            ),
+          // Kişiden bağımsız (kullanıcı hükmü): gerçek üründe ayrı bir Web
+          // Admin paneli/aktörüdür (mobil rol sistemine hiç girmez), rol
+          // gözetmeden hangi test kimliğiyle girilirse girilsin erişilebilir.
+          ListTile(
+            leading: const Icon(Icons.admin_panel_settings_outlined),
+            title: Text(s.adminSettingsTitle),
+            subtitle: const Text('Prototip — Web Admin paneline taşınacak'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => push(const AdminSettingsScreen()),
+          ),
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: Text(s.about),

@@ -87,10 +87,12 @@ class _GroupTreeScreenState extends State<GroupTreeScreen> {
           ),
           // Seviye adı yerine toplam kişi (alt gruplar dahil).
           subtitle: Text('${members.length} kişi'),
-          // Sohbet yalnız üyeye (türetilmiş dahil — FR-71): üye olmadığım
-          // kurumsal grubun sohbetine giremem/yazamam (FR-35).
+          // İkon = "buraya yazabilirim" (kullanıcı hükmü — "mesaj gönderemem").
+          // Üyelik değil, YAZAR olmak gerekir (FR-90); okuma yine de üyeye
+          // Sohbetler'den açıktır (GroupChatScreen zaten salt-okur şerit
+          // gösterir) — bu ikon Kurum Yapısı'ndaki hızlı-yazma kısayoludur.
           trailing:
-              state.isEffectiveMember(g)
+              state.canWriteInGroup(g)
                   ? IconButton(
                     tooltip: s.openChat,
                     icon: const Icon(Icons.chat_bubble_outline),
@@ -199,10 +201,9 @@ class _GroupTreeScreenState extends State<GroupTreeScreen> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Her hiyerarşi düğümü gerçek bir kurumsal gruptur — sohbeti vardır;
-          // ama sohbete yalnız ÜYE girer (türetilmiş dahil — FR-71): üyesi
-          // olmadığım bölümün satırında mesaj ikonu çıkmaz (FR-35).
-          if (state.isEffectiveMember(g))
+          // İkon = "buraya yazabilirim" (kullanıcı hükmü). Üyelik değil,
+          // YAZAR olmak gerekir (FR-90) — okuma üyeye Sohbetler'den açıktır.
+          if (state.canWriteInGroup(g))
             IconButton(
               tooltip: context.s.openChat,
               icon: const Icon(Icons.chat_bubble_outline),

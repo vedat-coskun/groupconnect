@@ -7,7 +7,7 @@ import '../groups/groups_screen.dart';
 import '../menu/menu_screen.dart';
 
 /// Main app shell with bottom navigation:
-/// Gruplar · Kişiler · Sohbetler · Menü.
+/// Sohbetler · Gruplar · Kişiler · Menü.
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -19,9 +19,9 @@ class _HomeShellState extends State<HomeShell> {
   int _index = 0;
 
   static const _tabs = [
+    ChatsScreen(),
     GroupsScreen(),
     ContactsScreen(),
-    ChatsScreen(),
     MenuScreen(),
   ];
 
@@ -35,6 +35,11 @@ class _HomeShellState extends State<HomeShell> {
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: [
           NavigationDestination(
+            icon: const Icon(Icons.chat_bubble_outline),
+            selectedIcon: const Icon(Icons.chat_bubble),
+            label: s.tabChats,
+          ),
+          NavigationDestination(
             icon: const Icon(Icons.groups_outlined),
             selectedIcon: const Icon(Icons.groups),
             label: s.tabGroups,
@@ -43,11 +48,6 @@ class _HomeShellState extends State<HomeShell> {
             icon: const Icon(Icons.contacts_outlined),
             selectedIcon: const Icon(Icons.contacts),
             label: s.tabContacts,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.chat_bubble_outline),
-            selectedIcon: const Icon(Icons.chat_bubble),
-            label: s.tabChats,
           ),
           NavigationDestination(
             icon: const Icon(Icons.menu),

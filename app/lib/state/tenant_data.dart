@@ -20,6 +20,7 @@ class TenantData {
     Map<String, String>? notes,
     Set<String>? dmVisible,
     Set<String>? mutedDms,
+    Set<String>? mutedGroupIds,
     this.profileComplete = false,
   }) : threads = threads ?? {},
        contactIds = contactIds ?? [],
@@ -28,7 +29,8 @@ class TenantData {
        blockedIds = blockedIds ?? {},
        notes = notes ?? {},
        dmVisible = dmVisible ?? {},
-       mutedDms = mutedDms ?? {};
+       mutedDms = mutedDms ?? {},
+       mutedGroupIds = mutedGroupIds ?? {};
 
   final Tenant tenant;
 
@@ -51,12 +53,17 @@ class TenantData {
   /// (FR-20); grows as they add people through discovery.
   final List<String> contactIds;
 
+  // NOT: Aşağıdaki alanların TÜMÜ **bakan kimliğe** aittir ve (kurum + kimlik)
+  // başına saklanıp kimlik değişiminde takas edilir (AppState._applyUser).
+  // Kimlikten bağımsız tek kişisel-olmayan durum: members/groups/threads
+  // (paylaşılan "sunucu" verisi) ve admin ayarları.
   final Set<String> favoriteIds; // FR-54
   final Set<String> favoriteGroupIds; // favori gruplar
   final Set<String> blockedIds; // FR-18, FR-53
   final Map<String, String> notes; // FR-24: rehber owner's notes
   final Set<String> dmVisible; // 1:1 threads surfaced in the chat list
   final Set<String> mutedDms; // FR-49 for 1:1 threads
+  final Set<String> mutedGroupIds; // FR-49 for groups — kişisel, grup-üstü değil
 
   /// False until the first-login profile setup is confirmed (FR-9).
   bool profileComplete;
