@@ -331,6 +331,40 @@ class MockData {
       groups: ['g_dept_cs'],
     );
 
+    // --- Tasarım Fakültesi: MIS Bölümü + Tasarım Bölümü (kullanıcı hükmü) ---
+    final kaan = _m(
+      'u_kaan',
+      'Doç. Dr. Kaan Sezgin',
+      'A-2001',
+      'MIS Bölümü',
+      _academic,
+      groups: ['g_dept_mis'],
+    );
+    final ece = _m(
+      'u_ece',
+      'Dr. Öğr. Üyesi Ece Yalman',
+      'A-2010',
+      'Tasarım Bölümü',
+      _academic,
+      groups: ['g_dept_design'],
+    );
+    final efe = _m(
+      'u_efe',
+      'Efe Karadağ',
+      '2023510044',
+      'MIS Bölümü',
+      _student,
+      groups: ['g_dept_mis'],
+    );
+    final asli = _m(
+      'u_asli',
+      'Aslı Bozkurt',
+      '2023510055',
+      'Tasarım Bölümü',
+      _student,
+      groups: ['g_dept_design'],
+    );
+
     final members = <Member>[
       me,
       ayse,
@@ -341,6 +375,10 @@ class MockData {
       merve,
       burak,
       selin,
+      kaan,
+      ece,
+      efe,
+      asli,
     ];
 
     final groups = <Group>[
@@ -378,6 +416,41 @@ class MockData {
         logoIcon: Icons.bolt_outlined,
         writerIds: {'u_mehmet'}, // FR-90
       ),
+
+      // --- İkinci fakülte (kullanıcı hükmü): Kurumsal artık 2 kök —
+      // "tek kök varsa atla" (Kurumsal sekmesi) devreye girmez, kök listesi
+      // (Mühendislik + Tasarım) görünür; bu doğru/beklenen, University artık
+      // gerçekten çok-köklü.
+      Group(
+        id: 'g_fac_design',
+        name: 'Tasarım Fakültesi',
+        description: 'Fakülte geneli duyurular.',
+        type: GroupType.organized,
+        memberIds: [], // FR-71: ara seviye, üyelik yalnız yaprakta (Bölüm)
+        logoIcon: Icons.palette_outlined,
+        writerIds: {'u_kaan'},
+      ),
+      Group(
+        id: 'g_dept_mis',
+        name: 'MIS Bölümü',
+        description: 'Yönetim Bilişim Sistemleri bölümü.',
+        type: GroupType.organized,
+        parentGroupId: 'g_fac_design',
+        memberIds: ['u_kaan', 'u_efe'],
+        logoIcon: Icons.dns_outlined,
+        writerIds: {'u_kaan'}, // FR-90: bölüm duyuruları
+      ),
+      Group(
+        id: 'g_dept_design',
+        name: 'Tasarım Bölümü',
+        description: 'Tasarım bölümü.',
+        type: GroupType.organized,
+        parentGroupId: 'g_fac_design',
+        memberIds: ['u_ece', 'u_asli'],
+        logoIcon: Icons.brush_outlined,
+        writerIds: {'u_ece'}, // FR-90
+      ),
+
       // "BM Bölümü Duyuruları" kaldırıldı (kurum sahibi hükmü): hiyerarşideki
       // "Bilgisayar Mühendisliği" (g_dept_cs) üyelikli gerçek grup olunca aynı
       // kişileri içeren düz duyuru grubu gereksiz kopya haline geldi; bölüm
@@ -519,7 +592,7 @@ class MockData {
       'P-01',
       'Site Yönetimi',
       _staff,
-      groups: ['sg_ann'],
+      groups: ['sg_ann', 'sg_idari'],
     );
     final muhasebeci = _m(
       's_muhasebe',
@@ -527,7 +600,7 @@ class MockData {
       'P-02',
       'Site Yönetimi',
       _staff,
-      groups: ['sg_ann'],
+      groups: ['sg_ann', 'sg_idari'],
     );
     final guvenlik1 = _m(
       's_guv1',
@@ -535,7 +608,7 @@ class MockData {
       'P-03',
       'Güvenlik',
       _staff,
-      groups: ['sg_ann'],
+      groups: ['sg_ann', 'sg_idari'],
     );
     final guvenlik2 = _m(
       's_guv2',
@@ -543,7 +616,7 @@ class MockData {
       'P-04',
       'Güvenlik',
       _staff,
-      groups: ['sg_ann'],
+      groups: ['sg_ann', 'sg_idari'],
     );
     final bahce1 = _m(
       's_bahce1',
@@ -551,7 +624,7 @@ class MockData {
       'P-05',
       'Bahçe Bakımı',
       _staff,
-      groups: ['sg_ann'],
+      groups: ['sg_ann', 'sg_idari'],
     );
     final bahce2 = _m(
       's_bahce2',
@@ -559,7 +632,7 @@ class MockData {
       'P-06',
       'Bahçe Bakımı',
       _staff,
-      groups: ['sg_ann'],
+      groups: ['sg_ann', 'sg_idari'],
     );
     final temizlik1 = _m(
       's_temiz1',
@@ -567,7 +640,7 @@ class MockData {
       'P-07',
       'Temizlik',
       _staff,
-      groups: ['sg_ann'],
+      groups: ['sg_ann', 'sg_idari'],
     );
     final temizlik2 = _m(
       's_temiz2',
@@ -575,7 +648,7 @@ class MockData {
       'P-08',
       'Temizlik',
       _staff,
-      groups: ['sg_ann'],
+      groups: ['sg_ann', 'sg_idari'],
     );
 
     // --- Sakinler: Mavi Blok (3 daire) ---
@@ -605,6 +678,11 @@ class MockData {
       temizlik2, mavi1, mavi2, mavi3, yesil1, yesil2, yesil3, deniz, orman,
     ];
 
+    // Kurum sahibi hükmü: kök üç KATEGORİ'dir (İdari Personel / Ev Sahibi /
+    // Sakin — admin ayarlarındaki roller). İdari Personel çocuksuz (üyeler
+    // doğrudan onun altında). Ev Sahibi ve Sakin altında Mavi Blok/Yeşil Blok
+    // AYRI AYRI tekrarlanır — her biri yalnız o kategoriden sakini olan
+    // daireleri toplar (aynı isim, iki farklı düğüm/id — kullanıcı hükmü).
     final groups = <Group>[
       Group(
         id: 'sg_ann',
@@ -616,12 +694,37 @@ class MockData {
         // FR-90: müdür + muhasebeci yazar (aidat/duyuru); herkes okur.
         writerIds: {'s_me', 's_muhasebe'},
       ),
-      // Mavi Blok — üyelik yalnız yaprakta (FR-71); blok kendisi düğüm.
+
+      // --- KATEGORİ: İdari Personel (kök, çocuksuz — isHierarchyRoot) ---
       Group(
-        id: 'sg_mavi',
-        name: 'Mavi Blok',
-        description: 'Mavi Blok sakinleri.',
+        id: 'sg_idari',
+        name: 'İdari Personel',
+        description: 'Site yönetim ve bakım ekibi.',
         type: GroupType.organized,
+        memberIds: const [
+          's_me', 's_muhasebe', 's_guv1', 's_guv2',
+          's_bahce1', 's_bahce2', 's_temiz1', 's_temiz2',
+        ],
+        logoIcon: Icons.badge_outlined,
+        writerIds: const {'s_me'},
+        isHierarchyRoot: true,
+      ),
+
+      // --- KATEGORİ: Ev Sahibi (kök) → Mavi/Yeşil Blok (sahip daireleri) + villalar ---
+      Group(
+        id: 'sg_sahip',
+        name: 'Ev Sahibi',
+        description: 'Mülk sahibi sakinler.',
+        type: GroupType.organized,
+        memberIds: const [],
+        logoIcon: Icons.key_outlined,
+      ),
+      Group(
+        id: 'sg_mavi_sahip',
+        name: 'Mavi Blok',
+        description: 'Mavi Blok — sahip daireleri.',
+        type: GroupType.organized,
+        parentGroupId: 'sg_sahip',
         memberIds: const [],
         logoIcon: Icons.apartment_outlined,
       ),
@@ -630,37 +733,27 @@ class MockData {
         name: 'Daire 1',
         description: 'Mavi Blok Daire 1.',
         type: GroupType.organized,
-        parentGroupId: 'sg_mavi',
+        parentGroupId: 'sg_mavi_sahip',
         memberIds: const ['s_mavi1'],
         logoIcon: Icons.door_front_door_outlined,
         writerIds: const {'s_mavi1'}, // kendi dairesinde sakin yazar
-      ),
-      Group(
-        id: 'sg_mavi_2',
-        name: 'Daire 2',
-        description: 'Mavi Blok Daire 2.',
-        type: GroupType.organized,
-        parentGroupId: 'sg_mavi',
-        memberIds: const ['s_mavi2'],
-        logoIcon: Icons.door_front_door_outlined,
-        writerIds: const {'s_mavi2'},
       ),
       Group(
         id: 'sg_mavi_3',
         name: 'Daire 3',
         description: 'Mavi Blok Daire 3.',
         type: GroupType.organized,
-        parentGroupId: 'sg_mavi',
+        parentGroupId: 'sg_mavi_sahip',
         memberIds: const ['s_mavi3'],
         logoIcon: Icons.door_front_door_outlined,
         writerIds: const {'s_mavi3'},
       ),
-      // Yeşil Blok
       Group(
-        id: 'sg_yesil',
+        id: 'sg_yesil_sahip',
         name: 'Yeşil Blok',
-        description: 'Yeşil Blok sakinleri.',
+        description: 'Yeşil Blok — sahip daireleri.',
         type: GroupType.organized,
+        parentGroupId: 'sg_sahip',
         memberIds: const [],
         logoIcon: Icons.apartment_outlined,
       ),
@@ -669,52 +762,89 @@ class MockData {
         name: 'Daire 1',
         description: 'Yeşil Blok Daire 1.',
         type: GroupType.organized,
-        parentGroupId: 'sg_yesil',
+        parentGroupId: 'sg_yesil_sahip',
         memberIds: const ['s_yesil1'],
         logoIcon: Icons.door_front_door_outlined,
         writerIds: const {'s_yesil1'},
-      ),
-      Group(
-        id: 'sg_yesil_2',
-        name: 'Daire 2',
-        description: 'Yeşil Blok Daire 2.',
-        type: GroupType.organized,
-        parentGroupId: 'sg_yesil',
-        memberIds: const ['s_yesil2'],
-        logoIcon: Icons.door_front_door_outlined,
-        writerIds: const {'s_yesil2'},
       ),
       Group(
         id: 'sg_yesil_3',
         name: 'Daire 3',
         description: 'Yeşil Blok Daire 3.',
         type: GroupType.organized,
-        parentGroupId: 'sg_yesil',
+        parentGroupId: 'sg_yesil_sahip',
         memberIds: const ['s_yesil3'],
         logoIcon: Icons.door_front_door_outlined,
         writerIds: const {'s_yesil3'},
       ),
-      // Bağımsız villalar: alt birimi yok ama yine de hiyerarşi kökü —
-      // düz bir kurumsal grup (ör. bir ders grubu) değiller (isHierarchyRoot).
+      // Villalar: bloklara ayrılmaz, doğrudan Ev Sahibi'nin yaprağı — sahipli.
       Group(
         id: 'sg_deniz',
         name: 'Deniz Villa',
         description: 'Bağımsız villa.',
         type: GroupType.organized,
+        parentGroupId: 'sg_sahip',
         memberIds: const ['s_deniz'],
         logoIcon: Icons.villa_outlined,
         writerIds: const {'s_deniz'},
-        isHierarchyRoot: true,
       ),
       Group(
         id: 'sg_orman',
         name: 'Orman Villa',
         description: 'Bağımsız villa.',
         type: GroupType.organized,
+        parentGroupId: 'sg_sahip',
         memberIds: const ['s_orman'],
         logoIcon: Icons.villa_outlined,
         writerIds: const {'s_orman'},
-        isHierarchyRoot: true,
+      ),
+
+      // --- KATEGORİ: Sakin (kök) → Mavi/Yeşil Blok (kiracı daireleri) ---
+      Group(
+        id: 'sg_sakin',
+        name: 'Sakin',
+        description: 'Kiracı/sakin sakinler.',
+        type: GroupType.organized,
+        memberIds: const [],
+        logoIcon: Icons.groups_outlined,
+      ),
+      Group(
+        id: 'sg_mavi_sakin',
+        name: 'Mavi Blok',
+        description: 'Mavi Blok — sakin dairesi.',
+        type: GroupType.organized,
+        parentGroupId: 'sg_sakin',
+        memberIds: const [],
+        logoIcon: Icons.apartment_outlined,
+      ),
+      Group(
+        id: 'sg_mavi_2',
+        name: 'Daire 2',
+        description: 'Mavi Blok Daire 2.',
+        type: GroupType.organized,
+        parentGroupId: 'sg_mavi_sakin',
+        memberIds: const ['s_mavi2'],
+        logoIcon: Icons.door_front_door_outlined,
+        writerIds: const {'s_mavi2'},
+      ),
+      Group(
+        id: 'sg_yesil_sakin',
+        name: 'Yeşil Blok',
+        description: 'Yeşil Blok — sakin dairesi.',
+        type: GroupType.organized,
+        parentGroupId: 'sg_sakin',
+        memberIds: const [],
+        logoIcon: Icons.apartment_outlined,
+      ),
+      Group(
+        id: 'sg_yesil_2',
+        name: 'Daire 2',
+        description: 'Yeşil Blok Daire 2.',
+        type: GroupType.organized,
+        parentGroupId: 'sg_yesil_sakin',
+        memberIds: const ['s_yesil2'],
+        logoIcon: Icons.door_front_door_outlined,
+        writerIds: const {'s_yesil2'},
       ),
     ];
 

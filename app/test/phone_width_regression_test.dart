@@ -84,8 +84,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Kurumsal ilk sekmedir (FR-42) — tek kök atlanır, içerik doğrudan gelir.
+    // Kurumsal ilk sekmedir (FR-42). İki fakülte olduğundan (Mühendislik +
+    // Tasarım) "tek kök varsa atla" devreye girmez — kök listesi görünür,
+    // Mühendislik'e girmek için dokunmak gerekir.
     expect(find.text('Mühendislik Fakültesi'), findsOneWidget);
+    expect(find.text('Tasarım Fakültesi'), findsOneWidget);
+    await tester.tap(find.text('Mühendislik Fakültesi'));
+    await tester.pumpAndSettle();
+
     expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);
     // İkon = "buraya yazabilirim" (kullanıcı hükmü), üyelik değil (FR-90).
     // Vedat her iki düğümde de ÜYE ama yazar değil (yalnız Prof. Demir) —
@@ -116,6 +122,10 @@ void main() {
         child: MaterialApp(theme: AppTheme.light(), home: const GroupsScreen()),
       ),
     );
+    await tester.pumpAndSettle();
+    // İki fakülteli kök listesinden Mühendislik'e gir — g_dept_cs satırı
+    // yalnız orada render edilir.
+    await tester.tap(find.text('Mühendislik Fakültesi'));
     await tester.pumpAndSettle();
 
     expect(find.byIcon(Icons.chat_bubble_outline), findsOneWidget);

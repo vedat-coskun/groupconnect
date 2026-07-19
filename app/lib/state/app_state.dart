@@ -53,9 +53,9 @@ class AppState extends ChangeNotifier {
         t,
         twoLevel: t.id == MockData.uniId || t.id == MockData.siteId,
         levelLabels:
-            t.id == MockData.siteId
-                ? ['Site Birimleri', 'Daire', 'Alt Birim']
-                : null,
+            t.id == MockData.siteId ? ['Kategori', 'Blok', 'Daire'] : null,
+        // Site: Kategori(İdari/Sahip/Sakin) → Blok/Villa → Daire = 3 seviye.
+        groupMaxDepth: t.id == MockData.siteId ? 3 : null,
       ),
   };
 

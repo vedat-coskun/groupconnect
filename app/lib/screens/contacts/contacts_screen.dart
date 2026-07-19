@@ -80,23 +80,15 @@ class _PeopleListState extends State<_PeopleList> {
       );
     }
 
-    final favs = contacts.where((m) => state.isFavorite(m.id)).toList();
-    final others = contacts.where((m) => !state.isFavorite(m.id)).toList();
-
+    // FR-54/FR-79 (kullanıcı hükmüyle teyit): ayrı FAVORİLER bölümü YOK —
+    // HERKES ile aynı düzen: rol başlıklı accordion, favoriler kendi rol
+    // bölümünün en üstünde yüzer (çizgili kalple işaretli).
     return ListView(
       padding: const EdgeInsets.only(bottom: 88),
       children: [
-        if (favs.isNotEmpty) ...[
-          _SectionHeader(s.favoritesTitle),
-          // Favoriler içinde de aynı rol sırası (başlıksız, düz).
-          for (final m in _byRoleOrder(context, favs))
-            _contactTile(context, m, removable: true),
-        ],
-        // Kalanlar rol (kategori) bazında — admin'in tanımladığı rol sırasıyla.
-        // Ortak kural: rol (kategori) başlıkları, admin sırasıyla.
         ...roleSections(
           context: context,
-          members: others,
+          members: contacts,
           roles: AppScope.of(context).tenantRoles,
           roleName: AppScope.of(context).roleName,
           row: (m) => _contactTile(context, m, removable: true),
@@ -112,26 +104,11 @@ class _PeopleListState extends State<_PeopleList> {
                     }),
               ),
           otherLabel: s.contactsTitle,
+          pinned: (m) => state.isFavorite(m.id),
           collapsed: (label) => _collapsedRoles.contains(label),
         ),
       ],
     );
-  }
-
-  /// Sort by (admin role order, name) without adding headers.
-  List<Member> _byRoleOrder(BuildContext context, List<Member> list) {
-    final roles = AppScope.of(context).tenantRoles;
-    final order = {
-      for (var i = 0; i < roles.length; i++) roles[i].id: i,
-    };
-    final sorted = [...list];
-    sorted.sort((a, b) {
-      final ra = order[a.roleId] ?? 1 << 20;
-      final rb = order[b.roleId] ?? 1 << 20;
-      if (ra != rb) return ra.compareTo(rb);
-      return a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase());
-    });
-    return sorted;
   }
 }
 
@@ -157,11 +134,7 @@ Widget _contactTile(
           children: [
             IconButton(
               visualDensity: VisualDensity.compact,
-              icon: _favoriteHeart(
-                context,
-                isContact: isContact,
-                isFavorite: fav,
-              ),
+              icon: _favoriteHeart(isFavorite: fav),
               onPressed:
                   () =>
                       AppScope.of(context, listen: false).toggleFavorite(m.id),
@@ -247,29 +220,14 @@ Widget _contactTile(
     );
 }
 
-// Kalp: REHBERDE ⇒ dolu, FAVORİ ⇒ kırmızı kenarlı. İkisi bağımsız eksen,
-// birleşimleri 4 durumu ayırır (kullanıcı hükmü):
-// - favori, rehberde değil : boş, kırmızı kenarlı
-// - favori ve rehberde     : dolu, kırmızı kenarlı
-// - favori değil, rehberde : dolu, kenarsız (rehber rengi)
-// - ikisi de değil          : hiçbir şey (dokunma alanı kalır, görünmez)
-Widget _favoriteHeart(
-  BuildContext context, {
-  required bool isContact,
-  required bool isFavorite,
-}) {
+// Kalp yalnız FAVORİ'yi kodlar (kullanıcı hükmü — sıralama da yalnız favori
+// üzerinden, FR-79): favori = kırmızı çizgili boş kalp; diğer herkes boş
+// (dokunma alanı durur, görünmez). Dolu kalp YOK. Rehber durumu satırın
+// SAĞINDAKİ yeşil ekle / kırmızı çıkar ikonunda zaten görünür — solda
+// tekrarlanmaz.
+Widget _favoriteHeart({required bool isFavorite}) {
   if (isFavorite) {
-    if (!isContact) return const Icon(Icons.favorite_border, color: Colors.red);
-    return const Stack(
-      alignment: Alignment.center,
-      children: [
-        Icon(Icons.favorite_border, color: Colors.red, size: 26),
-        Icon(Icons.favorite, color: Colors.red, size: 19),
-      ],
-    );
-  }
-  if (isContact) {
-    return Icon(Icons.favorite, color: Theme.of(context).colorScheme.primary);
+    return const Icon(Icons.favorite_border, color: Colors.red);
   }
   return const SizedBox.shrink();
 }

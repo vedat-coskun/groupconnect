@@ -44,10 +44,11 @@ class AdminSettings {
     Tenant t, {
     bool twoLevel = false,
     List<String>? levelLabels,
+    int? groupMaxDepth,
   }) {
     return AdminSettings(
       defaultVisibility: t.defaultVisibility,
-      groupMaxDepth: twoLevel ? 2 : 1,
+      groupMaxDepth: groupMaxDepth ?? (twoLevel ? 2 : 1),
       levelLabels:
           levelLabels ??
           (twoLevel
