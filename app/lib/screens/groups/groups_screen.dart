@@ -208,7 +208,7 @@ class _JoinableTab extends StatelessWidget {
       itemBuilder: (context, i) {
         final g = groups[i];
         final admin =
-            g.adminId != null ? state.td.member(g.adminId!) : null;
+            g.managerId != null ? state.td.member(g.managerId!) : null;
         final scheme = Theme.of(context).colorScheme;
         // Özel Row (ListTile değil): "Katıl" butonu + uzun alt-yazı dar ekranda
         // ListTile'ı taşırıyordu; Expanded başlık bunu güvene alır.

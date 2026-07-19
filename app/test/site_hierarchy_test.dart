@@ -87,7 +87,7 @@ void main() {
     s.selectTenant('site');
     final daire1 = s.td.group('sg_mavi_1')!;
     expect(s.td.member('s_mavi1'), isNotNull);
-    expect(daire1.writerIds.contains('s_mavi1'), isTrue);
+    expect(daire1.managerId, 's_mavi1'); // kendi dairesinin manager'ı
     expect(daire1.parentGroupId, 'sg_mavi_sahip'); // sahip dalında
   });
 }

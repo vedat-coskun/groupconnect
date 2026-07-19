@@ -394,7 +394,10 @@ class MockData {
         // seviyededir (Bölüm); fakültenin kişileri = bölümlerinin toplamı.
         memberIds: [],
         logoIcon: Icons.account_balance_outlined,
-        writerIds: {'u_ayse'}, // FR-90: fakülte duyurularını Prof. Demir yazar
+        // FR-90: manager=dekan; akademik sohbet → yalnız yetkili (akademisyen)
+        // görür, öğrenci görmez; yalnız manager yazar (varsayılan).
+        managerId: 'u_ayse',
+        visibility: GroupVisibility.authorityOnly,
       ),
       Group(
         id: 'g_dept_cs',
@@ -404,7 +407,10 @@ class MockData {
         parentGroupId: 'g_fac',
         memberIds: ['u_me', 'u_ayse', 'u_elif', 'u_zeynep', 'u_can', 'u_selin'],
         logoIcon: Icons.memory_outlined,
-        writerIds: {'u_ayse'}, // FR-90: bölüm duyuruları
+        // Bölüm başkanı = manager (kurum sahibi hükmü). Öğrenci üye ama
+        // "yalnız yetkili" olduğundan bölüm sohbetini görmez.
+        managerId: 'u_ayse',
+        visibility: GroupVisibility.authorityOnly,
       ),
       Group(
         id: 'g_dept_ee',
@@ -414,7 +420,8 @@ class MockData {
         parentGroupId: 'g_fac',
         memberIds: ['u_mehmet', 'u_burak'],
         logoIcon: Icons.bolt_outlined,
-        writerIds: {'u_mehmet'}, // FR-90
+        managerId: 'u_mehmet',
+        visibility: GroupVisibility.authorityOnly,
       ),
 
       // --- İkinci fakülte (kullanıcı hükmü): Kurumsal artık 2 kök —
@@ -428,7 +435,8 @@ class MockData {
         type: GroupType.organized,
         memberIds: [], // FR-71: ara seviye, üyelik yalnız yaprakta (Bölüm)
         logoIcon: Icons.palette_outlined,
-        writerIds: {'u_kaan'},
+        managerId: 'u_kaan',
+        visibility: GroupVisibility.authorityOnly,
       ),
       Group(
         id: 'g_dept_mis',
@@ -438,7 +446,8 @@ class MockData {
         parentGroupId: 'g_fac_design',
         memberIds: ['u_kaan', 'u_efe'],
         logoIcon: Icons.dns_outlined,
-        writerIds: {'u_kaan'}, // FR-90: bölüm duyuruları
+        managerId: 'u_kaan',
+        visibility: GroupVisibility.authorityOnly,
       ),
       Group(
         id: 'g_dept_design',
@@ -448,7 +457,8 @@ class MockData {
         parentGroupId: 'g_fac_design',
         memberIds: ['u_ece', 'u_asli'],
         logoIcon: Icons.brush_outlined,
-        writerIds: {'u_ece'}, // FR-90
+        managerId: 'u_ece',
+        visibility: GroupVisibility.authorityOnly,
       ),
 
       // "BM Bölümü Duyuruları" kaldırıldı (kurum sahibi hükmü): hiyerarşideki
@@ -462,15 +472,20 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['u_me', 'u_ayse', 'u_zeynep', 'u_can'],
         logoIcon: Icons.science_outlined,
-        // FR-90: ders sahibi (Vedat) + Prof. Demir yazar; öğrenciler okur.
-        writerIds: {'u_me', 'u_ayse'},
+        // Ders: öğrencinin "kendi dersi" — görünürlük tüm üyeler (öğrenci
+        // GÖRÜR), ve tartışma olduğu için herkes yazabilir. Manager=ders
+        // sahibi (Vedat).
+        managerId: 'u_me',
+        membersCanWrite: true,
       ),
       Group(
         id: 'g_bitirme',
         name: 'Bitirme Projesi Ekibi',
         description: 'Bitirme projemiz için çalışma grubu.',
         type: GroupType.private,
-        adminId: 'u_me',
+        managerId: 'u_me',
+        // Özel sohbet grubu: kurucu read-write seçti → her üye yazar.
+        membersCanWrite: true,
         memberIds: ['u_me', 'u_zeynep', 'u_can'],
         inviteMessage: 'Bitirme ekibimize katıl!',
         logoIcon: Icons.groups_2_outlined,
@@ -480,7 +495,8 @@ class MockData {
         name: 'Fotoğrafçılık Kulübü',
         description: 'Kampüste fotoğraf gezileri. Herkes katılabilir.',
         type: GroupType.private,
-        adminId: 'u_elif',
+        managerId: 'u_elif',
+        membersCanWrite: true,
         // FR-81: kurucusu "açık" işaretledi → davetsiz katılınır.
         isOpen: true,
         memberIds: ['u_elif', 'u_selin'],
@@ -492,7 +508,8 @@ class MockData {
         name: 'Satranç Kulübü',
         description: 'Kampüs satranç buluşmaları ve turnuvalar.',
         type: GroupType.private,
-        adminId: 'u_mehmet',
+        managerId: 'u_mehmet',
+        membersCanWrite: true,
         memberIds: ['u_mehmet', 'u_burak'],
         inviteMessage: 'Satranç kulübüne davetlisin!',
         logoIcon: Icons.extension_outlined,
@@ -692,7 +709,7 @@ class MockData {
         memberIds: [for (final m in members) m.id],
         logoIcon: Icons.apartment_outlined,
         // FR-90: müdür + muhasebeci yazar (aidat/duyuru); herkes okur.
-        writerIds: {'s_me', 's_muhasebe'},
+        managerId: 's_me',
       ),
 
       // --- KATEGORİ: İdari Personel (kök, çocuksuz — isHierarchyRoot) ---
@@ -706,7 +723,9 @@ class MockData {
           's_bahce1', 's_bahce2', 's_temiz1', 's_temiz2',
         ],
         logoIcon: Icons.badge_outlined,
-        writerIds: const {'s_me'},
+        managerId: 's_me',
+        // Personel koordinasyon grubu: hepsi idari (yetkili), herkes yazar.
+        membersCanWrite: true,
         isHierarchyRoot: true,
       ),
 
@@ -736,7 +755,7 @@ class MockData {
         parentGroupId: 'sg_mavi_sahip',
         memberIds: const ['s_mavi1'],
         logoIcon: Icons.door_front_door_outlined,
-        writerIds: const {'s_mavi1'}, // kendi dairesinde sakin yazar
+        managerId: 's_mavi1', // kendi dairesinde sakin yazar
       ),
       Group(
         id: 'sg_mavi_3',
@@ -746,7 +765,7 @@ class MockData {
         parentGroupId: 'sg_mavi_sahip',
         memberIds: const ['s_mavi3'],
         logoIcon: Icons.door_front_door_outlined,
-        writerIds: const {'s_mavi3'},
+        managerId: 's_mavi3',
       ),
       Group(
         id: 'sg_yesil_sahip',
@@ -765,7 +784,7 @@ class MockData {
         parentGroupId: 'sg_yesil_sahip',
         memberIds: const ['s_yesil1'],
         logoIcon: Icons.door_front_door_outlined,
-        writerIds: const {'s_yesil1'},
+        managerId: 's_yesil1',
       ),
       Group(
         id: 'sg_yesil_3',
@@ -775,7 +794,7 @@ class MockData {
         parentGroupId: 'sg_yesil_sahip',
         memberIds: const ['s_yesil3'],
         logoIcon: Icons.door_front_door_outlined,
-        writerIds: const {'s_yesil3'},
+        managerId: 's_yesil3',
       ),
       // Villalar: bloklara ayrılmaz, doğrudan Ev Sahibi'nin yaprağı — sahipli.
       Group(
@@ -786,7 +805,7 @@ class MockData {
         parentGroupId: 'sg_sahip',
         memberIds: const ['s_deniz'],
         logoIcon: Icons.villa_outlined,
-        writerIds: const {'s_deniz'},
+        managerId: 's_deniz',
       ),
       Group(
         id: 'sg_orman',
@@ -796,7 +815,7 @@ class MockData {
         parentGroupId: 'sg_sahip',
         memberIds: const ['s_orman'],
         logoIcon: Icons.villa_outlined,
-        writerIds: const {'s_orman'},
+        managerId: 's_orman',
       ),
 
       // --- KATEGORİ: Sakin (kök) → Mavi/Yeşil Blok (kiracı daireleri) ---
@@ -825,7 +844,7 @@ class MockData {
         parentGroupId: 'sg_mavi_sakin',
         memberIds: const ['s_mavi2'],
         logoIcon: Icons.door_front_door_outlined,
-        writerIds: const {'s_mavi2'},
+        managerId: 's_mavi2',
       ),
       Group(
         id: 'sg_yesil_sakin',
@@ -844,7 +863,7 @@ class MockData {
         parentGroupId: 'sg_yesil_sakin',
         memberIds: const ['s_yesil2'],
         logoIcon: Icons.door_front_door_outlined,
-        writerIds: const {'s_yesil2'},
+        managerId: 's_yesil2',
       ),
     ];
 
@@ -894,7 +913,7 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['l_me', 'l_ahmet'],
         logoIcon: Icons.class_outlined,
-        writerIds: {'l_me'}, // FR-90
+        managerId: 'l_me', // FR-90
       ),
       Group(
         id: 'lg_ann',
@@ -903,7 +922,7 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['l_me', 'l_ahmet', 'l_ogr2', 'l_veli'],
         logoIcon: Icons.campaign_outlined,
-        writerIds: {'l_me', 'l_ogr2'}, // FR-90: öğretmenler yazar
+        managerId: 'l_me', // FR-90: öğretmenler yazar
       ),
       Group(
         id: 'lg_veli',
@@ -912,7 +931,7 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['l_me', 'l_veli'],
         logoIcon: Icons.groups_outlined,
-        writerIds: {'l_me'}, // FR-90
+        managerId: 'l_me', // FR-90
       ),
     ];
 
@@ -964,7 +983,7 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['d_me', 'd_nur'],
         logoIcon: Icons.account_balance_outlined,
-        writerIds: {'d_me', 'd_nur'}, // FR-90
+        managerId: 'd_me', // FR-90
       ),
       Group(
         id: 'dg_uye',
@@ -973,14 +992,14 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['d_me', 'd_selim', 'd_aylin', 'd_nur'],
         logoIcon: Icons.people_outline,
-        writerIds: {'d_me', 'd_nur'}, // FR-90: yönetici + idari personel
+        managerId: 'd_me', // FR-90: yönetici + idari personel
       ),
       Group(
         id: 'dg_etkinlik',
         name: 'Etkinlik Çalışma Grubu',
         description: 'Yıl sonu etkinliği çalışma grubu.',
         type: GroupType.private,
-        adminId: 'd_me',
+        managerId: 'd_me',
         memberIds: ['d_me', 'd_aylin'],
         inviteMessage: 'Etkinlik ekibine katıl!',
         logoIcon: Icons.workspaces_outlined,
@@ -1033,7 +1052,7 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['h_me', 'h_elif'],
         logoIcon: Icons.local_hospital_outlined,
-        writerIds: {'h_me'}, // FR-90
+        managerId: 'h_me', // FR-90
       ),
       Group(
         id: 'hg_nobet',
@@ -1042,7 +1061,7 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['h_me', 'h_murat', 'h_elif'],
         logoIcon: Icons.schedule_outlined,
-        writerIds: {'h_me', 'h_murat'}, // FR-90
+        managerId: 'h_me', // FR-90
       ),
       Group(
         id: 'hg_ann',
@@ -1051,7 +1070,7 @@ class MockData {
         type: GroupType.organized,
         memberIds: ['h_me', 'h_murat', 'h_elif', 'h_sema'],
         logoIcon: Icons.campaign_outlined,
-        writerIds: {'h_sema'}, // FR-90: duyuruları İK yazar; doktorlar okur
+        managerId: 'h_sema', // FR-90: duyuruları İK yazar; doktorlar okur
       ),
     ];
 

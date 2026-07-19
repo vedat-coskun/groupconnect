@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../i18n/strings.dart';
+import '../../models/enums.dart';
 import '../../models/models.dart';
 import '../../state/app_scope.dart';
 import '../../state/app_state.dart';
@@ -26,11 +27,11 @@ class GroupDetailScreen extends StatelessWidget {
       return const Scaffold(body: Center(child: Text('—')));
     }
     final isMember = state.isEffectiveMember(g);
-    final isAdmin = g.adminId == state.td.myId && !g.isOrganized;
+    final isAdmin = g.managerId == state.td.myId && !g.isOrganized;
     final members = state.membersOf(g);
     // Grubu kuran kişi — listenin başında kendi ayracıyla gösterilir.
     final creator =
-        g.adminId != null ? state.td.member(g.adminId!) : null;
+        g.managerId != null ? state.td.member(g.managerId!) : null;
     final pending = state.pendingGroupInvites(groupId);
 
     return Scaffold(
@@ -147,11 +148,12 @@ class GroupDetailScreen extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Primary action: open chat if member, otherwise join.
+          // Birincil eylem: sohbeti GÖREBİLİYORSAM aç (FR-90 — üyelik yetmez);
+          // göremiyor ama katılabilirsem katıl (özel/açık grup).
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child:
-                isMember
+                state.canSeeGroupChat(g)
                     ? FilledButton.icon(
                       onPressed:
                           () => Navigator.of(context).push(
@@ -163,16 +165,21 @@ class GroupDetailScreen extends StatelessWidget {
                       icon: const Icon(Icons.chat_bubble_outline),
                       label: Text(s.openChat),
                     )
-                    : FilledButton.icon(
-                      onPressed: () {
-                        AppScope.of(context, listen: false).joinGroup(groupId);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(s.joinedGroup)),
-                        );
-                      },
-                      icon: const Icon(Icons.group_add),
-                      label: Text(s.joinGroup),
-                    ),
+                    : (isMember
+                        ? const SizedBox.shrink()
+                        : FilledButton.icon(
+                          onPressed: () {
+                            AppScope.of(
+                              context,
+                              listen: false,
+                            ).joinGroup(groupId);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(s.joinedGroup)),
+                            );
+                          },
+                          icon: const Icon(Icons.group_add),
+                          label: Text(s.joinGroup),
+                        )),
           ),
 
           if (isMember) ...[
@@ -189,6 +196,36 @@ class GroupDetailScreen extends StatelessWidget {
             ),
           ],
 
+          // FR-90: iki anahtarı yalnız MANAGER çevirir (görünürlük yalnız
+          // kurumsal grupta anlamlı — özelde üyeler zaten birbirini görür).
+          if (state.isGroupManager(g)) ...[
+            const Divider(height: 16),
+            RoleHeader(s.managerSettingsTitle),
+            SwitchListTile(
+              secondary: const Icon(Icons.edit_note_outlined),
+              title: Text(s.membersCanWriteLabel),
+              value: g.membersCanWrite,
+              onChanged:
+                  (v) => AppScope.of(
+                    context,
+                    listen: false,
+                  ).setMembersCanWrite(groupId, v),
+            ),
+            if (g.isOrganized)
+              SwitchListTile(
+                secondary: const Icon(Icons.shield_outlined),
+                title: Text(s.authorityOnlyLabel),
+                value: g.visibility == GroupVisibility.authorityOnly,
+                onChanged:
+                    (v) => AppScope.of(context, listen: false).setGroupVisibility(
+                      groupId,
+                      v
+                          ? GroupVisibility.authorityOnly
+                          : GroupVisibility.allMembers,
+                    ),
+              ),
+          ],
+
           const Divider(height: 16),
 
           // Üyeler doğrudan bu sayfada, ÜÇ ayraçla: önce GRUP YÖNETİCİSİ
@@ -200,7 +237,7 @@ class GroupDetailScreen extends StatelessWidget {
           ],
           ...roleSections(
             context: context,
-            members: members.where((m) => m.id != g.adminId).toList(),
+            members: members.where((m) => m.id != g.managerId).toList(),
             roles: state.tenantRoles,
             roleName: state.roleName,
             header: (t) => RoleHeader(t),

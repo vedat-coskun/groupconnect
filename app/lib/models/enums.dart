@@ -28,6 +28,14 @@ enum AddPolicy { everyone, approval }
 /// * private – created by a member who becomes its Group Admin (FR-37).
 enum GroupType { organized, private }
 
+/// Grup sohbetini KİMİN görebileceği — manager'ın çevirdiği anahtar (FR-90
+/// yeniden düzenlemesi). Üyelik ön koşuldur; bu anahtar üyeler arasında süzer.
+///
+/// * [allMembers] – tüm üyeler görür/okur (ör. Site Duyuruları, daire, ders).
+/// * [authorityOnly] – yalnız yetkili-rol üyeler + manager görür; temel-rol
+///   üyeler (öğrenci/sakin) görmez (ör. bölüm/fakülte akademik sohbeti).
+enum GroupVisibility { allMembers, authorityOnly }
+
 /// Kind of invitation (FR-28, FR-38).
 enum InviteKind { contact, group }
 

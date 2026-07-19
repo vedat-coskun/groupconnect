@@ -738,13 +738,44 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// FR-90: bu grupta ben yazabilir miyim? Kurumsal grupta yalnız admin'in
-  /// işaretlediği yazarlar (varsayılan: hiç kimse — herkes okur); özel grupta
-  /// her (etkin) üye.
-  bool canWriteInGroup(Group g) =>
-      g.isOrganized
-          ? g.writerIds.contains(td.myId)
-          : isEffectiveMember(g);
+  /// FR-90 (yeniden düzenlendi): grup sohbetini GÖREBİLİR miyim?
+  /// - manager her zaman görür;
+  /// - değilsem, üye olmalıyım (türetilmiş dahil — FR-71) VE grubun
+  ///   görünürlüğü ya "tüm üyeler" ya da (yalnız-yetkili ise) rolüm yetkili.
+  /// Üyelik tek başına yetmez (kurum sahibi hükmü): öğrenci bölüm üyesidir ama
+  /// bölüm "yalnız yetkili" olduğundan sohbetini görmez.
+  bool canSeeGroupChat(Group g) {
+    if (g.managerId == td.myId) return true;
+    if (!isEffectiveMember(g)) return false;
+    if (g.visibility == GroupVisibility.allMembers) return true;
+    return isAuthority(me); // authorityOnly
+  }
+
+  /// FR-90 (yeniden düzenlendi): bu grupta yazabilir miyim?
+  /// Manager her zaman yazar; değilse, sohbeti görebiliyor olmam VE grubun
+  /// "üyeler yazabilir" anahtarının açık olması gerekir.
+  bool canWriteInGroup(Group g) {
+    if (g.managerId == td.myId) return true;
+    return canSeeGroupChat(g) && g.membersCanWrite;
+  }
+
+  /// Bu grubun manager'ı mıyım? İki anahtarı (görünürlük/yazma) yalnız o çevirir.
+  bool isGroupManager(Group g) => g.managerId == td.myId;
+
+  /// FR-90: manager, grubun görünürlük/yazma anahtarlarını çevirir.
+  void setGroupVisibility(String groupId, GroupVisibility v) {
+    final g = td.group(groupId);
+    if (g == null || g.managerId != td.myId) return;
+    g.visibility = v;
+    notifyListeners();
+  }
+
+  void setMembersCanWrite(String groupId, bool value) {
+    final g = td.group(groupId);
+    if (g == null || g.managerId != td.myId) return;
+    g.membersCanWrite = value;
+    notifyListeners();
+  }
 
   void sendGroupMessage(String groupId, String text, {String? replyToId}) {
     final t = text.trim();
@@ -796,8 +827,8 @@ class AppState extends ChangeNotifier {
 
     for (final g in td.groups) {
       if (g.archived) continue; // arşivlenen grubun sohbeti de listelenmez
-      // Türetilmiş üyelik dahil (FR-71): bölüme üyeysem Fakülte sohbeti de.
-      if (!isEffectiveMember(g)) continue;
+      // FR-90: üyelik değil, GÖREBİLME (öğrenci bölüm üyesi ama göremez).
+      if (!canSeeGroupChat(g)) continue;
       list.add(
         ChatSummary(
           threadId: grpThread(g.id),
@@ -835,10 +866,12 @@ class AppState extends ChangeNotifier {
   // türetilmiş-üye olunan düğümlerde Grup Bilgisi'ni yanıltıyordu.)
 
   // Arşivlenmiş gruplar hiçbir listede görünmez (yalnız Menü → Arşiv'de).
-  // Üyelik türetilmiştir (FR-71): yaprak bölüme üyeysem Fakülte/Dekanlık
-  // gibi ataları da "Üye Olduklarım"dadır (kurum sahibi hükmü, 2026-07-18).
+  // "Üye Olduklarım" = sohbetine ERİŞEBİLDİĞİM gruplar (FR-90): göremediğim
+  // grubu (ör. öğrenci → bölüm) burada göstermek tıklanınca çıkmaz sokak
+  // olurdu. Üyelik yapısı ayrıdır; o Kurum Yapısı'nda (Kurumsal sekmesi)
+  // gezilir. Türetilmiş üyelik (FR-71) canSeeGroupChat içinde hesaplanır.
   List<Group> get myGroups =>
-      td.groups.where((g) => !g.archived && isEffectiveMember(g)).toList();
+      td.groups.where((g) => !g.archived && canSeeGroupChat(g)).toList();
 
   /// Groups the user has a pending incoming invite for (FR-42).
   /// "Katılabileceklerim" (FR-82) — **yalnız ÖZEL gruplar**, iki kümenin
@@ -887,7 +920,7 @@ class AppState extends ChangeNotifier {
   /// hükmü). Kurumsal grupta ve başkasının grubunda hiçbir şey yapmaz (NFR-17).
   void renameGroup(String groupId, String name) {
     final g = td.group(groupId);
-    if (g == null || g.isOrganized || g.adminId != td.myId) return;
+    if (g == null || g.isOrganized || g.managerId != td.myId) return;
     final t = name.trim();
     if (t.isEmpty) return;
     g.name = t;
@@ -898,7 +931,7 @@ class AppState extends ChangeNotifier {
   /// (FR-81). Kurumsal grupta ve başkasının grubunda hiçbir şey yapmaz.
   void toggleGroupOpen(String groupId) {
     final g = td.group(groupId);
-    if (g == null || g.isOrganized || g.adminId != td.myId) return;
+    if (g == null || g.isOrganized || g.managerId != td.myId) return;
     g.isOpen = !g.isOpen;
     notifyListeners();
   }
@@ -1069,6 +1102,9 @@ class AppState extends ChangeNotifier {
     // FR-81: katılım bayrağı kuruluşta seçilir, sonra Grup Bilgisi'nden
     // değiştirilebilir. Varsayılan kapalı — açıklık bilinçli bir karardır.
     bool isOpen = false,
+    // FR-90: kurucu (=manager) yaratırken seçer; varsayılan yalnız manager
+    // yazar (kullanıcı hükmü). Sonradan Grup Bilgisi'nden değiştirilebilir.
+    bool membersCanWrite = false,
   }) {
     final id = 'grp_${DateTime.now().microsecondsSinceEpoch}';
     final memberIds = <String>{td.myId, ...autoIncludeIds}.toList();
@@ -1077,11 +1113,12 @@ class AppState extends ChangeNotifier {
       name: name.trim(),
       description: description.trim(),
       type: GroupType.private,
-      adminId: td.myId,
+      managerId: td.myId,
       memberIds: memberIds,
       inviteMessage: inviteMessage.trim(),
       logoIcon: logoIcon,
       isOpen: isOpen,
+      membersCanWrite: membersCanWrite,
       // Özel gruplar düzdür (hiyerarşi yalnız kurumsal gruplarda, admin tanımlı).
     );
     td.groups.add(g);
@@ -1182,7 +1219,7 @@ class AppState extends ChangeNotifier {
   /// "Emin misin?" onayı da gerekmez.
   void archiveGroup(String groupId) {
     final g = td.group(groupId);
-    if (g == null || g.isOrganized || g.adminId != td.myId) return;
+    if (g == null || g.isOrganized || g.managerId != td.myId) return;
     g.archived = true;
     notifyListeners();
   }
@@ -1190,7 +1227,7 @@ class AppState extends ChangeNotifier {
   /// Arşivden geri al — grup mesajlarıyla birlikte eski haline döner.
   void restoreGroup(String groupId) {
     final g = td.group(groupId);
-    if (g == null || g.adminId != td.myId) return;
+    if (g == null || g.managerId != td.myId) return;
     g.archived = false;
     notifyListeners();
   }
@@ -1198,13 +1235,13 @@ class AppState extends ChangeNotifier {
   /// Arşivimdeki gruplar (yalnız kendi kurduklarım — geri alabilen tek kişi).
   List<Group> get archivedGroups =>
       td.groups
-          .where((g) => g.archived && g.adminId == td.myId)
+          .where((g) => g.archived && g.managerId == td.myId)
           .toList();
 
   /// Remove a member — Group Admin of a private group only (FR-40).
   void removeGroupMember(String groupId, String memberId) {
     final g = td.group(groupId);
-    if (g == null || g.isOrganized || g.adminId != td.myId) return;
+    if (g == null || g.isOrganized || g.managerId != td.myId) return;
     if (memberId == td.myId) return;
     g.memberIds.remove(memberId);
     notifyListeners();

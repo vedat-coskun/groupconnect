@@ -99,6 +99,10 @@ abstract class AppStrings {
 
   /// FR-90: yazar olmayan uyeye composer yerine gosterilen serit.
   String get readOnlyGroup;
+  String get managerLabel;
+  String get membersCanWriteLabel;
+  String get authorityOnlyLabel;
+  String get managerSettingsTitle;
   String get reply;
   String get copy;
   String get editedTag;
@@ -393,7 +397,15 @@ class _Tr extends AppStrings {
   String get messageHint => 'Mesaj yaz';
   @override
   String get readOnlyGroup =>
-      'Bu grupta yalnızca yetkili kişiler yazabilir.';
+      'Bu grupta yalnızca grup yöneticisi yazabilir.';
+  @override
+  String get managerLabel => 'Grup Yöneticisi';
+  @override
+  String get membersCanWriteLabel => 'Üyeler de yazabilir';
+  @override
+  String get authorityOnlyLabel => 'Yalnız yetkili roller görür';
+  @override
+  String get managerSettingsTitle => 'Yönetici Ayarları';
   @override
   String get reply => 'Yanıtla';
   @override
@@ -808,7 +820,15 @@ class _En extends AppStrings {
   String get messageHint => 'Type a message';
   @override
   String get readOnlyGroup =>
-      'Only authorized people can post in this group.';
+      'Only the group manager can post in this group.';
+  @override
+  String get managerLabel => 'Group Manager';
+  @override
+  String get membersCanWriteLabel => 'Members can post too';
+  @override
+  String get authorityOnlyLabel => 'Only authorized roles can see';
+  @override
+  String get managerSettingsTitle => 'Manager Settings';
   @override
   String get reply => 'Reply';
   @override

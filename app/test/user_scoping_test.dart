@@ -3,8 +3,8 @@
 // 02=Suden (u_zeynep), 03=Arda (u_can).
 //
 // Kapsanan sınıflar:
-//   1. FR-90 — kurumsal grupta yazma: yalnız yazar-işaretli üye; veri katmanı
-//      koruması (NFR-17).
+//   1. FR-90 — grup sohbeti erişimi: manager + görünürlük/yazma anahtarları;
+//      üyelik tek başına erişim vermez; veri katmanı koruması (NFR-17).
 //   2. 1:1 dizileri taraf-çifti anahtarlıdır: katılımcı olmayan kimlik
 //      başkasının yazışmasını göremez; karşı taraf kendi yazışmasını görür.
 //   3. Kişisel durum (engel, not, sessize alma) kimlik değişiminde sızmaz.
@@ -25,30 +25,58 @@ void _relogin(AppState s, String lastTwo) {
 }
 
 void main() {
-  test('FR-90: kurumsal grupta yalnız yazar-işaretli üye yazar', () {
+  test('FR-90: görme (rol+görünürlük) ve yazma (manager+anahtar) ayrı katman',
+      () {
     final s = _login('03'); // Arda — öğrenci, g_dept_cs üyesi
-    final dept = s.td.group('g_dept_cs')!;
-    final course = s.td.group('g_test')!;
-    final private = s.td.group('g_bitirme')!;
+    final dept = s.td.group('g_dept_cs')!; // authorityOnly
+    final course = s.td.group('g_test')!; // allMembers + membersCanWrite
+    final private = s.td.group('g_bitirme')!; // özel + membersCanWrite
 
-    expect(s.canWriteInGroup(dept), isFalse); // üye ama yazar değil
-    expect(s.canWriteInGroup(course), isFalse);
-    expect(s.canWriteInGroup(private), isTrue); // özel grupta her üye yazar
+    // Öğrenci bölüm ÜYESİdir ama "yalnız yetkili" olduğundan sohbeti GÖREMEZ
+    // (kurum sahibi hükmü) — dolayısıyla yazamaz da.
+    expect(s.isEffectiveMember(dept), isTrue); // Kurum Yapısı'nda görünür
+    expect(s.canSeeGroupChat(dept), isFalse); // ama sohbeti görmez
+    expect(s.canWriteInGroup(dept), isFalse);
+    // Sohbetler listesinde bölüm YOK, kendi dersi VAR.
+    final chatIds = s.chatSummaries.map((c) => c.group?.id).toSet();
+    expect(chatIds.contains('g_dept_cs'), isFalse);
+    expect(chatIds.contains('g_test'), isTrue);
 
-    // Veri katmanı koruması: gönderim sessizce düşer (UI zaten şerit gösterir).
+    // Kendi dersi: görünür (allMembers) ve tartışma (membersCanWrite) → yazar.
+    expect(s.canSeeGroupChat(course), isTrue);
+    expect(s.canWriteInGroup(course), isTrue);
+    // Özel grup (membersCanWrite): her üye yazar.
+    expect(s.canWriteInGroup(private), isTrue);
+
+    // Veri katmanı koruması: göremediği gruba gönderim sessizce düşer.
     final before = s.messagesOf('grp:g_dept_cs').length;
-    s.sendGroupMessage('g_dept_cs', 'öğrenci duyuru yazamaz');
+    s.sendGroupMessage('g_dept_cs', 'öğrenci bölüme yazamaz');
     expect(s.messagesOf('grp:g_dept_cs').length, before);
 
-    // Yazar-işaretli üye (Vedat, g_test yazarı) yazabilir.
+    // Akademisyen (Vedat): bölümü GÖRÜR (yetkili) ama yazamaz (manager değil,
+    // anahtar kapalı) — okur. Ders sahibi olduğu g_test'te manager → yazar.
     _relogin(s, '01');
-    expect(s.canWriteInGroup(s.td.group('g_test')!), isTrue);
+    expect(s.canSeeGroupChat(s.td.group('g_dept_cs')!), isTrue);
+    expect(s.canWriteInGroup(s.td.group('g_dept_cs')!), isFalse);
+    expect(s.isGroupManager(s.td.group('g_test')!), isTrue);
     final n = s.messagesOf('grp:g_test').length;
     s.sendGroupMessage('g_test', 'Sınav tarihi güncellendi.');
     expect(s.messagesOf('grp:g_test').length, n + 1);
+  });
 
-    // Vedat bölüm grubunda yazar değildir (yalnız Prof. Demir) — okur.
-    expect(s.canWriteInGroup(s.td.group('g_dept_cs')!), isFalse);
+  test('FR-90: manager iki anahtarı çevirir; başkası çeviremez', () {
+    final s = _login('01'); // Vedat — g_dept_cs manager DEĞİL (u_ayse)
+    // Manager olmayan çeviremez (no-op).
+    s.setMembersCanWrite('g_dept_cs', true);
+    expect(s.td.group('g_dept_cs')!.membersCanWrite, isFalse);
+
+    // Manager olduğu g_test'te çevirir.
+    s.setMembersCanWrite('g_test', false);
+    expect(s.td.group('g_test')!.membersCanWrite, isFalse);
+    // Öğrenci artık ders sohbetini görür ama yazamaz (anahtar kapandı).
+    _relogin(s, '03');
+    expect(s.canSeeGroupChat(s.td.group('g_test')!), isTrue);
+    expect(s.canWriteInGroup(s.td.group('g_test')!), isFalse);
   });
 
   test('1:1 dizileri taraf-çiftine aittir — üçüncü kimliğe kapalı', () {

@@ -66,8 +66,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Kurumsal sekmesi: yazar olmayan üyede mesaj ikonu yok (FR-90), '
-      '393px\'te çizilir, accordion açılır', (tester) async {
+  testWidgets('Kurumsal sekmesi 393px: layout çizilir, accordion açılır', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(393 * 3, 852 * 3);
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
@@ -84,23 +85,18 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Kurumsal ilk sekmedir (FR-42). İki fakülte olduğundan (Mühendislik +
-    // Tasarım) "tek kök varsa atla" devreye girmez — kök listesi görünür,
-    // Mühendislik'e girmek için dokunmak gerekir.
+    // Kurumsal ilk sekmedir (FR-42). İki fakülte → kök listesi; Mühendislik'e
+    // gir (Vedat orada akademisyen → sohbeti görür, mesaj ikonu çıkar; FR-90).
     expect(find.text('Mühendislik Fakültesi'), findsOneWidget);
     expect(find.text('Tasarım Fakültesi'), findsOneWidget);
     await tester.tap(find.text('Mühendislik Fakültesi'));
     await tester.pumpAndSettle();
 
     expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);
-    // İkon = "buraya yazabilirim" (kullanıcı hükmü), üyelik değil (FR-90).
-    // Vedat her iki düğümde de ÜYE ama yazar değil (yalnız Prof. Demir) —
-    // ikon hiç çıkmaz. Test kimliği olması özel muamele hakkı vermez.
-    expect(find.byIcon(Icons.chat_bubble_outline), findsNothing);
+    // Akademisyen bölümü görür (authorityOnly) → en az bir chat ikonu.
+    expect(find.byIcon(Icons.chat_bubble_outline), findsWidgets);
 
     // Bölüme dokun → satır accordion olarak açılır (chevron yön değiştirir).
-    // Not: rol başlığı sayısı SAYILMAZ — ListView lazy olduğundan viewport
-    // dışına itilen başlıklar hiç build edilmez.
     expect(find.byIcon(Icons.expand_less), findsNothing);
     await tester.tap(find.text('Bilgisayar Mühendisliği'));
     await tester.pumpAndSettle();
@@ -108,13 +104,15 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Kurumsal sekmesi: yazar-işaretli üyede mesaj ikonu çıkar '
-      '(FR-90 pozitif dal)', (tester) async {
+  testWidgets('FR-90: öğrenci bölüm sohbetini Kurum Yapısı\'nda göremez '
+      '(mesaj ikonu yok)', (tester) async {
+    tester.view.physicalSize = const Size(393 * 3, 852 * 3);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+
     final state = AppState();
-    state.setPendingPhone('+90', '5555555501'); // Vedat
+    state.setPendingPhone('+90', '5555555503'); // Arda — öğrenci
     state.selectTenant('uni');
-    // Vedat'ı Bölüm'ün yazarı yap — kuralın pozitif dalını da doğrula.
-    state.td.group('g_dept_cs')!.writerIds.add('u_me');
 
     await tester.pumpWidget(
       AppScope(
@@ -123,11 +121,14 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    // İki fakülteli kök listesinden Mühendislik'e gir — g_dept_cs satırı
-    // yalnız orada render edilir.
     await tester.tap(find.text('Mühendislik Fakültesi'));
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.chat_bubble_outline), findsOneWidget);
+    // Öğrenci bölümü Kurum Yapısı'nda görür (yapı) ama sohbetini göremez →
+    // Bilgisayar Mühendisliği satırında mesaj ikonu YOK. Fakülte de authorityOnly
+    // olduğundan onun kartında da yok → hiç chat ikonu olmamalı.
+    expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);
+    expect(find.byIcon(Icons.chat_bubble_outline), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 }

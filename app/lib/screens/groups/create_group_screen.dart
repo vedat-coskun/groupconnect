@@ -68,6 +68,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   /// FR-81: kapalı varsayılan — açıklık bilinçli bir seçim olsun.
   bool _isOpen = false;
 
+  /// FR-90: varsayılan yalnız yönetici yazar (kullanıcı hükmü).
+  bool _membersCanWrite = false;
+
   @override
   void initState() {
     super.initState();
@@ -112,6 +115,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       invitedIds: invited,
       autoIncludeIds: autoInclude,
       isOpen: _isOpen,
+      membersCanWrite: _membersCanWrite,
     );
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
@@ -212,6 +216,16 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             contentPadding: EdgeInsets.zero,
             title: Text(s.openGroup),
             subtitle: Text(s.openGroupHint),
+          ),
+          const SizedBox(height: 20),
+          // FR-90: yazma yetkisi kuruluşta seçilir (varsayılan yalnız yönetici);
+          // sonra Grup Bilgisi'nden değiştirilebilir. Yönetici (kurucu) her
+          // durumda yazar; bu anahtar diğer üyeleri etkiler.
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(s.membersCanWriteLabel),
+            value: _membersCanWrite,
+            onChanged: (v) => setState(() => _membersCanWrite = v),
           ),
           const SizedBox(height: 20),
           Text(

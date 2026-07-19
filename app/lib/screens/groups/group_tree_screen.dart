@@ -92,7 +92,7 @@ class _GroupTreeScreenState extends State<GroupTreeScreen> {
           // Sohbetler'den açıktır (GroupChatScreen zaten salt-okur şerit
           // gösterir) — bu ikon Kurum Yapısı'ndaki hızlı-yazma kısayoludur.
           trailing:
-              state.canWriteInGroup(g)
+              state.canSeeGroupChat(g)
                   ? IconButton(
                     tooltip: s.openChat,
                     icon: const Icon(Icons.chat_bubble_outline),
@@ -203,7 +203,7 @@ class _GroupTreeScreenState extends State<GroupTreeScreen> {
         children: [
           // İkon = "buraya yazabilirim" (kullanıcı hükmü). Üyelik değil,
           // YAZAR olmak gerekir (FR-90) — okuma üyeye Sohbetler'den açıktır.
-          if (state.canWriteInGroup(g))
+          if (state.canSeeGroupChat(g))
             IconButton(
               tooltip: context.s.openChat,
               icon: const Icon(Icons.chat_bubble_outline),

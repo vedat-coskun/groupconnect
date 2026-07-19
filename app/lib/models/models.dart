@@ -160,13 +160,14 @@ class Group {
     required this.description,
     required this.type,
     required this.memberIds,
-    this.adminId,
+    this.managerId,
     this.inviteMessage = '',
     this.logoIcon,
     this.parentGroupId,
     this.isOpen = false,
     this.archived = false,
-    this.writerIds = const {},
+    this.visibility = GroupVisibility.allMembers,
+    this.membersCanWrite = false,
     this.isHierarchyRoot = false,
   });
 
@@ -175,17 +176,23 @@ class Group {
   String description;
   final GroupType type;
 
-  /// For private groups: the creator/Group Admin (FR-37, FR-40).
-  final String? adminId;
+  /// Grubun **manager**'ı (FR-90 yeniden düzenlemesi): özel grupta **kurucu**
+  /// (FR-37/40 yaşam-döngüsü yetkileri de bunda — arşivle/terk/çıkar), kurumsal
+  /// grupta organizasyon admini'nin **atadığı üye** (o grubun üyesi olmalı).
+  /// Manager her zaman görür + yazar; [visibility]/[membersCanWrite]
+  /// anahtarlarını o çevirir. null yalnız veri-kurulum eksikliğinde olur.
+  String? managerId;
   List<String> memberIds;
   String inviteMessage;
   IconData? logoIcon;
 
-  /// FR-90: kurumsal grupta YAZABİLEN üyeler (admin işaretler; varsayılan
-  /// kimse yazamaz — tüm üyeler okur). Özel gruplarda anlamsızdır: orada her
-  /// üye yazar. (Sessize alma burada DEĞİL — kişisel görünümdür, bakan
-  /// kimliğe aittir: TenantData.mutedGroupIds.)
-  final Set<String> writerIds;
+  /// FR-90: sohbeti kim görür (manager çevirir). Bkz. [GroupVisibility].
+  GroupVisibility visibility;
+
+  /// FR-90: manager DIŞINDAKİ üyeler yazabilir mi (manager çevirir). Varsayılan
+  /// false = yalnız manager yazar (herkes okur — duyuru kanalı). true = grubu
+  /// görebilen her üye yazar (tartışma). Manager her durumda yazar.
+  bool membersCanWrite;
 
   /// Parent group id for the hierarchy tree (null = top level).
   ///
@@ -205,7 +212,7 @@ class Group {
 
   /// "Açık" grup: davetsiz katılınabilir (FR-81).
   ///
-  /// **Yalnız ÖZEL gruplar için** ve bayrağı **grubu kuran üye** ([adminId])
+  /// **Yalnız ÖZEL gruplar için** ve bayrağı **grubu kuran üye** ([managerId])
   /// belirler — kiracı yöneticisi değil. `false` (varsayılan) = kapalı: yalnız
   /// davetle, davet edilmeyene görünmez. `true` = açık: kurumdaki herkes bulur
   /// ve doğrudan katılır.
