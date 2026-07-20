@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../i18n/strings.dart';
+import '../../models/models.dart';
 import '../../state/app_scope.dart';
 
 /// Multi-tenant selection (FR-6, FR-7). Shown only when the phone belongs to
@@ -53,18 +54,13 @@ class _TenantSelectScreenState extends State<TenantSelectScreen> {
                       horizontal: 16,
                       vertical: 8,
                     ),
-                    leading: CircleAvatar(
-                      backgroundColor: scheme.primaryContainer,
-                      child: Icon(
-                        Icons.business_outlined,
-                        color: scheme.onPrimaryContainer,
-                      ),
-                    ),
+                    // Kurum LOGOSU: gerçek görsel (logoAsset) varsa onu göster;
+                    // yoksa ya da dosya bulunamazsa marka ikonuna dön.
+                    leading: _TenantLogo(tenant: t),
                     title: Text(
                       t.name,
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
-                    trailing: const Icon(Icons.chevron_right),
                     onTap:
                         () => AppScope.of(
                           context,
@@ -83,6 +79,47 @@ class _TenantSelectScreenState extends State<TenantSelectScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Kurum logosu: [Tenant.logoAsset] varsa gerçek görsel; dosya yoksa/eksikse
+/// (errorBuilder) marka ikonuna döner — böylece logo dosyası eklenmeden de
+/// ekran çalışır ve dosya konunca otomatik görünür.
+class _TenantLogo extends StatelessWidget {
+  const _TenantLogo({required this.tenant});
+
+  final Tenant tenant;
+
+  @override
+  Widget build(BuildContext context) {
+    final iconBox = Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: tenant.brandColor.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(tenant.logoIcon, color: tenant.brandColor),
+    );
+
+    final asset = tenant.logoAsset;
+    if (asset == null) return iconBox;
+
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(
+          asset,
+          width: 48,
+          height: 48,
+          fit: BoxFit.contain,
+          // Dosya paketlenmemişse marka ikonuna düş (build kırılmaz).
+          errorBuilder: (_, __, ___) => iconBox,
         ),
       ),
     );

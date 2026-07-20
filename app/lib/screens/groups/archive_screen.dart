@@ -31,33 +31,60 @@ class ArchiveScreen extends StatelessWidget {
                 title: s.archiveEmpty,
                 subtitle: s.archiveHint,
               )
+              // "Kutu kutu" + 393px güvenliği: ListTile (geniş leading+trailing
+              // = taşma riski) yerine özel Row; ad+üye sayısı InfoBox'ta.
               : ListView.separated(
+                padding: const EdgeInsets.symmetric(vertical: 6),
                 itemCount: groups.length,
-                separatorBuilder:
-                    (_, __) => const Divider(height: 1, indent: 72),
+                separatorBuilder: (_, __) => const SizedBox(height: 2),
                 itemBuilder: (context, i) {
                   final g = groups[i];
-                  return ListTile(
-                    leading: GroupAvatar(group: g, radius: 22),
-                    title: Text(
-                      g.name,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      s.memberCount(g.memberIds.length),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: TextButton.icon(
-                      icon: const Icon(Icons.unarchive_outlined, size: 18),
-                      label: Text(s.restore),
-                      onPressed: () {
-                        final messenger = ScaffoldMessenger.of(context);
-                        AppScope.of(context, listen: false).restoreGroup(g.id);
-                        messenger.showSnackBar(
-                          SnackBar(content: Text(s.groupRestored)),
-                        );
-                      },
+                  final scheme = Theme.of(context).colorScheme;
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: InfoBox(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  g.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  s.memberCount(g.memberIds.length),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: scheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        TextButton.icon(
+                          icon: const Icon(Icons.unarchive_outlined, size: 18),
+                          label: Text(s.restore),
+                          onPressed: () {
+                            final messenger = ScaffoldMessenger.of(context);
+                            AppScope.of(
+                              context,
+                              listen: false,
+                            ).restoreGroup(g.id);
+                            messenger.showSnackBar(
+                              SnackBar(content: Text(s.groupRestored)),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   );
                 },

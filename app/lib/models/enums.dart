@@ -36,6 +36,19 @@ enum GroupType { organized, private }
 ///   üyeler (öğrenci/sakin) görmez (ör. bölüm/fakülte akademik sohbeti).
 enum GroupVisibility { allMembers, authorityOnly }
 
+/// Görünüm (appearance) yazı boyutu ölçeği — admin-parametrik + kullanıcı
+/// override (kullanıcı tercihi 2026-07-19). [factor] tüm metinleri ölçekler.
+enum AppTextScale {
+  small(0.9, 'Küçük'),
+  medium(1.0, 'Orta'),
+  large(1.15, 'Büyük');
+
+  const AppTextScale(this.factor, this.labelTr);
+
+  final double factor;
+  final String labelTr;
+}
+
 /// Kind of invitation (FR-28, FR-38).
 enum InviteKind { contact, group }
 

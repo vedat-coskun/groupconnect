@@ -3,274 +3,194 @@ import 'package:flutter/material.dart';
 import '../../i18n/strings.dart';
 import '../../models/models.dart';
 import '../../state/app_scope.dart';
+import '../../state/app_state.dart';
 import '../../widgets/common.dart';
 import '../contacts/contact_detail_screen.dart';
-import '../contacts/directory_search_screen.dart';
 import 'group_chat_screen.dart';
 
-/// Hierarchical "Kurum Yapısı" browser (Adım 2). Navigates the group tree level
-/// by level — e.g. Dekanlık → Bölüm → alt gruplar + kişiler — using the admin's
-/// `levelLabels`. [groupId] null = top level (roots).
-class GroupTreeScreen extends StatefulWidget {
-  const GroupTreeScreen({super.key, this.groupId});
-
-  final String? groupId;
-
-  @override
-  State<GroupTreeScreen> createState() => _GroupTreeScreenState();
-}
-
-class _GroupTreeScreenState extends State<GroupTreeScreen> {
-  // Tek seferde en fazla bir çocuk grup satırı açık kalır (accordion).
-  String? _expandedChildId;
+/// "Kurumsal" (Kurum Yapısı) — TEK ekranda çok-seviyeli YERİNDE AKORDİYON
+/// (kullanıcı tercihi 2026-07-19): ayrı alt-sayfa yok. Kökler (ör. Fakülteler)
+/// üstte; bir düğümü açınca alt grupları görünür (üyeleri DEĞİL); yaprak düğümü
+/// (ör. Bölüm) açınca üyeleri rol başlıklarıyla görünür. Açık/kapalı durumu
+/// AppState'te tutulur — sekme/gezinme sıfırlamaz, yalnız logout temizler.
+///
+/// Not: eski "DEKANLIK" seviye başlığı ve düğüm-başına "Toplu Ekle" alt-sayfası
+/// kaldırıldı (birleşik akordiyon isteği).
+class GroupTreeScreen extends StatelessWidget {
+  const GroupTreeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final state = AppScope.of(context);
-
-    // Alt seviye (bir üst gruptan push edilmiş): kendi Scaffold'lu sayfa.
-    if (widget.groupId != null) {
-      final g = state.td.group(widget.groupId!);
-      if (g == null) return const Scaffold(body: Center(child: Text('—')));
-      return _nodeContent(context, g, embedded: false);
-    }
-
-    // Kök = "Kurumsal" sekmesinin içeriği (FR-42 rev.4). Kendi Scaffold'u yok.
     final roots = state.treeRootGroups;
-    // **Tek kök varsa kök-seçim ekranını ATLA** (kullanıcı hükmü): DEKANLIK'ta
-    // tek öğe (ör. Mühendislik Fakültesi) varken ona tıklamak zorunda kalmadan
-    // doğrudan içeriği (Bölümler + kişiler) açılır. Çoklu kökte liste kalır.
-    if (roots.length == 1) {
-      return _nodeContent(context, roots.first, embedded: true);
-    }
     return ListView(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(top: 6, bottom: 88),
       children: [
-        _LevelHeader(state.levelLabel(0)),
-        for (final g in roots) _groupRow(context, g, expandable: false),
+        for (final g in roots) ..._node(context, state, g, depth: 0),
       ],
     );
   }
 
-  /// Bir grup düğümünün içeriği: başlık kartı + alt gruplar (accordion) +
-  /// toplam kişiler (FR-71). [embedded] true ise Scaffold/AppBar/breadcrumb
-  /// yoktur — "Kurumsal" sekmesine gömülü tek-kök gösterimi için. false ise
-  /// push edilmiş alt sayfa olarak kendi AppBar'ını taşır.
-  Widget _nodeContent(BuildContext context, Group g, {required bool embedded}) {
-    final s = context.s;
-    final state = AppScope.of(context);
-    final depth = state.groupDepth(g);
+  /// Bir düğüm satırı + (açıksa) altı. İç düğüm → alt gruplar (özyineli);
+  /// yaprak → üyeler (rol başlıklarıyla).
+  List<Widget> _node(
+    BuildContext context,
+    AppState state,
+    Group g, {
+    required int depth,
+  }) {
     final children = state.childGroupsOf(g.id);
-    // Üyelik en alt seviyede; üst grubun kişileri = alt gruplarının toplamı.
-    final members = state.aggregateMembersOf(g);
-    final path = state.groupPath(g);
+    final expanded = state.isTreeGroupExpanded(g.id);
 
-    final body = ListView(
-      padding: const EdgeInsets.only(bottom: 24),
-      children: [
-        // Breadcrumb yalnız alt sayfalarda (kök tek olduğunda anlamsız).
-        if (!embedded)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: Text(
-              path.map((e) => e.name).join('  ›  '),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+    final out = <Widget>[
+      _GroupRow(group: g, depth: depth, expanded: expanded),
+    ];
+    if (!expanded) return out;
+
+    // Alt gruplar (varsa) — özyineli. Yaprakta bu boş geçer.
+    for (final c in children) {
+      out.addAll(_node(context, state, c, depth: depth + 1));
+    }
+
+    // HER düğümde (Fakülte dahil) o düğümün TOPLAM üyelerini (FR-71) rol
+    // başlıklarıyla göster — böylece bir fakültenin akademisyen/öğrencileri de
+    // burada listelenir (kullanıcı hükmü). Rol başlıkları AKORDİYON (varsayılan
+    // kapalı, logout'a kadar kalıcı), İNCE KUTU içinde — Kişiler → Herkes deseni.
+    final members = state.aggregateMembersOf(g);
+    out.addAll(
+      roleSections(
+        context: context,
+        members: members,
+        roles: state.tenantRoles,
+        roleName: state.roleName,
+        row: (m) => _MemberRow(member: m, indent: (depth + 2) * 20.0),
+        header:
+            (label) => BoxedRoleHeader(
+              label,
+              indent: (depth + 1) * 20.0,
+              collapsed: !state.isTreeRoleExpanded(g.id, label),
+              onToggle: () => state.toggleTreeRole(g.id, label),
+            ),
+        collapsed: (label) => !state.isTreeRoleExpanded(g.id, label),
+        otherLabel: context.s.membersTitle,
+      ),
+    );
+    return out;
+  }
+}
+
+/// Akordiyon grup satırı (kutulu): avatar + ad/alt-bilgi kutusu + (görebiliyorsa)
+/// sohbet ikonu + aç/kapa chevron'u. Satıra dokunmak açar/kapatır.
+class _GroupRow extends StatelessWidget {
+  const _GroupRow({
+    required this.group,
+    required this.depth,
+    required this.expanded,
+  });
+
+  final Group group;
+  final int depth;
+  final bool expanded;
+
+  @override
+  Widget build(BuildContext context) {
+    final state = AppScope.of(context);
+    final scheme = Theme.of(context).colorScheme;
+
+    return InkWell(
+      onTap: () => state.toggleTreeGroup(group.id),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(12 + depth * 20.0, 5, 8, 5),
+        child: Row(
+          children: [
+            GroupAvatar(group: group, radius: 22),
+            const SizedBox(width: 10),
+            Expanded(
+              child: InfoBox(
+                // "N Bölüm · M kişi" alt-bilgisi kaldırıldı (kullanıcı hükmü) —
+                // tek satır ad. ÜYESİ olduğum kurumsal grupta "Üye" rozeti
+                // (kullanıcı hükmü: özel gruplar ayrı sekmede, kurumsal
+                // üyelikler burada işaretli).
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        group.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    if (state.isEffectiveMember(group)) ...[
+                      const SizedBox(width: 8),
+                      TagChip(label: context.s.memberBadge),
+                    ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ListTile(
-          leading: GroupAvatar(group: g, radius: 24),
-          title: Text(
-            g.name,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-          // Seviye adı yerine toplam kişi (alt gruplar dahil).
-          subtitle: Text('${members.length} kişi'),
-          // İkon = "buraya yazabilirim" (kullanıcı hükmü — "mesaj gönderemem").
-          // Üyelik değil, YAZAR olmak gerekir (FR-90); okuma yine de üyeye
-          // Sohbetler'den açıktır (GroupChatScreen zaten salt-okur şerit
-          // gösterir) — bu ikon Kurum Yapısı'ndaki hızlı-yazma kısayoludur.
-          trailing:
-              state.canSeeGroupChat(g)
-                  ? IconButton(
-                    tooltip: s.openChat,
-                    icon: const Icon(Icons.chat_bubble_outline),
-                    onPressed:
-                        () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => GroupChatScreen(groupId: g.id),
-                          ),
-                        ),
-                  )
-                  : null,
-        ),
-        const Divider(),
-
-        if (children.isNotEmpty) ...[
-          _LevelHeader('${state.levelLabel(depth + 1)} (${children.length})'),
-          for (final c in children) ...[
-            _groupRow(context, c, expandable: true),
-            if (_expandedChildId == c.id) _expandedChildContent(context, c),
+            // İkon = "buraya yazabilirim" (FR-90 hızlı-yazma kısayolu). Satır
+            // dokunuşu aç/kapa'ya gittiği için sohbet ayrı ikondan açılır.
+            if (state.canSeeGroupChat(group))
+              IconButton(
+                tooltip: context.s.openChat,
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.chat_bubble_outline),
+                onPressed:
+                    () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => GroupChatScreen(groupId: group.id),
+                      ),
+                    ),
+              ),
+            Icon(
+              expanded ? Icons.expand_less : Icons.expand_more,
+              color: scheme.onSurfaceVariant,
+            ),
           ],
-          const Divider(),
-        ],
-
-        // Üyeler kategoriye (rol) göre — admin'in tanımladığı rol sırasıyla.
-        // Ortak kural: rol (kategori) başlıkları, admin sırasıyla.
-        ...roleSections(
-          context: context,
-          members: members,
-          roles: state.tenantRoles,
-          roleName: state.roleName,
-          row: (m) => _memberRow(context, m),
-          header: (t) => _LevelHeader(t),
-          otherLabel: s.membersTitle,
         ),
-        if (members.isEmpty && children.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(24),
-            child: Center(child: Text('—')),
-          ),
-      ],
-    );
-
-    if (embedded) return body;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(g.name),
-        actions: [
-          // Toplu Ekle: bu gruptaki kişileri dizinde ön-filtreyle aç.
-          IconButton(
-            tooltip: s.addContact,
-            icon: const Icon(Icons.person_add_alt),
-            onPressed:
-                () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => DirectorySearchScreen(initialGroupId: g.id),
-                  ),
-                ),
-          ),
-        ],
       ),
-      body: body,
     );
   }
+}
 
-  Widget _memberRow(BuildContext context, Member m) {
-    return ListTile(
-      leading: MemberAvatar(member: m),
-      // İsim düzeni tek satır: "Ad SOYAD, Ünvan, Bölüm [rakam]".
-      title: Text.rich(
-        m.rowLabelSpan(context),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
+/// Yaprak düğüm açılınca gösterilen üye satırı (kutulu, girintili).
+class _MemberRow extends StatelessWidget {
+  const _MemberRow({required this.member, required this.indent});
+
+  final Member member;
+  final double indent;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
       onTap:
           () => Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => ContactDetailScreen(memberId: m.id),
+              builder: (_) => ContactDetailScreen(memberId: member.id),
             ),
           ),
-    );
-  }
-
-  /// A drill-in row for a child group. Root-level rows (expandable: false)
-  /// push a new screen; rows nested inside a node's own children list
-  /// expand in place instead (single-open accordion) so the parent's own
-  /// toplam kişi listesi (FR-71) never leaves view.
-  Widget _groupRow(BuildContext context, Group g, {required bool expandable}) {
-    final state = AppScope.of(context);
-    final childCount = state.childGroupsOf(g.id).length;
-    // Toplam kişi (alt gruplar dahil) — üst grupta alt sayıların toplamına eşit.
-    final people = state.aggregateMembersOf(g).length;
-    final isExpanded = expandable && _expandedChildId == g.id;
-    return ListTile(
-      leading: GroupAvatar(group: g, radius: 22),
-      title: Text(
-        g.name,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text(
-        childCount > 0
-            ? '$childCount ${state.levelLabel(state.groupDepth(g) + 1)} · '
-                '$people kişi'
-            : '$people kişi',
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // İkon = "buraya yazabilirim" (kullanıcı hükmü). Üyelik değil,
-          // YAZAR olmak gerekir (FR-90) — okuma üyeye Sohbetler'den açıktır.
-          if (state.canSeeGroupChat(g))
-            IconButton(
-              tooltip: context.s.openChat,
-              icon: const Icon(Icons.chat_bubble_outline),
-              onPressed:
-                  () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => GroupChatScreen(groupId: g.id),
-                    ),
-                  ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(12 + indent, 4, 12, 4),
+        child: Row(
+          children: [
+            MemberAvatar(member: member),
+            const SizedBox(width: 10),
+            Expanded(
+              child: InfoBox(
+                // İsim düzeni tek satır: "Ad SOYAD, Ünvan, Bölüm [rakam]".
+                child: Text.rich(
+                  member.rowLabelSpan(context),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
             ),
-          Icon(
-            !expandable
-                ? Icons.chevron_right
-                : (isExpanded ? Icons.expand_less : Icons.expand_more),
-          ),
-        ],
-      ),
-      onTap: () {
-        if (!expandable) {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => GroupTreeScreen(groupId: g.id)),
-          );
-          return;
-        }
-        setState(() => _expandedChildId = isExpanded ? null : g.id);
-      },
-    );
-  }
-
-  /// Tıklanan çocuk grubun üye listesi — aynı sayfada, girinti ile (accordion).
-  Widget _expandedChildContent(BuildContext context, Group g) {
-    final state = AppScope.of(context);
-    final members = state.aggregateMembersOf(g);
-    return Padding(
-      padding: const EdgeInsets.only(left: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: roleSections(
-          context: context,
-          members: members,
-          roles: state.tenantRoles,
-          roleName: state.roleName,
-          row: (m) => _memberRow(context, m),
-          header: (t) => _LevelHeader(t),
-          otherLabel: context.s.membersTitle,
+          ],
         ),
       ),
     );
   }
 }
 
-class _LevelHeader extends StatelessWidget {
-  const _LevelHeader(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
-      child: Text(
-        context.upper(text),
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-}

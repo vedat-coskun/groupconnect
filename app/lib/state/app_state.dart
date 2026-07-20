@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/enums.dart';
 import '../models/models.dart';
+import '../theme/app_theme.dart';
 import 'admin_settings.dart';
 import 'mock_data.dart';
 import 'tenant_data.dart';
@@ -94,6 +95,79 @@ class AppState extends ChangeNotifier {
   Member get me => td.me;
   AdminSettings get adminSettings => _admin[_activeTenantId]!;
 
+  // ---- Görünüm (appearance) — admin-parametrik + kullanıcı override ---------
+  // Etkin değer: admin ekseni KİLİTLEDİYSE admin değeri; değilse kullanıcının
+  // kendi seçimi (yoksa admin varsayılanı). Tenant seçilmeden fallback döner.
+
+  /// Etkin görünüm — MaterialApp teması bundan kurulur (reaktif, app.dart).
+  Appearance get appearance {
+    final id = _activeTenantId;
+    if (id == null) return Appearance.fallback;
+    final a = _admin[id]!;
+    final d = _data[id]!;
+    return Appearance(
+      accent: a.accentLocked ? a.accentColor : (d.userAccent ?? a.accentColor),
+      scale: a.textScaleLocked ? a.textScale : (d.userTextScale ?? a.textScale),
+      fontFamily:
+          a.fontLocked ? a.fontFamily : (d.userFont ?? a.fontFamily),
+    );
+  }
+
+  /// Bir görünüm ekseni kullanıcı tarafından değiştirilebilir mi (kilitli değil)?
+  bool get canUserSetAccent => !adminSettings.accentLocked;
+  bool get canUserSetTextScale => !adminSettings.textScaleLocked;
+  bool get canUserSetFont => !adminSettings.fontLocked;
+
+  // Admin (Web Admin prototipi) — varsayılan + kilit çevirir.
+  void setAdminAccent(Color c) {
+    adminSettings.accentColor = c;
+    notifyListeners();
+  }
+
+  void setAdminTextScale(AppTextScale s) {
+    adminSettings.textScale = s;
+    notifyListeners();
+  }
+
+  void setAdminFont(String? family) {
+    adminSettings.fontFamily = family;
+    notifyListeners();
+  }
+
+  void setAccentLocked(bool v) {
+    adminSettings.accentLocked = v;
+    notifyListeners();
+  }
+
+  void setTextScaleLocked(bool v) {
+    adminSettings.textScaleLocked = v;
+    notifyListeners();
+  }
+
+  void setFontLocked(bool v) {
+    adminSettings.fontLocked = v;
+    notifyListeners();
+  }
+
+  // Kullanıcı override — kimlik başına saklanır (null = kurum varsayılanı).
+  void setUserAccent(Color? c) {
+    td.userAccent = c;
+    _saveUser();
+    notifyListeners();
+  }
+
+  void setUserTextScale(AppTextScale? s) {
+    td.userTextScale = s;
+    _saveUser();
+    notifyListeners();
+  }
+
+  void setUserFont(String? family) {
+    td.userFont = family;
+    _saveUser();
+    notifyListeners();
+  }
+
   // ---- Language -----------------------------------------------------------
   void setLanguage(AppLanguage lang) {
     if (_language == lang) return;
@@ -177,7 +251,63 @@ class AppState extends ChangeNotifier {
     _activeTenantId = null;
     _phone = '';
     _identity = MockData.identityForPhone('');
+    _everyoneExpandedRoles.clear(); // accordion durumu oturum boyu (logout=sıfır)
+    _expandedTreeGroups.clear();
+    _expandedTreeRoles.clear();
+    _expandedChatSections.clear();
     _phase = AppPhase.auth;
+    notifyListeners();
+  }
+
+  // ---- Kişiler → Herkes accordion (oturum boyu, diske YAZILMAZ) -----------
+  // Rol bölümleri VARSAYILAN KAPALI başlar (bu set boş); bir rol yalnız bu
+  // sette ise açıktır. Durum widget'ta değil burada durduğu için sekme
+  // değişince/geri gelince sıfırlanmaz — yalnız logout temizler (kullanıcı
+  // tercihi 2026-07-19).
+  final Set<String> _everyoneExpandedRoles = {};
+  bool isEveryoneRoleExpanded(String label) =>
+      _everyoneExpandedRoles.contains(label);
+  void toggleEveryoneRole(String label) {
+    if (!_everyoneExpandedRoles.remove(label)) {
+      _everyoneExpandedRoles.add(label);
+    }
+    notifyListeners();
+  }
+
+  // ---- Kurum Yapısı (Kurumsal) ağacı — yerinde akordiyon, oturum boyu -------
+  // Fakülte→Bölüm→üyeler tek ekranda açılıp kapanır (kullanıcı tercihi
+  // 2026-07-19). VARSAYILAN KAPALI (set boş); bir grup yalnız bu sette ise
+  // açıktır. Durum burada durduğu için sekme/gezinme sıfırlamaz — logout
+  // temizler.
+  final Set<String> _expandedTreeGroups = {};
+  bool isTreeGroupExpanded(String groupId) =>
+      _expandedTreeGroups.contains(groupId);
+  void toggleTreeGroup(String groupId) {
+    if (!_expandedTreeGroups.remove(groupId)) {
+      _expandedTreeGroups.add(groupId);
+    }
+    notifyListeners();
+  }
+
+  // Ağaç yaprağındaki üye ROL bölümleri de accordion — bölüme özgü (groupId +
+  // rol etiketi anahtarı). Varsayılan kapalı, logout'a kadar kalıcı.
+  final Set<String> _expandedTreeRoles = {};
+  bool isTreeRoleExpanded(String groupId, String label) =>
+      _expandedTreeRoles.contains('$groupId::$label');
+  void toggleTreeRole(String groupId, String label) {
+    final key = '$groupId::$label';
+    if (!_expandedTreeRoles.remove(key)) _expandedTreeRoles.add(key);
+    notifyListeners();
+  }
+
+  // Sohbetler'in üç KATEGORİSİ (Kişisel/Kurumsal/Özel) accordion — eski filtre
+  // çipleri yerine (kullanıcı tercihi 2026-07-19). Varsayılan üçü de KAPALI,
+  // logout'a kadar kalıcı.
+  final Set<String> _expandedChatSections = {};
+  bool isChatSectionExpanded(String key) =>
+      _expandedChatSections.contains(key);
+  void toggleChatSection(String key) {
+    if (!_expandedChatSections.remove(key)) _expandedChatSections.add(key);
     notifyListeners();
   }
 
@@ -265,6 +395,16 @@ class AppState extends ChangeNotifier {
     d.mutedGroupIds
       ..clear()
       ..addAll((blob['mg'] as List?)?.cast<String>() ?? const []);
+    // Görünüm override'ları (kimlik başına). Yoksa null = kurum varsayılanı.
+    d.userAccent =
+        blob['ua'] is int ? Color(blob['ua'] as int) : null;
+    d.userTextScale = switch (blob['us']) {
+      'small' => AppTextScale.small,
+      'medium' => AppTextScale.medium,
+      'large' => AppTextScale.large,
+      _ => null,
+    };
+    d.userFont = blob['uf'] as String?;
   }
 
   /// Fire-and-forget save of the active (tenant, identity) user data.
@@ -281,6 +421,9 @@ class AppState extends ChangeNotifier {
       'dv': d.dmVisible.toList(),
       'md': d.mutedDms.toList(),
       'mg': d.mutedGroupIds.toList(),
+      if (d.userAccent != null) 'ua': d.userAccent!.toARGB32(),
+      if (d.userTextScale != null) 'us': d.userTextScale!.name,
+      if (d.userFont != null) 'uf': d.userFont,
     };
     _userCache['$id::${d.myId}'] = blob;
     _persist(id, d.myId, blob);

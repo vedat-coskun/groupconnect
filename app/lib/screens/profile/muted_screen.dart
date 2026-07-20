@@ -22,32 +22,60 @@ class MutedScreen extends StatelessWidget {
                 icon: Icons.notifications_active_outlined,
                 title: s.mutedEmpty,
               )
+              // "Kutu kutu" + 393px güvenliği: özel Row, ad InfoBox'ta.
               : ListView.separated(
+                padding: const EdgeInsets.symmetric(vertical: 6),
                 itemCount: muted.length,
-                separatorBuilder:
-                    (_, __) => const Divider(height: 1, indent: 72),
+                separatorBuilder: (_, __) => const SizedBox(height: 2),
                 itemBuilder: (context, i) {
                   final c = muted[i];
-                  return ListTile(
-                    leading:
+                  final scheme = Theme.of(context).colorScheme;
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 4, 8, 4),
+                    child: Row(
+                      children: [
                         c.isGroup
                             ? GroupAvatar(group: c.group!)
                             : MemberAvatar(member: c.member!),
-                    title: Text(
-                      c.title,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(c.isGroup ? s.tabGroups : s.tabChats),
-                    trailing: OutlinedButton(
-                      onPressed: () {
-                        final st = AppScope.of(context, listen: false);
-                        if (c.isGroup) {
-                          st.toggleGroupMute(c.group!.id);
-                        } else {
-                          st.toggleDmMute(c.member!.id);
-                        }
-                      },
-                      child: Text(s.unmute),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: InfoBox(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  c.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  c.isGroup ? s.tabGroups : s.tabChats,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: scheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        OutlinedButton(
+                          onPressed: () {
+                            final st = AppScope.of(context, listen: false);
+                            if (c.isGroup) {
+                              st.toggleGroupMute(c.group!.id);
+                            } else {
+                              st.toggleDmMute(c.member!.id);
+                            }
+                          },
+                          child: Text(s.unmute),
+                        ),
+                      ],
                     ),
                   );
                 },

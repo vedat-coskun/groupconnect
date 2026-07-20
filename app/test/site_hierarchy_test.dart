@@ -1,24 +1,27 @@
-// Yeşil Vadi Sitesi hiyerarşisi (kullanıcı hükmü): kök üç KATEGORİ'dir
-// (İdari Personel / Ev Sahibi / Sakin — admin rolleri). İdari Personel
-// çocuksuz (isHierarchyRoot). Ev Sahibi ve Sakin altında Mavi Blok/Yeşil Blok
+// Yeşil Vadi Sitesi hiyerarşisi (kullanıcı hükmü): kök üç KATEGORİ'dir —
+// veri (admin) sırasıyla Personel / Sakin / Ev Sahibi. Personel çocuksuz
+// (isHierarchyRoot). Ev Sahibi ve Sakin altında Mavi Blok/Yeşil Blok
 // AYRI AYRI tekrarlanır — her biri yalnız o kategoriden sakini olan
 // daireleri toplar (aynı isim, farklı id).
 import 'package:flutter_test/flutter_test.dart';
 import 'package:groupconnect/state/app_state.dart';
 
 void main() {
-  test('Kurumsal kökler: üç kategori (İdari/Sahip/Sakin), düz gruplar '
-      '(ör. Site Duyuruları) hariç', () {
+  test('Kurumsal kökler: üç kategori, veri sırasıyla Personel/Sakin/Ev Sahibi '
+      '— düz grup yok; site duyuruları Sakin kökünden yapılır', () {
     final s = AppState();
     s.setPendingPhone('+90', '5555555501'); // Vedat — Müdür
     s.selectTenant('site');
 
-    final roots = s.treeRootGroups.map((g) => g.name).toSet();
-    expect(roots, {'İdari Personel', 'Ev Sahibi', 'Sakin'});
-    expect(roots.contains('Site Duyuruları'), isFalse);
+    final roots = s.treeRootGroups.map((g) => g.name).toList();
+    expect(roots, ['Personel', 'Sakin', 'Ev Sahibi']);
+    // "Site Duyuruları" düz grubu kaldırıldı (kullanıcı kararı 2026-07-19):
+    // duyuru kanalı = Sakin kökü, manager'ı Personel'den Site Yöneticisi.
+    expect(s.td.groups.any((g) => g.name == 'Site Duyuruları'), isFalse);
+    expect(s.td.group('sg_sakin')!.managerId, 's_me');
   });
 
-  test('İdari Personel çocuksuz — 8 personel doğrudan altında', () {
+  test('Personel çocuksuz — 8 personel doğrudan altında', () {
     final s = AppState();
     s.setPendingPhone('+90', '5555555501');
     s.selectTenant('site');

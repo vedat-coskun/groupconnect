@@ -30,31 +30,103 @@ class _HomeShellState extends State<HomeShell> {
     final s = context.s;
     return Scaffold(
       body: IndexedStack(index: _index, children: _tabs),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.chat_bubble_outline),
-            selectedIcon: const Icon(Icons.chat_bubble),
-            label: s.tabChats,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.groups_outlined),
-            selectedIcon: const Icon(Icons.groups),
-            label: s.tabGroups,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.contacts_outlined),
-            selectedIcon: const Icon(Icons.contacts),
-            label: s.tabContacts,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.menu),
-            selectedIcon: const Icon(Icons.menu),
-            label: s.tabMenu,
-          ),
+      // "Kutu kutu" tasarım pilotu (kullanıcı tercihi): NavigationBar yerine
+      // her sekme kendi yuvarlatılmış kutusunda (seçili = dolgulu kutu).
+      bottomNavigationBar: _BoxedNavBar(
+        index: _index,
+        onSelect: (i) => setState(() => _index = i),
+        items: [
+          (Icons.chat_bubble_outline, Icons.chat_bubble, s.tabChats),
+          (Icons.groups_outlined, Icons.groups, s.tabGroups),
+          (Icons.contacts_outlined, Icons.contacts, s.tabContacts),
+          (Icons.menu, Icons.menu, s.tabMenu),
         ],
+      ),
+    );
+  }
+}
+
+/// Kutu görünümlü alt menü: her öğe yuvarlatılmış bir kutu; seçili öğe
+/// secondaryContainer dolgusuyla öne çıkar, diğerleri hafif yüzey kutusu.
+class _BoxedNavBar extends StatelessWidget {
+  const _BoxedNavBar({
+    required this.index,
+    required this.onSelect,
+    required this.items,
+  });
+
+  final int index;
+  final ValueChanged<int> onSelect;
+  final List<(IconData, IconData, String)> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: scheme.surface,
+      elevation: 3,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+          child: Row(
+            children: [
+              for (final (i, item) in items.indexed)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: Material(
+                      color:
+                          i == index
+                              ? scheme.secondaryContainer
+                              : scheme.surfaceContainerHigh,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: () => onSelect(i),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                i == index ? item.$2 : item.$1,
+                                size: 22,
+                                color:
+                                    i == index
+                                        ? scheme.onSecondaryContainer
+                                        : scheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                item.$3,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.labelSmall?.copyWith(
+                                  fontWeight:
+                                      i == index
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
+                                  color:
+                                      i == index
+                                          ? scheme.onSecondaryContainer
+                                          : scheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -194,53 +194,28 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           // Not: Özel gruplarda hiyerarşi yok (düz). Hiyerarşi yalnız kurumsal
           // gruplarda ve admin tarafından tanımlanır.
           const SizedBox(height: 20),
-          Text(
-            s.groupAccessLabel,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 4),
-          // FR-81: kapalı mı, herkese açık mı? Açıklık daveti DIŞLAMAZ — her
-          // iki durumda da davet gönderilebilir (aşağıdaki bölüm).
-          RadioListTile<bool>(
-            value: false,
-            groupValue: _isOpen,
-            onChanged: (v) => setState(() => _isOpen = v!),
-            contentPadding: EdgeInsets.zero,
-            title: Text(s.closedGroup),
-            subtitle: Text(s.closedGroupHint),
-          ),
-          RadioListTile<bool>(
-            value: true,
-            groupValue: _isOpen,
-            onChanged: (v) => setState(() => _isOpen = v!),
-            contentPadding: EdgeInsets.zero,
-            title: Text(s.openGroup),
-            subtitle: Text(s.openGroupHint),
+          // FR-81: kapalı mı açık mı? Başlıksız, iki KUTU-toggle; açıklamalar
+          // kutunun içinde küçük fontla (kullanıcı tercihi 2026-07-19).
+          BoxedBinaryChoice(
+            value: _isOpen,
+            onChanged: (v) => setState(() => _isOpen = v),
+            falseLabel: s.closedGroup,
+            falseDesc: s.closedGroupHint,
+            trueLabel: s.openGroup,
+            trueDesc: s.openGroupHint,
           ),
           const SizedBox(height: 20),
-          // FR-90: yazma yetkisi kuruluşta seçilir (varsayılan yalnız yönetici);
-          // sonra Grup Bilgisi'nden değiştirilebilir. Yönetici (kurucu) her
-          // durumda yazar; bu anahtar diğer üyeleri etkiler.
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(s.membersCanWriteLabel),
+          // FR-90: yazma yetkisi kuruluşta seçilir (varsayılan yalnız yönetici).
+          // Switch yerine iki-seçenekli kutu-toggle.
+          BoxedBinaryChoice(
             value: _membersCanWrite,
             onChanged: (v) => setState(() => _membersCanWrite = v),
+            falseLabel: s.writeManagerOnly,
+            trueLabel: s.writeMembersToo,
           ),
-          const SizedBox(height: 20),
-          Text(
-            s.inviteMembers,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          if (_invited.isEmpty)
-            Text(
-              s.contactsEmptyHint,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            )
-          else
+          const SizedBox(height: 24),
+          // "Davet Et" — yalnız buton (başlık/açıklama yok, kullanıcı tercihi).
+          if (_invited.isNotEmpty)
             Wrap(
               spacing: 8,
               runSpacing: 8,

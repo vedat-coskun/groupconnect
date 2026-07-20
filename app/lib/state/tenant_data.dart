@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+
+import '../models/enums.dart';
 import '../models/models.dart';
 
 /// All state for a single tenant (organization), kept as an isolated island so
@@ -64,6 +67,13 @@ class TenantData {
   final Set<String> dmVisible; // 1:1 threads surfaced in the chat list
   final Set<String> mutedDms; // FR-49 for 1:1 threads
   final Set<String> mutedGroupIds; // FR-49 for groups — kişisel, grup-üstü değil
+
+  /// Görünüm (appearance) KİŞİSEL override'ları — kimlik başına saklanır
+  /// (kullanıcı tercihi 2026-07-19). null = kurum varsayılanını kullan. Admin
+  /// ilgili ekseni KİLİTLEMİŞSE bu değerler yok sayılır (etkin değer app_state).
+  Color? userAccent;
+  AppTextScale? userTextScale;
+  String? userFont;
 
   /// False until the first-login profile setup is confirmed (FR-9).
   bool profileComplete;

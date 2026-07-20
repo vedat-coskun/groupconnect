@@ -43,7 +43,7 @@ void main() {
     expect(state.td.myId, 'u_me');
     expect(
       state.myGroups.map((g) => g.name),
-      isNot(contains('Site Duyuruları')),
+      isNot(contains('Personel')), // Site'ye ait grup uni'de görünmez
     );
   });
 }

@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '../models/enums.dart';
 import '../models/models.dart';
 
@@ -13,6 +15,12 @@ class AdminSettings {
     required this.levelLabels,
     required this.roleLabels,
     required this.directRolesByRole,
+    required this.accentColor,
+    this.accentLocked = false,
+    this.textScale = AppTextScale.medium,
+    this.textScaleLocked = false,
+    this.fontFamily,
+    this.fontLocked = false,
   });
 
   /// §1 Tenant-wide default: [MemberVisibility.visible] = opt-out,
@@ -36,6 +44,17 @@ class AdminSettings {
   /// çiftlerde ekleme **onay davetiyle** yürür (kişi, paylaşılan grup
   /// listelerinden bulunur — kurum dizininde görünmez).
   Map<String, Set<String>> directRolesByRole;
+
+  /// §5 Görünüm (appearance) — admin varsayılanı + KİLİT (kullanıcı tercihi
+  /// 2026-07-19). Kilitliyse herkes bu değeri kullanır; kilitli değilse bu
+  /// değer varsayılandır ve her kullanıcı kendine göre değiştirebilir. Üç
+  /// eksen: vurgu rengi, yazı boyutu, yazı tipi (null = sistem).
+  Color accentColor;
+  bool accentLocked;
+  AppTextScale textScale;
+  bool textScaleLocked;
+  String? fontFamily;
+  bool fontLocked;
 
   /// Sensible defaults from the tenant: visibility from the tenant, authority
   /// roles get bulk-add + direct-add. [twoLevel] seeds a 2-level hierarchy
@@ -64,6 +83,8 @@ class AdminSettings {
                   ? {for (final x in t.roles) x.id}
                   : {for (final x in t.roles) if (x.isAuthority) x.id},
       },
+      // Görünüm varsayılanı: vurgu rengi kurum markasından; boyut/tip serbest.
+      accentColor: t.brandColor,
     );
   }
 }

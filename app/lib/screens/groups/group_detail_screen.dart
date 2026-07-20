@@ -201,15 +201,19 @@ class GroupDetailScreen extends StatelessWidget {
           if (state.isGroupManager(g)) ...[
             const Divider(height: 16),
             RoleHeader(s.managerSettingsTitle),
-            SwitchListTile(
-              secondary: const Icon(Icons.edit_note_outlined),
-              title: Text(s.membersCanWriteLabel),
-              value: g.membersCanWrite,
-              onChanged:
-                  (v) => AppScope.of(
-                    context,
-                    listen: false,
-                  ).setMembersCanWrite(groupId, v),
+            // Yazma yetkisi: switch yerine iki-seçenekli kutu-toggle.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              child: BoxedBinaryChoice(
+                value: g.membersCanWrite,
+                onChanged:
+                    (v) => AppScope.of(
+                      context,
+                      listen: false,
+                    ).setMembersCanWrite(groupId, v),
+                falseLabel: s.writeManagerOnly,
+                trueLabel: s.writeMembersToo,
+              ),
             ),
             if (g.isOrganized)
               SwitchListTile(
@@ -257,20 +261,21 @@ class GroupDetailScreen extends StatelessWidget {
             ),
             // FR-81: "açık" bayrağını YALNIZ grubu kuran üye çevirir; bu bir
             // kiracı admin ayarı değildir. Kapatmak mevcut üyeleri atmaz.
-            SwitchListTile(
-              secondary: Icon(g.isOpen ? Icons.public : Icons.lock_outline),
-              title: Text(g.isOpen ? s.openGroup : s.closedGroup),
-              subtitle: Text(
-                g.isOpen
-                    ? '${s.openGroupHint} ${s.openGroupToggleHint}'
-                    : s.closedGroupHint,
+            // İki-seçenekli kutu-toggle; açıklamalar kutu içinde.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+              child: BoxedBinaryChoice(
+                value: g.isOpen,
+                onChanged:
+                    (v) => AppScope.of(
+                      context,
+                      listen: false,
+                    ).toggleGroupOpen(groupId),
+                falseLabel: s.closedGroup,
+                falseDesc: s.closedGroupHint,
+                trueLabel: s.openGroup,
+                trueDesc: '${s.openGroupHint} ${s.openGroupToggleHint}',
               ),
-              value: g.isOpen,
-              onChanged:
-                  (_) => AppScope.of(
-                    context,
-                    listen: false,
-                  ).toggleGroupOpen(groupId),
             ),
           ],
 
@@ -335,42 +340,11 @@ class GroupDetailScreen extends StatelessWidget {
     required bool canManage,
   }) {
     final s = context.s;
+    final scheme = Theme.of(context).colorScheme;
     final isMe = m.id == state.td.myId;
-    return ListTile(
-      leading: MemberAvatar(member: m),
-      // İsim düzeni tek satır: "Ad SOYAD, Ünvan, Bölüm [rakam]".
-      title: Text.rich(
-        TextSpan(
-          children: [
-            m.rowLabelSpan(context),
-            if (isMe)
-              TextSpan(
-                text: ' (${s.you})',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-          ],
-        ),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-      trailing:
-          (canManage && !isMe)
-              ? IconButton(
-                tooltip: s.removeMember,
-                icon: Icon(
-                  Icons.person_remove_outlined,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                onPressed:
-                    () => AppScope.of(
-                      context,
-                      listen: false,
-                    ).removeGroupMember(g.id, m.id),
-              )
-              : null,
+    // "Kutu kutu" (kullanıcı tercihi): avatar serbest, ad InfoBox'ta, sağda
+    // (yetkiliyse) çıkar ikonu.
+    return InkWell(
       onTap:
           isMe
               ? null
@@ -379,6 +353,48 @@ class GroupDetailScreen extends StatelessWidget {
                   builder: (_) => ContactDetailScreen(memberId: m.id),
                 ),
               ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 6, 8, 6),
+        child: Row(
+          children: [
+            MemberAvatar(member: m),
+            const SizedBox(width: 10),
+            Expanded(
+              child: InfoBox(
+                // İsim düzeni tek satır: "Ad SOYAD, Ünvan, Bölüm [rakam]".
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      m.rowLabelSpan(context),
+                      if (isMe)
+                        TextSpan(
+                          text: ' (${s.you})',
+                          style: TextStyle(color: scheme.onSurfaceVariant),
+                        ),
+                    ],
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+            if (canManage && !isMe)
+              IconButton(
+                tooltip: s.removeMember,
+                icon: Icon(
+                  Icons.person_remove_outlined,
+                  color: scheme.error,
+                ),
+                onPressed:
+                    () => AppScope.of(
+                      context,
+                      listen: false,
+                    ).removeGroupMember(g.id, m.id),
+              ),
+          ],
+        ),
+      ),
     );
   }
 

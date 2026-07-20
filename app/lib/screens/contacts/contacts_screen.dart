@@ -25,30 +25,30 @@ class ContactsScreen extends StatelessWidget {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(s.contactsTitle),
-          actions: [
-            IconButton(
-              tooltip: s.addContact,
-              icon: const Icon(Icons.add),
-              onPressed:
-                  () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const DirectorySearchScreen(),
+        // AppBar yerine kutu başlık + kutu sekme çubuğu (kullanıcı tercihi).
+        body: SafeArea(
+          child: Column(
+            children: [
+              BoxedPageHeader(
+                title: s.contactsTitle,
+                actionTooltip: s.addContact,
+                onAction:
+                    () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const DirectorySearchScreen(),
+                      ),
                     ),
-                  ),
-            ),
-          ],
-          bottom: TabBar(
-            tabs: [
-              Tab(text: s.everyoneTab),
-              Tab(text: s.myContactsTab),
-              Tab(text: s.addedMeTab),
+              ),
+              BoxedTabBar(
+                labels: [s.everyoneTab, s.myContactsTab, s.addedMeTab],
+              ),
+              const Expanded(
+                child: TabBarView(
+                  children: [_EveryoneList(), _PeopleList(), _AddedMeTab()],
+                ),
+              ),
             ],
           ),
-        ),
-        body: const TabBarView(
-          children: [_EveryoneList(), _PeopleList(), _AddedMeTab()],
         ),
       ),
     );
@@ -66,6 +66,17 @@ class _PeopleListState extends State<_PeopleList> {
   // Rol başlığına dokununca o bölüm katlanır/açılır (yalnız bu ekran içinde).
   final Set<String> _collapsedRoles = {};
 
+  // Outlook tarzı çoklu seçim pilotu (kullanıcı tercihi): avatara dokununca
+  // seçim moduna girilir; avatarların yerini seçim daireleri alır, üstte
+  // Tümünü Seç / Tümünü Bırak çubuğu belirir.
+  bool _selecting = false;
+  final Set<String> _selected = {};
+
+  void _exitSelection() => setState(() {
+    _selecting = false;
+    _selected.clear();
+  });
+
   @override
   Widget build(BuildContext context) {
     final s = context.s;
@@ -80,10 +91,12 @@ class _PeopleListState extends State<_PeopleList> {
       );
     }
 
+    final allSelected = _selected.length == contacts.length;
+
     // FR-54/FR-79 (kullanıcı hükmüyle teyit): ayrı FAVORİLER bölümü YOK —
     // HERKES ile aynı düzen: rol başlıklı accordion, favoriler kendi rol
     // bölümünün en üstünde yüzer (çizgili kalple işaretli).
-    return ListView(
+    final list = ListView(
       padding: const EdgeInsets.only(bottom: 88),
       children: [
         ...roleSections(
@@ -91,11 +104,27 @@ class _PeopleListState extends State<_PeopleList> {
           members: contacts,
           roles: AppScope.of(context).tenantRoles,
           roleName: AppScope.of(context).roleName,
-          row: (m) => _contactTile(context, m, removable: true),
+          row:
+              (m) => _contactTile(
+                context,
+                m,
+                removable: true,
+                selecting: _selecting,
+                selected: _selected.contains(m.id),
+                onEnterSelect:
+                    () => setState(() {
+                      _selecting = true;
+                      _selected.add(m.id);
+                    }),
+                onToggleSelect:
+                    () => setState(() {
+                      if (!_selected.remove(m.id)) _selected.add(m.id);
+                    }),
+              ),
           header:
-              (label) => _SectionHeader(
+              (label) => BoxedRoleHeader(
                 label,
-                isCollapsed: _collapsedRoles.contains(label),
+                collapsed: _collapsedRoles.contains(label),
                 onToggle:
                     () => setState(() {
                       if (!_collapsedRoles.remove(label)) {
@@ -109,50 +138,187 @@ class _PeopleListState extends State<_PeopleList> {
         ),
       ],
     );
+
+    if (!_selecting) return list;
+    return Column(
+      children: [
+        _SelectionBar(
+          allSelected: allSelected,
+          count: _selected.length,
+          // "Tümünü Bırak" (hepsi seçiliyken) seçim modundan tümüyle çıkar
+          // (kullanıcı hükmü — başa dön); değilse hepsini seçer.
+          onToggleAll:
+              allSelected
+                  ? _exitSelection
+                  : () => setState(
+                        () => _selected
+                          ..clear()
+                          ..addAll(contacts.map((m) => m.id)),
+                      ),
+          onRemoveSelected:
+              _selected.isEmpty
+                  ? null
+                  : () {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final n = _selected.length;
+                    final appState = AppScope.of(context, listen: false);
+                    for (final id in _selected) {
+                      appState.removeContact(id);
+                    }
+                    _exitSelection();
+                    messenger.showSnackBar(
+                      SnackBar(content: Text(s.removedCount(n))),
+                    );
+                  },
+          onClose: _exitSelection,
+        ),
+        Expanded(child: list),
+      ],
+    );
+  }
+}
+
+/// Seçim modunun üst çubuğu (Outlook örneği): solda Tümünü Seç/Bırak, sağda
+/// sayaç + toplu sil + kapat.
+class _SelectionBar extends StatelessWidget {
+  const _SelectionBar({
+    required this.allSelected,
+    required this.count,
+    required this.onToggleAll,
+    required this.onRemoveSelected,
+    required this.onClose,
+  });
+
+  final bool allSelected;
+  final int count;
+  final VoidCallback onToggleAll;
+  final VoidCallback? onRemoveSelected;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.s;
+    final scheme = Theme.of(context).colorScheme;
+    // Dar ekran (393px) dersi: satır SABİT genişlikli olamaz — düğme ve sayaç
+    // esnek (Flexible/Expanded + ellipsis), ikonlar kompakt.
+    return Material(
+      color: scheme.primary,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Row(
+          children: [
+            Flexible(
+              child: TextButton.icon(
+                onPressed: onToggleAll,
+                style: TextButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                icon: Icon(Icons.select_all, color: scheme.onPrimary, size: 18),
+                label: Text(
+                  allSelected ? s.unselectAll : s.selectAll,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: scheme.onPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                s.selectedCount(count),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+                style: TextStyle(color: scheme.onPrimary),
+              ),
+            ),
+            IconButton(
+              tooltip: s.removeFromContacts,
+              visualDensity: VisualDensity.compact,
+              icon: Icon(Icons.person_remove_outlined, color: scheme.onPrimary),
+              onPressed: onRemoveSelected,
+            ),
+            IconButton(
+              tooltip: s.cancel,
+              visualDensity: VisualDensity.compact,
+              icon: Icon(Icons.close, color: scheme.onPrimary),
+              onPressed: onClose,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
 // Özel Row (ListTile değil): dar ekranda leading'deki kalp+avatar ListTile'ı
 // taşırmasın diye Expanded başlıklı Row kullanıyoruz. Herkes + Rehberim ortak.
+// Seçim modu (Outlook pilotu — yalnız Rehberim geçer): avatar dokunuşu modu
+// başlatır [onEnterSelect]; modda avatarların yerini seçim daireleri alır,
+// satır dokunuşu seçimi çevirir, sağ eylem ikonları gizlenir.
 Widget _contactTile(
   BuildContext context,
   Member m, {
   bool removable = false,
   bool showAddToContacts = false,
+  bool selecting = false,
+  bool selected = false,
+  VoidCallback? onEnterSelect,
+  VoidCallback? onToggleSelect,
 }) {
     final state = AppScope.of(context);
     final fav = state.isFavorite(m.id);
     final isContact = state.isContact(m.id);
     return InkWell(
       onTap:
-          () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => ChatScreen(memberId: m.id)),
-          ),
+          selecting
+              ? onToggleSelect
+              : () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => ChatScreen(memberId: m.id)),
+              ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(4, 6, 16, 6),
         child: Row(
           children: [
-            IconButton(
-              visualDensity: VisualDensity.compact,
-              icon: _favoriteHeart(isFavorite: fav),
-              onPressed:
-                  () =>
-                      AppScope.of(context, listen: false).toggleFavorite(m.id),
-            ),
-            MemberAvatar(member: m),
-            const SizedBox(width: 12),
+            if (selecting) ...[
+              const SizedBox(width: 12),
+              _selectCircle(context, selected: selected),
+            ] else ...[
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                icon: _favoriteHeart(isFavorite: fav),
+                onPressed:
+                    () => AppScope.of(
+                      context,
+                      listen: false,
+                    ).toggleFavorite(m.id),
+              ),
+              GestureDetector(
+                onTap: onEnterSelect,
+                child: MemberAvatar(member: m),
+              ),
+            ],
+            const SizedBox(width: 10),
             // İsim düzeni tek satır: "Ad SOYAD, Ünvan, Bölüm [rakam]".
+            // "Kutu kutu" (kullanıcı tercihi): yalnız ORTADAKİ metin kutuda —
+            // avatar ve sağdaki ekle/çıkar ikonu serbest kalır.
             Expanded(
-              child: Text.rich(
-                m.rowLabelSpan(context),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+              child: InfoBox(
+                child: Text.rich(
+                  m.rowLabelSpan(context),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
             ),
+            const SizedBox(width: 4),
             // HERKES'te Rehberim durumu: tek dokunuşla ekle/çıkar — ikisi de
             // matris-doğrudan-görünür için onaysız (FR-23, NFR-18).
-            if (showAddToContacts)
+            if (showAddToContacts && !selecting)
               isContact
                   ? IconButton(
                     tooltip: context.s.removeFromContacts,
@@ -195,7 +361,7 @@ Widget _contactTile(
             // Rehberim'de silme (kurum sahibi hükmü): onaysız (NFR-18).
             // Onayla eklenmişse kişi DAVETLER → Onaylananlar'a düşer (rıza
             // kaybolmaz); doğrudan eklenmişse tamamen silinir.
-            if (removable)
+            if (removable && !selecting)
               IconButton(
                 tooltip: context.s.removeFromContacts,
                 visualDensity: VisualDensity.compact,
@@ -220,6 +386,27 @@ Widget _contactTile(
     );
 }
 
+// Seçim dairesi (Outlook pilotu): seçili = dolu daire + beyaz onay işareti,
+// değil = içi boş çember. Avatarla aynı boyut (40) — satır yüksekliği oynamaz.
+Widget _selectCircle(BuildContext context, {required bool selected}) {
+  final scheme = Theme.of(context).colorScheme;
+  if (selected) {
+    return CircleAvatar(
+      radius: 20,
+      backgroundColor: scheme.primary,
+      child: Icon(Icons.check, color: scheme.onPrimary),
+    );
+  }
+  return Container(
+    width: 40,
+    height: 40,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      border: Border.all(color: scheme.outline, width: 2),
+    ),
+  );
+}
+
 // Kalp yalnız FAVORİ'yi kodlar (kullanıcı hükmü — sıralama da yalnız favori
 // üzerinden, FR-79): favori = kırmızı çizgili boş kalp; diğer herkes boş
 // (dokunma alanı durur, görünmez). Dolu kalp YOK. Rehber durumu satırın
@@ -234,16 +421,12 @@ Widget _favoriteHeart({required bool isFavorite}) {
 
 /// HERKES — rehbere eklemeden erişebildiğim herkes (matris; FR yeni).
 /// Satıra dokun → doğrudan sohbet. Kalp → hızlı erişim sabitlemesi.
-class _EveryoneList extends StatefulWidget {
+///
+/// Rol bölümleri VARSAYILAN KAPALI başlar; açık/kapalı durumu widget'ta değil
+/// AppState'te tutulur (kullanıcı tercihi 2026-07-19) — sekme değişince
+/// sıfırlanmaz, yalnız logout temizler. Bu yüzden Stateless.
+class _EveryoneList extends StatelessWidget {
   const _EveryoneList();
-
-  @override
-  State<_EveryoneList> createState() => _EveryoneListState();
-}
-
-class _EveryoneListState extends State<_EveryoneList> {
-  // Rol başlığına dokununca o bölüm katlanır/açılır (yalnız bu ekran içinde).
-  final Set<String> _collapsedRoles = {};
 
   @override
   Widget build(BuildContext context) {
@@ -267,19 +450,15 @@ class _EveryoneListState extends State<_EveryoneList> {
           roleName: state.roleName,
           row: (m) => _contactTile(context, m, showAddToContacts: true),
           header:
-              (label) => _SectionHeader(
+              (label) => BoxedRoleHeader(
                 label,
-                isCollapsed: _collapsedRoles.contains(label),
-                onToggle:
-                    () => setState(() {
-                      if (!_collapsedRoles.remove(label)) {
-                        _collapsedRoles.add(label);
-                      }
-                    }),
+                // Açık değilse "kapalı" görünür (varsayılan kapalı).
+                collapsed: !state.isEveryoneRoleExpanded(label),
+                onToggle: () => state.toggleEveryoneRole(label),
               ),
           otherLabel: s.contactsTitle,
           pinned: (m) => state.isFavorite(m.id),
-          collapsed: (label) => _collapsedRoles.contains(label),
+          collapsed: (label) => !state.isEveryoneRoleExpanded(label),
         ),
       ],
     );
@@ -313,11 +492,11 @@ class _AddedMeTab extends StatelessWidget {
       children: [
         for (final inv in invites) _approvalRow(context, inv),
         if (outgoing.isNotEmpty) ...[
-          _SectionHeader(s.sentInvites),
+          BoxedRoleHeader(s.sentInvites),
           for (final inv in outgoing) _outgoingRow(context, inv),
         ],
         if (approved.isNotEmpty) ...[
-          _SectionHeader(s.approvedSection),
+          BoxedRoleHeader(s.approvedSection),
           for (final m in approved) _approvedRow(context, m),
         ],
       ],
@@ -352,31 +531,33 @@ class _AddedMeTab extends StatelessWidget {
             ),
           ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+        padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
         child: Row(
           children: [
             MemberAvatar(member: m),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    m.displayName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    '${state.roleName(state.roleOf(m))} · ${m.department}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: scheme.onSurfaceVariant),
-                  ),
-                ],
+              child: InfoBox(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      m.displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      '${state.roleName(state.roleOf(m))} · ${m.department}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: scheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             trailing,
           ],
         ),
@@ -444,43 +625,3 @@ class _AddedMeTab extends StatelessWidget {
   }
 }
 
-/// Section label. [onToggle] verilirse başlık dokunulabilir olur (rol
-/// bölümlerini katla/aç); verilmezse eskisi gibi düz etikettir.
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader(this.title, {this.isCollapsed = false, this.onToggle});
-
-  final String title;
-  final bool isCollapsed;
-  final VoidCallback? onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final label = Text(
-      context.upper(title),
-      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-        color: scheme.primary,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-    return InkWell(
-      onTap: onToggle,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
-        child:
-            onToggle == null
-                ? label
-                : Row(
-                  children: [
-                    Expanded(child: label),
-                    Icon(
-                      isCollapsed ? Icons.expand_more : Icons.expand_less,
-                      size: 18,
-                      color: scheme.primary,
-                    ),
-                  ],
-                ),
-      ),
-    );
-  }
-}

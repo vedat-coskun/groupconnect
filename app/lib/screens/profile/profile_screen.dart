@@ -3,13 +3,42 @@ import 'package:flutter/material.dart';
 import '../../i18n/strings.dart';
 import '../../state/app_scope.dart';
 import '../../widgets/common.dart';
-import 'profile_edit_screen.dart';
 import 'settings_screen.dart';
 
-/// Profile tab: view identity + entry to edit and to settings (FR-50).
-/// Phone number is never shown (NFR-5).
-class ProfileScreen extends StatelessWidget {
+/// Profile tab: view identity + (embedded) settings (FR-50). Phone number is
+/// never shown (NFR-5).
+///
+/// Kimlik alanları (ad/üye no/bölüm/rol) admin'e aittir ve salt-okunurdur
+/// (FR-58) — ayrı "Profili Düzenle" ekranı YOK (kullanıcı tercihi 2026-07-19):
+/// zaten bu ekrandayız. Kullanıcının değiştirebildiği tek şey profil
+/// fotoğrafıdır (prototip mock); bir değişiklik bekliyorsa üstte
+/// "Değişiklikleri Kaydet / İptal Et" çubuğu belirir, yoksa görünmez.
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  // Bekleyen (kaydedilmemiş) değişiklik var mı? Yalnız buysa Kaydet/İptal görünür.
+  bool _dirty = false;
+
+  void _markDirty() => setState(() => _dirty = true);
+
+  void _save() {
+    setState(() => _dirty = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Değişiklikler kaydedildi.')),
+    );
+  }
+
+  void _cancel() {
+    setState(() => _dirty = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Değişiklikler iptal edildi.')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,12 +52,38 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(title: Text(s.profileTitle)),
       body: ListView(
         children: [
+          // Değişiklik varken ÜSTTE Kaydet/İptal çubuğu (yoksa hiç çizilmez).
+          if (_dirty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: _save,
+                      icon: const Icon(Icons.check),
+                      label: const Text('Değişiklikleri Kaydet'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _cancel,
+                      icon: const Icon(Icons.close),
+                      label: const Text('Değişiklikleri İptal Et'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           const SizedBox(height: 16),
           Center(
             child: Stack(
               children: [
                 MemberAvatar(member: me, radius: 48),
-                // PROTOTİP: profil fotoğrafı ekleme afişi (mock).
+                // PROTOTİP: profil fotoğrafı ekleme afişi (mock). Seçim yapmak
+                // "bekleyen değişiklik" sayılır → Kaydet/İptal çubuğu belirir.
                 Positioned(
                   right: 0,
                   bottom: 0,
@@ -37,7 +92,7 @@ class ProfileScreen extends StatelessWidget {
                     shape: const CircleBorder(),
                     child: InkWell(
                       customBorder: const CircleBorder(),
-                      onTap: () => _showPhotoOptions(context),
+                      onTap: _showPhotoOptions,
                       child: Padding(
                         padding: const EdgeInsets.all(6),
                         child: Icon(
@@ -72,22 +127,8 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Center(
-            child: OutlinedButton.icon(
-              onPressed:
-                  () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const ProfileEditScreen(),
-                    ),
-                  ),
-              icon: const Icon(Icons.edit_outlined),
-              label: Text(s.editProfile),
-            ),
-          ),
-          const SizedBox(height: 12),
           // "Ad SOYAD, Ünvan, Bölüm" satır düzenindeki sırayla (FR-94):
-          // ünvan yalnız varsa gösterilir (herkeste yok — ör. akademisyen
-          // ama unvansız); rol ayrı bir alan/rozet olarak zaten duruyor.
+          // ünvan yalnız varsa gösterilir; rol ayrı bir rozet/alan olarak durur.
           if (me.title.isNotEmpty)
             _InfoRow(
               icon: Icons.school_outlined,
@@ -110,67 +151,53 @@ class ProfileScreen extends StatelessWidget {
             value: state.roleName(role),
           ),
           const Divider(height: 24),
-          ListTile(
-            leading: const Icon(Icons.settings_outlined),
-            title: Text(s.settingsTitle),
-            trailing: const Icon(Icons.chevron_right),
-            onTap:
-                () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                ),
-          ),
+          // Ayarlar Profil'in altına gömülü (ayrı sayfa değil).
+          const SettingsBody(),
           const SizedBox(height: 24),
         ],
       ),
     );
   }
-}
 
-// PROTOTİP: profil fotoğrafı seçimi (mock). Gerçek uygulamada image_picker vb.
-void _showPhotoOptions(BuildContext context) {
-  showModalBottomSheet<void>(
-    context: context,
-    showDragHandle: true,
-    builder: (ctx) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.camera_alt_outlined),
-            title: const Text('Fotoğraf Çek'),
-            onTap: () {
-              Navigator.pop(ctx);
-              _photoStub(context);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.photo_library_outlined),
-            title: const Text('Galeriden Seç'),
-            onTap: () {
-              Navigator.pop(ctx);
-              _photoStub(context);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.delete_outline),
-            title: const Text('Fotoğrafı Kaldır'),
-            onTap: () {
-              Navigator.pop(ctx);
-              _photoStub(context);
-            },
-          ),
-        ],
+  // PROTOTİP: profil fotoğrafı seçimi (mock). Bir seçenek seçmek bekleyen
+  // değişiklik oluşturur → Kaydet/İptal çubuğu belirir.
+  void _showPhotoOptions() {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('Fotoğraf Çek'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _markDirty();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Galeriden Seç'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _markDirty();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline),
+              title: const Text('Fotoğrafı Kaldır'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _markDirty();
+              },
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
-
-void _photoStub(BuildContext context) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text('Prototip: gerçek uygulamada profil fotoğrafı seçilir.'),
-    ),
-  );
+    );
+  }
 }
 
 class _InfoRow extends StatelessWidget {

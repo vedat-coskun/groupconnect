@@ -44,11 +44,24 @@ class Tenant {
     required this.numberSearchEnabled,
     required this.numberSearchLabelTr,
     required this.numberSearchLabelEn,
+    this.brandColor = const Color(0xFF3D5AFE),
+    this.logoIcon = Icons.business_outlined,
+    this.logoAsset,
   });
 
   final String id;
   final String name;
   final List<Role> roles;
+
+  /// Kurum markası (prototip logo): kurum seçim ekranında logo alanı olarak
+  /// gösterilir ve görünüm varsayılan vurgu renginin de kaynağıdır. Gerçek
+  /// üründe yüklenmiş bir görsel olacak — burada ikon + renk ile temsil edilir.
+  final Color brandColor;
+  final IconData logoIcon;
+
+  /// Gerçek logo görselinin asset yolu (ör. `assets/logos/atlas_uni.png`).
+  /// null ya da dosya yoksa [logoIcon]'a düşülür (build kırılmaz).
+  final String? logoAsset;
 
   /// Tenant default applied only at member-creation time (FR-17, FR-61).
   final MemberVisibility defaultVisibility;

@@ -22,29 +22,56 @@ class BlockedScreen extends StatelessWidget {
                 icon: Icons.block,
                 title: s.blockedEmpty,
               )
+              // "Kutu kutu" + 393px güvenliği: özel Row, ad InfoBox'ta.
               : ListView.separated(
+                padding: const EdgeInsets.symmetric(vertical: 6),
                 itemCount: blocked.length,
-                separatorBuilder:
-                    (_, __) => const Divider(height: 1, indent: 72),
+                separatorBuilder: (_, __) => const SizedBox(height: 2),
                 itemBuilder: (context, i) {
                   final m = blocked[i];
                   final role = state.roleOf(m);
-                  return ListTile(
-                    leading: MemberAvatar(member: m),
-                    title: Text(
-                      m.fullName,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      '${state.roleName(role)} · ${m.department}',
-                    ),
-                    trailing: OutlinedButton(
-                      onPressed:
-                          () => AppScope.of(
-                            context,
-                            listen: false,
-                          ).unblock(m.id),
-                      child: Text(s.unblock),
+                  final scheme = Theme.of(context).colorScheme;
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 4, 8, 4),
+                    child: Row(
+                      children: [
+                        MemberAvatar(member: m),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: InfoBox(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  m.fullName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  '${state.roleName(role)} · ${m.department}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: scheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        OutlinedButton(
+                          onPressed:
+                              () => AppScope.of(
+                                context,
+                                listen: false,
+                              ).unblock(m.id),
+                          child: Text(s.unblock),
+                        ),
+                      ],
                     ),
                   );
                 },

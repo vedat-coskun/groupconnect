@@ -25,35 +25,39 @@ class GroupsScreen extends StatelessWidget {
     return DefaultTabController(
       length: hasHierarchy ? 3 : 2,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(s.groupsTitle),
-          actions: [
-            // Özel Grup Yarat: sağ üstte "+" (Kişiler'deki "+" ile uyumlu).
-            IconButton(
-              tooltip: s.createGroupTitle,
-              icon: const Icon(Icons.add),
-              onPressed:
-                  () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const CreateGroupScreen(),
+        // AppBar yerine kutu başlık (kullanıcı tercihi 2026-07-19) + kutu
+        // sekme çubuğu gövdenin üstünde.
+        body: SafeArea(
+          child: Column(
+            children: [
+              BoxedPageHeader(
+                title: s.groupsTitle,
+                actionTooltip: s.createGroupTitle,
+                onAction:
+                    () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const CreateGroupScreen(),
+                      ),
                     ),
-                  ),
-            ),
-          ],
-          bottom: TabBar(
-            tabs: [
-              if (hasHierarchy) Tab(text: s.organized),
-              Tab(text: s.tabMyGroups),
-              Tab(text: s.tabJoinable),
+              ),
+              BoxedTabBar(
+                labels: [
+                  if (hasHierarchy) s.tabOrganizedGroups,
+                  s.tabMyGroups,
+                  s.tabJoinable,
+                ],
+              ),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    if (hasHierarchy) const GroupTreeScreen(),
+                    const _MyGroupsTab(),
+                    const _JoinableTab(),
+                  ],
+                ),
+              ),
             ],
           ),
-        ),
-        body: TabBarView(
-          children: [
-            if (hasHierarchy) const GroupTreeScreen(),
-            const _MyGroupsTab(),
-            const _JoinableTab(),
-          ],
         ),
       ),
     );
@@ -67,7 +71,9 @@ class _MyGroupsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.s;
     final state = AppScope.of(context);
-    final groups = state.myGroups;
+    // Yalnız ÖZEL gruplarım (kullanıcı hükmü 2026-07-19): kurumsal üyeliklerim
+    // artık Kurumsal Gruplar ağacında "Üye" rozetiyle görünür, burada değil.
+    final groups = state.myGroups.where((g) => !g.isOrganized).toList();
 
     if (groups.isEmpty) {
       return EmptyState(icon: Icons.groups_outlined, title: s.myGroupsEmpty);
@@ -89,10 +95,10 @@ class _MyGroupsTab extends StatelessWidget {
     );
   }
 
-  // Özel Row (ListTile değil): dar ekranda leading(kalp+avatar) + trailing
-  // (etiket+sayı) ListTile'ı taşırıyordu; Expanded başlık bunu güvene alır.
+  // "Kutu kutu" pilotu (kullanıcı tercihi 2026-07-19): AVATAR kaldırıldı
+  // (gerekli değil), sağdaki Kurumsal/Özel tür rozeti kaldırıldı; ortadaki
+  // ad+açıklama bir KUTUYA alındı, üye sayısı sağda sade bir RAKAM-KUTUSU.
   Widget _groupTile(BuildContext context, Group g) {
-    final s = context.s;
     final state = AppScope.of(context);
     final scheme = Theme.of(context).colorScheme;
     final fav = state.isFavoriteGroup(g.id);
@@ -105,59 +111,49 @@ class _MyGroupsTab extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(4, 6, 12, 6),
         child: Row(
           children: [
+            // Kalp YALNIZ favoride görünür (kırmızı çizgili); favori değilse
+            // boş kalır (Kişiler'deki desenle aynı — kullanıcı hükmü). Dokunma
+            // alanı yine durur (favoriden çıkarmak için).
             IconButton(
               visualDensity: VisualDensity.compact,
-              icon: Icon(
-                fav ? Icons.favorite : Icons.favorite_border,
-                color: fav ? Colors.red : null,
-              ),
+              icon:
+                  fav
+                      ? const Icon(Icons.favorite_border, color: Colors.red)
+                      : const SizedBox.shrink(),
               onPressed:
                   () => AppScope.of(
                     context,
                     listen: false,
                   ).toggleFavoriteGroup(g.id),
             ),
-            GroupAvatar(group: g, radius: 22),
-            const SizedBox(width: 12),
+            const SizedBox(width: 4),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    g.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    g.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: scheme.onSurfaceVariant),
-                  ),
-                ],
+              child: InfoBox(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      g.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    // Açıklama OPSİYONEL (kullanıcı hükmü): admin girmişse
+                    // gösterilir, boşsa satır hiç çizilmez (kutu kısalır).
+                    if (g.description.trim().isNotEmpty)
+                      Text(
+                        g.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: scheme.onSurfaceVariant),
+                      ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(width: 8),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                TagChip(
-                  label: g.isOrganized ? s.organized : s.privateGroup,
-                  icon:
-                      g.isOrganized
-                          ? Icons.verified_outlined
-                          : Icons.lock_open,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  // Hiyerarşi düğümünde alt ağacın toplamı (FR-71).
-                  s.memberCount(state.groupMemberCount(g)),
-                  style: Theme.of(context).textTheme.labelSmall,
-                ),
-              ],
-            ),
+            // Hiyerarşi düğümünde alt ağacın toplamı (FR-71).
+            CountBox(count: state.groupMemberCount(g)),
           ],
         ),
       ),
@@ -204,7 +200,7 @@ class _JoinableTab extends StatelessWidget {
     return ListView.separated(
       padding: const EdgeInsets.only(bottom: 88),
       itemCount: groups.length,
-      separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
+      separatorBuilder: (_, __) => const SizedBox(height: 2),
       itemBuilder: (context, i) {
         final g = groups[i];
         final admin =
@@ -220,44 +216,48 @@ class _JoinableTab extends StatelessWidget {
                 ),
               ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 12, 8),
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
             child: Row(
               children: [
-                GroupAvatar(group: g, radius: 24),
-                const SizedBox(width: 12),
+                // Avatar kaldırıldı (kullanıcı tercihi); ad+açıklama kutuda.
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              g.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
+                  child: InfoBox(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                g.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
+                            const SizedBox(width: 6),
+                            // FR-82: bu gruba nasıl dahil olacağım — davet mi,
+                            // açık mı? Davet, açıklığı ezer.
+                            _JoinBadge(
+                              invited: state.isInvitedToGroup(g.id),
+                            ),
+                          ],
+                        ),
+                        // Alt yazı opsiyonel: yönetici varsa adı, yoksa açıklama
+                        // (boşsa satır çizilmez).
+                        if (admin != null || g.description.trim().isNotEmpty)
+                          Text(
+                            admin == null
+                                ? g.description
+                                : '${s.adminShort}: ${admin.fullName}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: scheme.onSurfaceVariant),
                           ),
-                          const SizedBox(width: 6),
-                          // FR-82: bu gruba nasıl dahil olacağım — davet mi,
-                          // açık mı? Davet, açıklığı ezer.
-                          _JoinBadge(
-                            invited: state.isInvitedToGroup(g.id),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        admin == null
-                            ? g.description
-                            : '${s.adminShort}: ${admin.fullName}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: scheme.onSurfaceVariant),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),

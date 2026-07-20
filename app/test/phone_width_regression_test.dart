@@ -14,10 +14,12 @@
 // GÖVDESİNİ (yalnız başlık etiketini değil) doğrulamalıdır.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:groupconnect/screens/chats/chats_screen.dart';
 import 'package:groupconnect/screens/groups/groups_screen.dart';
 import 'package:groupconnect/state/app_scope.dart';
 import 'package:groupconnect/state/app_state.dart';
 import 'package:groupconnect/theme/app_theme.dart';
+import 'package:groupconnect/widgets/common.dart';
 
 void main() {
   testWidgets('Katılabileceklerim: davet + açık gruplar 393px\'te çizilir',
@@ -53,7 +55,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Katılabileceklerim'));
+    await tester.tap(find.text('Üye Olabileceğim'));
     await tester.pumpAndSettle();
 
     // Gövde gerçekten çizilmeli: satır + "Katıl" butonu görünür, hata yok.
@@ -66,9 +68,8 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Kurumsal sekmesi 393px: layout çizilir, accordion açılır', (
-    tester,
-  ) async {
+  testWidgets('Kurumsal 393px: birleşik akordiyon — fakülte→bölüm→üye yerinde',
+      (tester) async {
     tester.view.physicalSize = const Size(393 * 3, 852 * 3);
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
@@ -85,22 +86,29 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Kurumsal ilk sekmedir (FR-42). İki fakülte → kök listesi; Mühendislik'e
-    // gir (Vedat orada akademisyen → sohbeti görür, mesaj ikonu çıkar; FR-90).
+    // Kurumsal ilk sekme. Kökler (fakülteler) görünür; VARSAYILAN KAPALI →
+    // bölümler görünmez, "DEKANLIK" başlığı da yok.
     expect(find.text('Mühendislik Fakültesi'), findsOneWidget);
     expect(find.text('Tasarım Fakültesi'), findsOneWidget);
+    expect(find.text('Bilgisayar Mühendisliği'), findsNothing);
+    expect(find.text('DEKANLIK'), findsNothing);
+
+    // Fakülteyi aç → alt-sayfaya GİTMEDEN yerinde açılır: hem bölümler HEM DE
+    // fakültenin TOPLAM akademisyen/öğrenci rol başlıkları (kullanıcı hükmü) —
+    // ama rol accordion'ları KAPALI (üye avatarı yok). Akademisyen sohbet
+    // ikonunu görür (FR-90).
     await tester.tap(find.text('Mühendislik Fakültesi'));
     await tester.pumpAndSettle();
-
     expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);
-    // Akademisyen bölümü görür (authorityOnly) → en az bir chat ikonu.
     expect(find.byIcon(Icons.chat_bubble_outline), findsWidgets);
+    expect(find.byIcon(Icons.expand_less), findsWidgets); // fakülte açık
+    expect(find.textContaining('AKADEM'), findsWidgets); // fakülte rol başlığı
+    expect(find.byType(MemberAvatar), findsNothing); // roller kapalı
 
-    // Bölüme dokun → satır accordion olarak açılır (chevron yön değiştirir).
-    expect(find.byIcon(Icons.expand_less), findsNothing);
-    await tester.tap(find.text('Bilgisayar Mühendisliği'));
+    // Fakülte rol başlığına dokun → o rolün üyeleri açılır (rol de accordion).
+    await tester.tap(find.textContaining('AKADEM').first);
     await tester.pumpAndSettle();
-    expect(find.byIcon(Icons.expand_less), findsOneWidget);
+    expect(find.byType(MemberAvatar), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
@@ -129,6 +137,54 @@ void main() {
     // olduğundan onun kartında da yok → hiç chat ikonu olmamalı.
     expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);
     expect(find.byIcon(Icons.chat_bubble_outline), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Sohbetler-Kurumsal 393px: kökler veri sırasıyla, ikinci '
+      'seviye accordion; Site Duyuruları yok', (tester) async {
+    tester.view.physicalSize = const Size(393 * 3, 852 * 3);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+
+    final state = AppState();
+    state.setPendingPhone('+90', '5555555501'); // Vedat — Site Müdürü
+    state.selectTenant('site');
+
+    await tester.pumpWidget(
+      AppScope(
+        state: state,
+        child: MaterialApp(theme: AppTheme.light(), home: const ChatsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Kategoriler (Kişisel/Kurumsal/Özel) artık AKORDİYON, varsayılan KAPALI →
+    // kökler görünmez. Düz "Site Duyuruları" grubu da kalktı.
+    expect(find.text('Site Duyuruları'), findsNothing);
+    expect(find.text('Personel'), findsNothing);
+
+    // "Kurumsal Grup sohbetleri" kategorisini aç → kökler veri sırasıyla.
+    await tester.tap(find.textContaining('Kurumsal Grup'));
+    await tester.pumpAndSettle();
+    expect(find.text('Personel'), findsOneWidget);
+    expect(find.text('Sakin'), findsOneWidget);
+    expect(find.text('Ev Sahibi'), findsOneWidget);
+    final dyPersonel = tester.getTopLeft(find.text('Personel')).dy;
+    final dySakin = tester.getTopLeft(find.text('Sakin')).dy;
+    final dySahip = tester.getTopLeft(find.text('Ev Sahibi')).dy;
+    expect(dyPersonel, lessThan(dySakin));
+    expect(dySakin, lessThan(dySahip));
+    expect(find.text('Mavi Blok'), findsNothing);
+
+    // Sakin satırına dokun → accordion açılır: kiracı blokları girintili gelir.
+    await tester.tap(find.text('Sakin'));
+    await tester.pumpAndSettle();
+    expect(find.text('Mavi Blok'), findsOneWidget);
+    expect(find.text('Yeşil Blok'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Mavi Blok')).dx,
+      greaterThan(tester.getTopLeft(find.text('Sakin')).dx),
+    );
     expect(tester.takeException(), isNull);
   });
 }

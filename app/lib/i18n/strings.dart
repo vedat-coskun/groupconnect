@@ -93,6 +93,10 @@ abstract class AppStrings {
   String get chatsEmpty;
   String get chatsEmptyHint;
   String get chatsFilterPersonal;
+  // Sohbetler kategori başlıkları — son sözcük ("sohbetler(i)") sönük çizilir.
+  String get chatSectionOrganized;
+  String get chatSectionPrivate;
+  String get chatSectionPersonal;
   String get chatsFilterEmpty;
   String get newChatTitle;
   String get messageHint;
@@ -101,6 +105,8 @@ abstract class AppStrings {
   String get readOnlyGroup;
   String get managerLabel;
   String get membersCanWriteLabel;
+  String get writeManagerOnly;
+  String get writeMembersToo;
   String get authorityOnlyLabel;
   String get managerSettingsTitle;
   String get reply;
@@ -161,6 +167,8 @@ abstract class AppStrings {
   String get groupsTitle;
   String get parentGroupLabel;
   String get noneOption;
+  String get tabOrganizedGroups;
+  String get memberBadge; // "Üye" — Kurum Yapısı'nda üyesi olunan grup rozeti
   String get tabMyGroups;
   String get tabJoinable;
   String get myGroupsEmpty;
@@ -192,6 +200,10 @@ abstract class AppStrings {
   String get membersTitle;
   String get groupInfoTitle;
   String get openChat;
+  // Outlook tarzı çoklu seçim (Kişiler pilotu; selectAll zaten yukarıda var).
+  String get unselectAll;
+  String selectedCount(int n);
+  String removedCount(int n);
   String get leaveGroup;
   String get archiveGroup;
   String get archiveTitle;
@@ -390,6 +402,12 @@ class _Tr extends AppStrings {
   @override
   String get chatsFilterPersonal => 'Kişisel';
   @override
+  String get chatSectionOrganized => 'Kurumsal Grup sohbetleri';
+  @override
+  String get chatSectionPrivate => 'Özel Grup sohbetleri';
+  @override
+  String get chatSectionPersonal => 'Kişisel sohbetler';
+  @override
   String get chatsFilterEmpty => 'Bu filtrede sohbet yok';
   @override
   String get newChatTitle => 'Yeni Sohbet';
@@ -402,6 +420,10 @@ class _Tr extends AppStrings {
   String get managerLabel => 'Grup Yöneticisi';
   @override
   String get membersCanWriteLabel => 'Üyeler de yazabilir';
+  @override
+  String get writeManagerOnly => 'Yalnızca Yönetici Yazabilir';
+  @override
+  String get writeMembersToo => 'Üyeler de Yazabilir';
   @override
   String get authorityOnlyLabel => 'Yalnız yetkili roller görür';
   @override
@@ -503,7 +525,7 @@ class _Tr extends AppStrings {
   String get blockedNotice => 'Bu kişiyi engelledin';
 
   @override
-  String get noInvitations => 'Davetiye yok';
+  String get noInvitations => 'Davet yok';
   @override
   String get pending => 'Bekliyor';
   @override
@@ -516,11 +538,15 @@ class _Tr extends AppStrings {
   @override
   String get noneOption => 'Yok (üst düzey)';
   @override
-  String get tabMyGroups => 'Üye Olduklarım';
+  String get tabOrganizedGroups => 'Kurumsal Gruplar';
   @override
-  String get tabJoinable => 'Katılabileceklerim';
+  String get memberBadge => 'Üye';
   @override
-  String get myGroupsEmpty => 'Henüz bir gruba üye değilsin';
+  String get tabMyGroups => 'Özel Gruplarım';
+  @override
+  String get tabJoinable => 'Üye Olabileceğim';
+  @override
+  String get myGroupsEmpty => 'Henüz bir özel grubun yok';
   @override
   String get joinableEmpty => 'Katılabileceğin grup yok';
   @override
@@ -560,6 +586,12 @@ class _Tr extends AppStrings {
   String get groupInfoTitle => 'Grup Bilgisi';
   @override
   String get openChat => 'Sohbeti Aç';
+  @override
+  String get unselectAll => 'Tümünü Bırak';
+  @override
+  String selectedCount(int n) => '$n seçildi';
+  @override
+  String removedCount(int n) => '$n kişi rehberden çıkarıldı';
   @override
   String get leaveGroup => 'Gruptan Ayrıl';
   @override
@@ -813,6 +845,12 @@ class _En extends AppStrings {
   @override
   String get chatsFilterPersonal => 'Personal';
   @override
+  String get chatSectionOrganized => 'Organized group chats';
+  @override
+  String get chatSectionPrivate => 'Private group chats';
+  @override
+  String get chatSectionPersonal => 'Personal chats';
+  @override
   String get chatsFilterEmpty => 'No chats in this filter';
   @override
   String get newChatTitle => 'New Chat';
@@ -825,6 +863,10 @@ class _En extends AppStrings {
   String get managerLabel => 'Group Manager';
   @override
   String get membersCanWriteLabel => 'Members can post too';
+  @override
+  String get writeManagerOnly => 'Only Manager Writes';
+  @override
+  String get writeMembersToo => 'Members Can Write';
   @override
   String get authorityOnlyLabel => 'Only authorized roles can see';
   @override
@@ -939,11 +981,15 @@ class _En extends AppStrings {
   @override
   String get noneOption => 'None (top level)';
   @override
-  String get tabMyGroups => 'My Groups';
+  String get tabOrganizedGroups => 'Organized Groups';
+  @override
+  String get memberBadge => 'Member';
+  @override
+  String get tabMyGroups => 'My Private Groups';
   @override
   String get tabJoinable => 'Can Join';
   @override
-  String get myGroupsEmpty => 'You are not a member of any group yet';
+  String get myGroupsEmpty => 'You have no private groups yet';
   @override
   String get joinableEmpty => 'No groups to join';
   @override
@@ -983,6 +1029,12 @@ class _En extends AppStrings {
   String get groupInfoTitle => 'Group Info';
   @override
   String get openChat => 'Open Chat';
+  @override
+  String get unselectAll => 'Unselect All';
+  @override
+  String selectedCount(int n) => '$n selected';
+  @override
+  String removedCount(int n) => '$n contacts removed';
   @override
   String get leaveGroup => 'Leave Group';
   @override

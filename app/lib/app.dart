@@ -39,12 +39,30 @@ class _GroupConnectAppState extends State<GroupConnectApp> {
   Widget build(BuildContext context) {
     return AppScope(
       state: _state,
-      child: MaterialApp(
-        title: 'GroupConnect',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
-        home: const _RootGate(),
+      // Tema, aktif kurumun görünüm ayarları + kullanıcı override'ından
+      // REAKTİF kurulur: Builder AppScope'u dinler, appearance değişince
+      // MaterialApp.theme yeniden çizilir (Navigator durumu korunur).
+      child: Builder(
+        builder: (context) {
+          final appearance = AppScope.of(context).appearance;
+          return MaterialApp(
+            title: 'GroupConnect',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.build(appearance),
+            // Yazı boyutu ölçeği tüm metne burada uygulanır (tema yerine —
+            // fontSize'ı null olan stillerde çökmez).
+            builder: (context, child) {
+              final mq = MediaQuery.of(context);
+              return MediaQuery(
+                data: mq.copyWith(
+                  textScaler: TextScaler.linear(appearance.scale.factor),
+                ),
+                child: child!,
+              );
+            },
+            home: const _RootGate(),
+          );
+        },
       ),
     );
   }

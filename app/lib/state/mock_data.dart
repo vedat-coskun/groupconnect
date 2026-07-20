@@ -49,7 +49,8 @@ class MockData {
   );
   static const _staff = Role(
     id: 'staff',
-    labelTr: 'İdari Personel',
+    // "İdari Personel" terimi iptal (kullanıcı kararı 2026-07-19) — "Personel".
+    labelTr: 'Personel',
     labelEn: 'Staff',
     isAuthority: true,
   );
@@ -102,6 +103,8 @@ class MockData {
     isAuthority: false,
   );
 
+  // Her kuruma farklı marka (logo ikonu + renk) — görünüm vurgu renginin de
+  // varsayılan kaynağı (kullanıcı tercihi 2026-07-19).
   static final uniTenant = Tenant(
     id: uniId,
     name: 'Atlas Üniversitesi',
@@ -110,6 +113,9 @@ class MockData {
     numberSearchEnabled: true,
     numberSearchLabelTr: 'Numaraya göre',
     numberSearchLabelEn: 'By number',
+    brandColor: const Color(0xFF1F4E8C), // logo lacivertine yakın
+    logoIcon: Icons.school_outlined,
+    logoAsset: 'assets/logos/atlas_uni.png',
   );
 
   static final siteTenant = Tenant(
@@ -120,6 +126,8 @@ class MockData {
     numberSearchEnabled: false,
     numberSearchLabelTr: 'Numaraya göre',
     numberSearchLabelEn: 'By number',
+    brandColor: const Color(0xFF2E7D32),
+    logoIcon: Icons.apartment_outlined,
   );
 
   static final liseTenant = Tenant(
@@ -130,6 +138,8 @@ class MockData {
     numberSearchEnabled: true,
     numberSearchLabelTr: 'Numaraya göre',
     numberSearchLabelEn: 'By number',
+    brandColor: const Color(0xFFB07B3A),
+    logoIcon: Icons.menu_book_outlined,
   );
 
   static final dernekTenant = Tenant(
@@ -140,6 +150,8 @@ class MockData {
     numberSearchEnabled: false,
     numberSearchLabelTr: 'Numaraya göre',
     numberSearchLabelEn: 'By number',
+    brandColor: const Color(0xFFC2185B),
+    logoIcon: Icons.theater_comedy_outlined,
   );
 
   static final hastaneTenant = Tenant(
@@ -150,6 +162,8 @@ class MockData {
     numberSearchEnabled: true,
     numberSearchLabelTr: 'Numaraya göre',
     numberSearchLabelEn: 'By number',
+    brandColor: const Color(0xFF00838F),
+    logoIcon: Icons.local_hospital_outlined,
   );
 
   static List<Tenant> tenants() =>
@@ -402,7 +416,7 @@ class MockData {
       Group(
         id: 'g_dept_cs',
         name: 'Bilgisayar Mühendisliği',
-        description: 'Bilgisayar Mühendisliği bölümü.',
+        description: '', // opsiyonel — admin girmedi (ad zaten yeterli)
         type: GroupType.organized,
         parentGroupId: 'g_fac',
         memberIds: ['u_me', 'u_ayse', 'u_elif', 'u_zeynep', 'u_can', 'u_selin'],
@@ -415,7 +429,7 @@ class MockData {
       Group(
         id: 'g_dept_ee',
         name: 'Elektrik-Elektronik Müh.',
-        description: 'Elektrik-Elektronik Mühendisliği bölümü.',
+        description: '',
         type: GroupType.organized,
         parentGroupId: 'g_fac',
         memberIds: ['u_mehmet', 'u_burak'],
@@ -441,7 +455,7 @@ class MockData {
       Group(
         id: 'g_dept_mis',
         name: 'MIS Bölümü',
-        description: 'Yönetim Bilişim Sistemleri bölümü.',
+        description: '',
         type: GroupType.organized,
         parentGroupId: 'g_fac_design',
         memberIds: ['u_kaan', 'u_efe'],
@@ -452,7 +466,7 @@ class MockData {
       Group(
         id: 'g_dept_design',
         name: 'Tasarım Bölümü',
-        description: 'Tasarım bölümü.',
+        description: '',
         type: GroupType.organized,
         parentGroupId: 'g_fac_design',
         memberIds: ['u_ece', 'u_asli'],
@@ -468,7 +482,7 @@ class MockData {
       Group(
         id: 'g_test',
         name: 'Yazılım Test Dersi',
-        description: 'Yazılım Test Mühendisliği dersi grubu.',
+        description: '', // opsiyonel — admin girmedi
         type: GroupType.organized,
         memberIds: ['u_me', 'u_ayse', 'u_zeynep', 'u_can'],
         logoIcon: Icons.science_outlined,
@@ -602,14 +616,14 @@ class MockData {
     final now = DateTime.now();
     DateTime ago(Duration d) => now.subtract(d);
 
-    // --- İdari personel (hepsi sg_ann üyesi) ---
+    // --- İdari personel ---
     final me = _m(
       's_me',
       'Müdür Vedat Coşkun',
       'P-01',
       'Site Yönetimi',
       _staff,
-      groups: ['sg_ann', 'sg_idari'],
+      groups: ['sg_idari'],
     );
     final muhasebeci = _m(
       's_muhasebe',
@@ -617,7 +631,7 @@ class MockData {
       'P-02',
       'Site Yönetimi',
       _staff,
-      groups: ['sg_ann', 'sg_idari'],
+      groups: ['sg_idari'],
     );
     final guvenlik1 = _m(
       's_guv1',
@@ -625,7 +639,7 @@ class MockData {
       'P-03',
       'Güvenlik',
       _staff,
-      groups: ['sg_ann', 'sg_idari'],
+      groups: ['sg_idari'],
     );
     final guvenlik2 = _m(
       's_guv2',
@@ -633,7 +647,7 @@ class MockData {
       'P-04',
       'Güvenlik',
       _staff,
-      groups: ['sg_ann', 'sg_idari'],
+      groups: ['sg_idari'],
     );
     final bahce1 = _m(
       's_bahce1',
@@ -641,7 +655,7 @@ class MockData {
       'P-05',
       'Bahçe Bakımı',
       _staff,
-      groups: ['sg_ann', 'sg_idari'],
+      groups: ['sg_idari'],
     );
     final bahce2 = _m(
       's_bahce2',
@@ -649,7 +663,7 @@ class MockData {
       'P-06',
       'Bahçe Bakımı',
       _staff,
-      groups: ['sg_ann', 'sg_idari'],
+      groups: ['sg_idari'],
     );
     final temizlik1 = _m(
       's_temiz1',
@@ -657,7 +671,7 @@ class MockData {
       'P-07',
       'Temizlik',
       _staff,
-      groups: ['sg_ann', 'sg_idari'],
+      groups: ['sg_idari'],
     );
     final temizlik2 = _m(
       's_temiz2',
@@ -665,57 +679,49 @@ class MockData {
       'P-08',
       'Temizlik',
       _staff,
-      groups: ['sg_ann', 'sg_idari'],
+      groups: ['sg_idari'],
     );
 
     // --- Sakinler: Mavi Blok (3 daire) ---
     final mavi1 = _m('s_mavi1', 'Kerem Yalçın', 'K-01', 'Mavi Blok - Daire 1',
-        _owner, groups: ['sg_ann', 'sg_mavi_1']);
+        _owner, groups: ['sg_mavi_1']);
     final mavi2 = _m('s_mavi2', 'Derya Aksakal', 'K-02', 'Mavi Blok - Daire 2',
-        _resident, groups: ['sg_ann', 'sg_mavi_2']);
+        _resident, groups: ['sg_mavi_2']);
     final mavi3 = _m('s_mavi3', 'Tolga Erdem', 'K-03', 'Mavi Blok - Daire 3',
-        _owner, groups: ['sg_ann', 'sg_mavi_3']);
+        _owner, groups: ['sg_mavi_3']);
 
     // --- Sakinler: Yeşil Blok (3 daire) ---
     final yesil1 = _m('s_yesil1', 'Pınar Çelik', 'K-04',
-        'Yeşil Blok - Daire 1', _owner, groups: ['sg_ann', 'sg_yesil_1']);
+        'Yeşil Blok - Daire 1', _owner, groups: ['sg_yesil_1']);
     final yesil2 = _m('s_yesil2', 'Volkan Tunç', 'K-05',
-        'Yeşil Blok - Daire 2', _resident, groups: ['sg_ann', 'sg_yesil_2']);
+        'Yeşil Blok - Daire 2', _resident, groups: ['sg_yesil_2']);
     final yesil3 = _m('s_yesil3', 'Gizem Polat', 'K-06',
-        'Yeşil Blok - Daire 3', _owner, groups: ['sg_ann', 'sg_yesil_3']);
+        'Yeşil Blok - Daire 3', _owner, groups: ['sg_yesil_3']);
 
     // --- Bağımsız villalar (bloklara bağlı değil, kendi başına kök) ---
     final deniz = _m('s_deniz', 'Cem Yıldırım', 'K-07', 'Deniz Villa', _owner,
-        groups: ['sg_ann', 'sg_deniz']);
+        groups: ['sg_deniz']);
     final orman = _m('s_orman', 'Ebru Kaplan', 'K-08', 'Orman Villa', _owner,
-        groups: ['sg_ann', 'sg_orman']);
+        groups: ['sg_orman']);
 
     final members = <Member>[
       me, muhasebeci, guvenlik1, guvenlik2, bahce1, bahce2, temizlik1,
       temizlik2, mavi1, mavi2, mavi3, yesil1, yesil2, yesil3, deniz, orman,
     ];
 
-    // Kurum sahibi hükmü: kök üç KATEGORİ'dir (İdari Personel / Ev Sahibi /
-    // Sakin — admin ayarlarındaki roller). İdari Personel çocuksuz (üyeler
+    // Kurum sahibi hükmü: kök üç KATEGORİ'dir (Personel / Ev Sahibi /
+    // Sakin — admin ayarlarındaki roller). Personel çocuksuz (üyeler
     // doğrudan onun altında). Ev Sahibi ve Sakin altında Mavi Blok/Yeşil Blok
     // AYRI AYRI tekrarlanır — her biri yalnız o kategoriden sakini olan
     // daireleri toplar (aynı isim, iki farklı düğüm/id — kullanıcı hükmü).
+    // "Site Duyuruları" düz grubu KALDIRILDI (kullanıcı kararı 2026-07-19):
+    // site-geneli duyurular artık Sakin kategori-kökünün sohbetinden yapılır;
+    // manager'ı Personel'den Site Yöneticisi (s_me).
     final groups = <Group>[
-      Group(
-        id: 'sg_ann',
-        name: 'Site Duyuruları',
-        description: 'Tüm sakinler için resmi duyurular.',
-        type: GroupType.organized,
-        memberIds: [for (final m in members) m.id],
-        logoIcon: Icons.apartment_outlined,
-        // FR-90: müdür + muhasebeci yazar (aidat/duyuru); herkes okur.
-        managerId: 's_me',
-      ),
-
-      // --- KATEGORİ: İdari Personel (kök, çocuksuz — isHierarchyRoot) ---
+      // --- KATEGORİ: Personel (kök, çocuksuz — isHierarchyRoot) ---
       Group(
         id: 'sg_idari',
-        name: 'İdari Personel',
+        name: 'Personel',
         description: 'Site yönetim ve bakım ekibi.',
         type: GroupType.organized,
         memberIds: const [
@@ -729,6 +735,59 @@ class MockData {
         isHierarchyRoot: true,
       ),
 
+      // --- KATEGORİ: Sakin (kök) → Mavi/Yeşil Blok (kiracı daireleri) ---
+      // Kök sırası = liste sırası (kullanıcı hükmü): Personel, Sakin, Ev Sahibi.
+      Group(
+        id: 'sg_sakin',
+        name: 'Sakin',
+        description: 'Kiracı/sakin sakinler. Site duyuruları buradan yapılır.',
+        type: GroupType.organized,
+        memberIds: const [],
+        logoIcon: Icons.groups_outlined,
+        // Site-geneli duyuru kanalı — manager: Site Yöneticisi (Personel'den).
+        managerId: 's_me',
+      ),
+      Group(
+        id: 'sg_mavi_sakin',
+        name: 'Mavi Blok',
+        description: 'Mavi Blok — sakin dairesi.',
+        type: GroupType.organized,
+        parentGroupId: 'sg_sakin',
+        memberIds: const [],
+        logoIcon: Icons.apartment_outlined,
+        managerId: 's_me',
+      ),
+      Group(
+        id: 'sg_mavi_2',
+        name: 'Daire 2',
+        description: 'Mavi Blok Daire 2.',
+        type: GroupType.organized,
+        parentGroupId: 'sg_mavi_sakin',
+        memberIds: const ['s_mavi2'],
+        logoIcon: Icons.door_front_door_outlined,
+        managerId: 's_mavi2',
+      ),
+      Group(
+        id: 'sg_yesil_sakin',
+        name: 'Yeşil Blok',
+        description: 'Yeşil Blok — sakin dairesi.',
+        type: GroupType.organized,
+        parentGroupId: 'sg_sakin',
+        memberIds: const [],
+        logoIcon: Icons.apartment_outlined,
+        managerId: 's_me',
+      ),
+      Group(
+        id: 'sg_yesil_2',
+        name: 'Daire 2',
+        description: 'Yeşil Blok Daire 2.',
+        type: GroupType.organized,
+        parentGroupId: 'sg_yesil_sakin',
+        memberIds: const ['s_yesil2'],
+        logoIcon: Icons.door_front_door_outlined,
+        managerId: 's_yesil2',
+      ),
+
       // --- KATEGORİ: Ev Sahibi (kök) → Mavi/Yeşil Blok (sahip daireleri) + villalar ---
       Group(
         id: 'sg_sahip',
@@ -737,6 +796,9 @@ class MockData {
         type: GroupType.organized,
         memberIds: const [],
         logoIcon: Icons.key_outlined,
+        // FR-90: kabuk düğümlerde de site müdürü manager — duyuru kanalı
+        // (kullanıcı kararı 2026-07-19); üyeler okur, yalnız manager yazar.
+        managerId: 's_me',
       ),
       Group(
         id: 'sg_mavi_sahip',
@@ -746,6 +808,7 @@ class MockData {
         parentGroupId: 'sg_sahip',
         memberIds: const [],
         logoIcon: Icons.apartment_outlined,
+        managerId: 's_me',
       ),
       Group(
         id: 'sg_mavi_1',
@@ -775,6 +838,7 @@ class MockData {
         parentGroupId: 'sg_sahip',
         memberIds: const [],
         logoIcon: Icons.apartment_outlined,
+        managerId: 's_me',
       ),
       Group(
         id: 'sg_yesil_1',
@@ -817,61 +881,16 @@ class MockData {
         logoIcon: Icons.villa_outlined,
         managerId: 's_orman',
       ),
-
-      // --- KATEGORİ: Sakin (kök) → Mavi/Yeşil Blok (kiracı daireleri) ---
-      Group(
-        id: 'sg_sakin',
-        name: 'Sakin',
-        description: 'Kiracı/sakin sakinler.',
-        type: GroupType.organized,
-        memberIds: const [],
-        logoIcon: Icons.groups_outlined,
-      ),
-      Group(
-        id: 'sg_mavi_sakin',
-        name: 'Mavi Blok',
-        description: 'Mavi Blok — sakin dairesi.',
-        type: GroupType.organized,
-        parentGroupId: 'sg_sakin',
-        memberIds: const [],
-        logoIcon: Icons.apartment_outlined,
-      ),
-      Group(
-        id: 'sg_mavi_2',
-        name: 'Daire 2',
-        description: 'Mavi Blok Daire 2.',
-        type: GroupType.organized,
-        parentGroupId: 'sg_mavi_sakin',
-        memberIds: const ['s_mavi2'],
-        logoIcon: Icons.door_front_door_outlined,
-        managerId: 's_mavi2',
-      ),
-      Group(
-        id: 'sg_yesil_sakin',
-        name: 'Yeşil Blok',
-        description: 'Yeşil Blok — sakin dairesi.',
-        type: GroupType.organized,
-        parentGroupId: 'sg_sakin',
-        memberIds: const [],
-        logoIcon: Icons.apartment_outlined,
-      ),
-      Group(
-        id: 'sg_yesil_2',
-        name: 'Daire 2',
-        description: 'Yeşil Blok Daire 2.',
-        type: GroupType.organized,
-        parentGroupId: 'sg_yesil_sakin',
-        memberIds: const ['s_yesil2'],
-        logoIcon: Icons.door_front_door_outlined,
-        managerId: 's_yesil2',
-      ),
     ];
 
     final threads = <String, List<Message>>{
-      'grp:sg_ann': [
+      // Site-geneli duyurular Sakin kökünün sohbetinde; yalnız manager (s_me)
+      // yazabildiğinden seed mesajlar da ondan (muhasebeci FR-90 gereği
+      // yazamaz — aidat duyurusunu da yönetici geçer).
+      'grp:sg_sakin': [
         _msg('sa1', 's_me', 'Su kesintisi yarın 09:00-12:00 arası olacaktır.',
             ago(const Duration(hours: 4))),
-        _msg('sa2', 's_muhasebe', 'Aidat son ödeme tarihi bu ayın 10\'u.',
+        _msg('sa2', 's_me', 'Aidat son ödeme tarihi bu ayın 10\'u.',
             ago(const Duration(hours: 3))),
       ],
     };
@@ -959,7 +978,7 @@ class MockData {
     );
   }
 
-  // ---- Association tenant (Yönetici / İdari Personel / Üye) ---------------
+  // ---- Association tenant (Yönetici / Personel / Üye) ---------------------
   static TenantData _buildDernek() {
     final now = DateTime.now();
     DateTime ago(Duration d) => now.subtract(d);
@@ -970,7 +989,7 @@ class MockData {
         groups: ['dg_uye']);
     final aylin = _m('d_aylin', 'Aylin Doğan', 'Ü-232', 'Üye', _assocMember,
         groups: ['dg_uye', 'dg_etkinlik']);
-    final nur = _m('d_nur', 'Nur Aydın', 'P-05', 'İdari Personel', _staff,
+    final nur = _m('d_nur', 'Nur Aydın', 'P-05', 'Personel', _staff,
         groups: ['dg_yk', 'dg_uye']);
 
     final members = <Member>[me, selim, aylin, nur];
@@ -1028,7 +1047,7 @@ class MockData {
     );
   }
 
-  // ---- Hospital tenant (Doktor / Hemşire / İdari Personel) ----------------
+  // ---- Hospital tenant (Doktor / Hemşire / Personel) ----------------------
   static TenantData _buildHastane() {
     final now = DateTime.now();
     DateTime ago(Duration d) => now.subtract(d);
