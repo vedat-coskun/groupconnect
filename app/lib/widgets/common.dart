@@ -358,9 +358,11 @@ class CircleIconButton extends StatelessWidget {
   }
 }
 
-/// İki-seçenekli KUTU toggle (kullanıcı tercihi 2026-07-19): yan yana iki kutu,
-/// seçili olan dolgulu. Her kutuda başlık + (varsa) alt satırda küçük fontlu
-/// AÇIKLAMA. Switch/radyo yerine (ör. Açık/Kapalı grup, yazma yetkisi).
+/// İki-seçenekli TOGGLE buton (kullanıcı tercihi 2026-07-22): tek bir bağlı
+/// segmented kontrol — iki segment yan yana, aralarında boşluk YOK, seçili olan
+/// dolgulu. Switch/radyo yerine (ör. Açık/Kapalı grup, yazma yetkisi). Yalnız
+/// etiket; açıklama yok (kullanıcı sade toggle istedi — eski iki-kutu + açıklama
+/// tasarımı kaldırıldı).
 class BoxedBinaryChoice extends StatelessWidget {
   const BoxedBinaryChoice({
     super.key,
@@ -368,66 +370,58 @@ class BoxedBinaryChoice extends StatelessWidget {
     required this.onChanged,
     required this.falseLabel,
     required this.trueLabel,
-    this.falseDesc,
-    this.trueDesc,
   });
 
   final bool value;
   final ValueChanged<bool> onChanged;
   final String falseLabel;
   final String trueLabel;
-  final String? falseDesc;
-  final String? trueDesc;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      // Her iki kutu en uzun açıklamaya göre eşit yükseklikte.
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(child: _box(context, false, falseLabel, falseDesc)),
-        const SizedBox(width: 8),
-        Expanded(child: _box(context, true, trueLabel, trueDesc)),
-      ],
+    final scheme = Theme.of(context).colorScheme;
+    // Dış çerçeve: ince dolgulu kutu; segmentler içinde. Row content'e göre
+    // ölçülür (sınırsız-yükseklik sorunu yok — stretch/IntrinsicHeight gerekmez).
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: _segment(context, false, falseLabel)),
+          Expanded(child: _segment(context, true, trueLabel)),
+        ],
+      ),
     );
   }
 
-  Widget _box(BuildContext context, bool v, String label, String? desc) {
+  Widget _segment(BuildContext context, bool v, String label) {
     final scheme = Theme.of(context).colorScheme;
     final selected = value == v;
-    final fg =
-        selected ? scheme.onSecondaryContainer : scheme.onSurfaceVariant;
     return Material(
-      color:
-          selected ? scheme.secondaryContainer : scheme.surfaceContainerHigh,
+      color: selected ? scheme.secondaryContainer : Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(10),
         onTap: () => onChanged(v),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: TextStyle(fontWeight: FontWeight.w700, color: fg),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          child: Center(
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color:
+                    selected
+                        ? scheme.onSecondaryContainer
+                        : scheme.onSurfaceVariant,
               ),
-              if (desc != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  desc,
-                  style: TextStyle(
-                    fontSize: 11,
-                    height: 1.2,
-                    color: fg.withValues(alpha: 0.85),
-                  ),
-                ),
-              ],
-            ],
+            ),
           ),
         ),
       ),

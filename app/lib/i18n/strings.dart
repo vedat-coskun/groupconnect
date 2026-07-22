@@ -544,7 +544,7 @@ class _Tr extends AppStrings {
   @override
   String get tabMyGroups => 'Özel Gruplarım';
   @override
-  String get tabJoinable => 'Üye Olabileceğim';
+  String get tabJoinable => 'Özel Grup Adaylarım';
   @override
   String get myGroupsEmpty => 'Henüz bir özel grubun yok';
   @override

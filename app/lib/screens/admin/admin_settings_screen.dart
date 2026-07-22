@@ -6,6 +6,7 @@ import '../../models/models.dart';
 import '../../state/app_scope.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/common.dart';
 
 /// PROTOTİP: kurum-admin ayarları paneli. Gerçek sürümde **Web Admin paneline**
 /// taşınacak; burada yalnızca davranışları canlı denemek için var. Etiketler TR
@@ -57,20 +58,17 @@ class AdminSettingsScreen extends StatelessWidget {
             'Görünürlük Varsayılanı',
             note: '🟡 Yeni-öğeye — mevcut üyeler korunur, yeni kayıtlara uygulanır',
           ),
-          RadioListTile<MemberVisibility>(
-            value: MemberVisibility.visible,
-            groupValue: admin.defaultVisibility,
-            onChanged: (v) => state.setDefaultVisibility(v!),
-            title: const Text('Görünür (opt-out)'),
-            subtitle: const Text('Üyeler varsayılan olarak dizinde görünür.'),
-          ),
-          RadioListTile<MemberVisibility>(
-            value: MemberVisibility.hidden,
-            groupValue: admin.defaultVisibility,
-            onChanged: (v) => state.setDefaultVisibility(v!),
-            title: const Text('Görünmez (opt-in)'),
-            subtitle: const Text(
-              'Üyeler açıkça açmadıkça dizinde görünmez.',
+          // Segmented toggle (kullanıcı tercihi 2026-07-22): sol=Görünür,
+          // sağ=Görünmez. false=visible (sol) olsun diye value=hidden.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            child: BoxedBinaryChoice(
+              value: admin.defaultVisibility == MemberVisibility.hidden,
+              onChanged: (v) => state.setDefaultVisibility(
+                v ? MemberVisibility.hidden : MemberVisibility.visible,
+              ),
+              falseLabel: 'Görünür (opt-out)',
+              trueLabel: 'Görünmez (opt-in)',
             ),
           ),
 
@@ -127,6 +125,22 @@ class AdminSettingsScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
+
+          const Divider(height: 28),
+
+          // Kurumsal grup açıklamaları — Web-Admin girdisinin karşılığı.
+          const _SectionHeader(
+            'Grup Açıklamaları',
+            note: '🟢 Canlı · Grup Bilgisi ekranında görünür',
+          ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 0, 16, 4),
+            child: Text(
+              'Kurumsal grupların açıklamasını buradan düzenle. Boş bırakılan '
+              'açıklama Grup Bilgisi ekranında gizlenir.',
+            ),
+          ),
+          _GroupDescriptionsAdmin(state: state),
 
           const Divider(height: 28),
 
@@ -200,6 +214,105 @@ class AdminSettingsScreen extends StatelessWidget {
                 'değiştiremez, değilse kendine göre seçebilir',
           ),
           _AppearanceAdmin(state: state),
+        ],
+      ),
+    );
+  }
+}
+
+/// Kurumsal grupların açıklamalarını düzenleyen admin bölümü. Her grup için
+/// hiyerarşi yolu (breadcrumb) + çok satırlı açıklama girdisi. Açıklama seed'i
+/// kurumsal gruplarda admin'in Web-Admin girdisi sayılır (bkz.
+/// [AppState.setOrganizedGroupDescription]).
+class _GroupDescriptionsAdmin extends StatelessWidget {
+  const _GroupDescriptionsAdmin({required this.state});
+
+  final AppState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final groups = state.organizedGroupsForAdmin;
+    final scheme = Theme.of(context).colorScheme;
+    if (groups.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+        child: Text(
+          'Bu kurumda henüz kurumsal grup yok.',
+          style: TextStyle(color: scheme.onSurfaceVariant),
+        ),
+      );
+    }
+    return Column(
+      children: [
+        for (final g in groups)
+          _GroupDescriptionField(
+            key: ValueKey('grpdesc_${g.id}'),
+            name: g.name,
+            // Hiyerarşi yolu (kök → grup): aynı adlı grupları ayırt eder.
+            // Tek düzeyli/düz grupta yol sadece grubun kendisidir → gizle.
+            path: state.groupPath(g).map((n) => n.name).join(' › '),
+            initialValue: g.description,
+            onChanged: (v) => state.setOrganizedGroupDescription(g.id, v),
+          ),
+      ],
+    );
+  }
+}
+
+/// Tek bir kurumsal grubun açıklama satırı: üstte ad + (varsa) yol, altta
+/// çok satırlı düzenlenebilir açıklama alanı.
+class _GroupDescriptionField extends StatelessWidget {
+  const _GroupDescriptionField({
+    super.key,
+    required this.name,
+    required this.path,
+    required this.initialValue,
+    required this.onChanged,
+  });
+
+  final String name;
+  final String path;
+  final String initialValue;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    // Yol grubun kendi adından ibaretse (düz grup / kök) breadcrumb gösterme.
+    final showPath = path.isNotEmpty && path != name;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            name,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          if (showPath) ...[
+            const SizedBox(height: 2),
+            Text(
+              path,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+          const SizedBox(height: 6),
+          TextFormField(
+            initialValue: initialValue,
+            onChanged: onChanged,
+            minLines: 1,
+            maxLines: 3,
+            textInputAction: TextInputAction.newline,
+            decoration: const InputDecoration(
+              isDense: true,
+              hintText: 'Açıklama (boş bırakılabilir)',
+              border: OutlineInputBorder(),
+            ),
+          ),
         ],
       ),
     );

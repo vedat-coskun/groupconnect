@@ -200,9 +200,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             value: _isOpen,
             onChanged: (v) => setState(() => _isOpen = v),
             falseLabel: s.closedGroup,
-            falseDesc: s.closedGroupHint,
             trueLabel: s.openGroup,
-            trueDesc: s.openGroupHint,
           ),
           const SizedBox(height: 20),
           // FR-90: yazma yetkisi kuruluşta seçilir (varsayılan yalnız yönetici).

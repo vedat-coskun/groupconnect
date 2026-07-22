@@ -1079,6 +1079,23 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Aktif kurumun kurumsal grupları (arşivlenmemiş) — Admin Ayarları'ndaki
+  /// açıklama editörü için. Özel gruplar hariçtir: onların açıklamasını grubu
+  /// kuran üye Grup Bilgisi'nden yönetir.
+  List<Group> get organizedGroupsForAdmin =>
+      td.groups.where((g) => g.isOrganized && !g.archived).toList();
+
+  /// Admin (Web-Admin'in karşılığı) bir kurumsal grubun açıklamasını düzenler.
+  /// Açıklama kurumsal gruplarda **seed = admin girdisi** olduğundan bu, o
+  /// girdiyi prototip içinde canlı düzenlemeye izin verir. Boş bırakılabilir —
+  /// boş açıklama Grup Bilgisi'nde gizlenir. Özel grupta hiçbir şey yapmaz.
+  void setOrganizedGroupDescription(String groupId, String description) {
+    final g = td.group(groupId);
+    if (g == null || !g.isOrganized) return;
+    g.description = description;
+    notifyListeners();
+  }
+
   /// Grubun üye listesi — hiyerarşi düğümlerinde (Fakülte/Bölüm üstü) alt
   /// ağacın birleşimi (FR-71). Grup üyelik bilgisi ortak bağlamdır ve
   /// matrisle SÜZÜLMEZ (FR-21 istisnası — Grup Bilgisi/FR-89 yüzeyleri).

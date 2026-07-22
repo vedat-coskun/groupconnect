@@ -55,7 +55,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Üye Olabileceğim'));
+    await tester.tap(find.text('Özel Grup Adaylarım'));
     await tester.pumpAndSettle();
 
     // Gövde gerçekten çizilmeli: satır + "Katıl" butonu görünür, hata yok.
