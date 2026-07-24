@@ -102,6 +102,11 @@ class _ChatsScreenState extends State<ChatsScreen> {
       }
     }
 
+    // EN ÜSTTE "HEPSİ" (kullanıcı tercihi 2026-07-22): tüm sohbetler tek DÜZ
+    // listede, WhatsApp gibi — kategori ayrımı ve hiyerarşi/girinti YOK.
+    // Aşağıdaki kategori bölümleri aynen durur (aynı sohbet iki yerde görünür).
+    section('all', s.chatSectionAll, (c) => true);
+
     // Sıra (kullanıcı tercihi): Kurumsal → Özel → Kişisel.
     section(
       'organized',

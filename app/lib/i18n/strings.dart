@@ -94,6 +94,8 @@ abstract class AppStrings {
   String get chatsEmptyHint;
   String get chatsFilterPersonal;
   // Sohbetler kategori başlıkları — son sözcük ("sohbetler(i)") sönük çizilir.
+  /// En üstteki DÜZ liste bölümü: tüm sohbetler bir arada (WhatsApp gibi).
+  String get chatSectionAll;
   String get chatSectionOrganized;
   String get chatSectionPrivate;
   String get chatSectionPersonal;
@@ -401,6 +403,8 @@ class _Tr extends AppStrings {
       'Kişi ekleyip mesajlaşmaya başla veya grup sohbetlerine göz at.';
   @override
   String get chatsFilterPersonal => 'Kişisel';
+  @override
+  String get chatSectionAll => 'HEPSİ';
   @override
   String get chatSectionOrganized => 'Kurumsal Grup sohbetleri';
   @override
@@ -844,6 +848,8 @@ class _En extends AppStrings {
       'Add a contact to start messaging, or browse your group chats.';
   @override
   String get chatsFilterPersonal => 'Personal';
+  @override
+  String get chatSectionAll => 'ALL';
   @override
   String get chatSectionOrganized => 'Organized group chats';
   @override
