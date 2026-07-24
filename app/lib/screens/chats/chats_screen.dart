@@ -105,7 +105,31 @@ class _ChatsScreenState extends State<ChatsScreen> {
     // EN ÜSTTE "HEPSİ" (kullanıcı tercihi 2026-07-22): tüm sohbetler tek DÜZ
     // listede, WhatsApp gibi — kategori ayrımı ve hiyerarşi/girinti YOK.
     // Aşağıdaki kategori bölümleri aynen durur (aynı sohbet iki yerde görünür).
-    section('all', s.chatSectionAll, (c) => true);
+    //
+    // Kategori bölümlerinden AYRILAN yanı: (1) yalnız **içi dolu** sohbetler
+    // (en az bir mesaj) — kategoriler bir DİZİNdir, HEPSİ gerçek konuşmalardır;
+    // (2) satırlar son mesaj ÖNİZLEMESİ + saat gösterir (`showActivity`) ve
+    // **son aktiviteye göre** sıralanır (FR-100 geri alındı — kurum sahibi
+    // hükmü 2026-07-22). Kategori satırları içerik taşımamaya devam eder.
+    section(
+      'all',
+      s.chatSectionAll,
+      (c) => state.hasMessages(c.threadId),
+      layout: (items) {
+        final sorted = [...items]..sort((a, b) {
+          final ta = a.lastMessageTime, tb = b.lastMessageTime;
+          if (ta == null && tb == null) {
+            return a.title.toLowerCase().compareTo(b.title.toLowerCase());
+          }
+          if (ta == null) return 1;
+          if (tb == null) return -1;
+          return tb.compareTo(ta); // en yeni üstte
+        });
+        return [
+          for (final c in sorted) _ChatTile(summary: c, showActivity: true),
+        ];
+      },
+    );
 
     // Sıra (kullanıcı tercihi): Kurumsal → Özel → Kişisel.
     section(
@@ -202,6 +226,7 @@ class _ChatTile extends StatelessWidget {
     this.indent = 0,
     this.expanded,
     this.onToggle,
+    this.showActivity = false,
   });
 
   final ChatSummary summary;
@@ -213,6 +238,11 @@ class _ChatTile extends StatelessWidget {
   final bool? expanded;
   final VoidCallback? onToggle;
 
+  /// YALNIZ "HEPSİ" bölümü: alt yazı son mesaj önizlemesi olur ve sağda saat
+  /// gösterilir (CountBox yerine — gelen-kutusu görünümü). Diğer bölümler
+  /// içerik taşımaz (false).
+  final bool showActivity;
+
   @override
   Widget build(BuildContext context) {
     final s = context.s;
@@ -220,15 +250,22 @@ class _ChatTile extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final g = summary.group;
     final m = summary.member;
-    // Kurumsal grup sohbetlerinde açıklama GEREKSİZ (kullanıcı hükmü — ad zaten
-    // yeterli); özel grupta açıklama, 1:1'de "Ünvan · Bölüm" kalır.
+    // HEPSİ (showActivity): alt yazı = son mesaj önizlemesi. Diğer bölümlerde
+    // içerik taşımaz: kurumsal grupta boş (ad yeter), özel grupta açıklama,
+    // 1:1'de "Ünvan · Bölüm".
     final subtitle =
-        g != null
+        showActivity
+            ? (summary.lastMessageText ?? '')
+            : g != null
             ? (g.isOrganized ? '' : g.description)
             : [
               if (m!.title.isNotEmpty) m.title,
               if (m.department.isNotEmpty) m.department,
             ].join(' · ');
+    final timeStr =
+        showActivity && summary.lastMessageTime != null
+            ? _formatChatTime(context, summary.lastMessageTime!)
+            : null;
     void openChat() {
       if (g != null) {
         Navigator.of(context).push(
@@ -276,12 +313,25 @@ class _ChatTile extends StatelessWidget {
                             size: 16,
                             color: scheme.onSurfaceVariant,
                           ),
+                        // HEPSİ: son mesaj saati (WhatsApp gibi, sağ üst).
+                        if (timeStr != null) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            timeStr,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                     if (subtitle.isNotEmpty)
                       Text(
                         subtitle,
-                        maxLines: 2,
+                        // HEPSİ önizlemesi tek satır (gelen-kutusu); diğer
+                        // bölümlerde açıklama iki satıra kadar.
+                        maxLines: showActivity ? 1 : 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: scheme.onSurfaceVariant),
                       ),
@@ -299,8 +349,10 @@ class _ChatTile extends StatelessWidget {
                 icon: const Icon(Icons.chat_bubble_outline),
                 onPressed: openChat,
               ),
-            // Hiyerarşi düğümünde alt ağacın toplamı (FR-71).
-            if (g != null) CountBox(count: state.groupMemberCount(g)),
+            // Hiyerarşi düğümünde alt ağacın toplamı (FR-71). HEPSİ'de saat
+            // bu yeri aldı — üye sayısı gösterilmez (gelen-kutusu görünümü).
+            if (g != null && !showActivity)
+              CountBox(count: state.groupMemberCount(g)),
             if (expanded != null)
               Icon(
                 expanded! ? Icons.expand_less : Icons.expand_more,
@@ -311,4 +363,19 @@ class _ChatTile extends StatelessWidget {
       ),
     );
   }
+}
+
+/// HEPSİ satırındaki son-mesaj saat etiketi: bugün → "SS:dd", dün → "Dün",
+/// daha eski → "gg.aa". Saat/tarih yalnız HEPSİ'de gösterilir (FR-100 geri
+/// alındı). intl bağımlılığı yok — elle biçimlenir.
+String _formatChatTime(BuildContext context, DateTime t) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final day = DateTime(t.year, t.month, t.day);
+  String two(int n) => n.toString().padLeft(2, '0');
+  if (day == today) return '${two(t.hour)}:${two(t.minute)}';
+  if (day == today.subtract(const Duration(days: 1))) {
+    return context.s.yesterdayShort;
+  }
+  return '${two(t.day)}.${two(t.month)}';
 }

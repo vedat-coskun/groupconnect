@@ -25,6 +25,8 @@ class ChatSummary {
     required this.muted,
     this.member,
     this.group,
+    this.lastMessageText,
+    this.lastMessageTime,
   });
 
   final String threadId;
@@ -33,6 +35,14 @@ class ChatSummary {
   final bool muted;
   final Member? member;
   final Group? group;
+
+  /// Dizideki son mesajın metni ve zamanı — **yalnız Sohbetler → "HEPSİ"**
+  /// bölümü kullanır (önizleme + saat + son-aktivite sırası). FR-100'ün
+  /// geri alınması (kurum sahibi hükmü 2026-07-22): kategori bölümleri hâlâ
+  /// içerik taşımaz; HEPSİ bir gelen-kutusu olarak önizleme gösterir. Mesajsız
+  /// dizide ikisi de null (HEPSİ zaten yalnız içi-dolu sohbetleri listeler).
+  final String? lastMessageText;
+  final DateTime? lastMessageTime;
 }
 
 /// The single source of truth for the prototype. A [ChangeNotifier] so the
@@ -833,6 +843,20 @@ class AppState extends ChangeNotifier {
 
   List<Message> messagesOf(String threadId) => td.threads[threadId] ?? const [];
 
+  /// Dizide en az bir mesaj var mı — Sohbetler → "HEPSİ" bölümü bunu süzgeç
+  /// olarak kullanır (kullanıcı hükmü 2026-07-22). Kategori bölümleri bir
+  /// DİZİNdir (üye olunan her grup görünür); HEPSİ ise **gerçek konuşmaların**
+  /// listesidir — içi boş grup/kişi orada yer almaz. FR-100'ü ihlal etmez:
+  /// içerik/saat yine gösterilmez, yalnız satırın listeye girip girmediği değişir.
+  bool hasMessages(String threadId) => messagesOf(threadId).isNotEmpty;
+
+  /// Dizinin son (en yeni) mesajı — yoksa null. Mesajlar gönderim sırasında
+  /// eklenir, bu yüzden `.last` en yenidir. HEPSİ önizlemesi/sırası kullanır.
+  Message? _lastMessage(String threadId) {
+    final msgs = td.threads[threadId];
+    return (msgs == null || msgs.isEmpty) ? null : msgs.last;
+  }
+
   /// Mesajı düzenle — YALNIZ kendi mesajın (NFR-17: kısıt veri katmanında).
   void editMessage(String threadId, String messageId, String newText) {
     final t = newText.trim();
@@ -972,6 +996,7 @@ class AppState extends ChangeNotifier {
       if (g.archived) continue; // arşivlenen grubun sohbeti de listelenmez
       // FR-90: üyelik değil, GÖREBİLME (öğrenci bölüm üyesi ama göremez).
       if (!canSeeGroupChat(g)) continue;
+      final last = _lastMessage(grpThread(g.id));
       list.add(
         ChatSummary(
           threadId: grpThread(g.id),
@@ -979,6 +1004,8 @@ class AppState extends ChangeNotifier {
           isGroup: true,
           muted: isGroupMuted(g.id),
           group: g,
+          lastMessageText: last?.text,
+          lastMessageTime: last?.time,
         ),
       );
     }
@@ -986,6 +1013,7 @@ class AppState extends ChangeNotifier {
     for (final peerId in td.dmVisible) {
       final m = td.member(peerId);
       if (m == null) continue;
+      final last = _lastMessage(dmThread(peerId));
       list.add(
         ChatSummary(
           threadId: dmThread(peerId),
@@ -993,6 +1021,8 @@ class AppState extends ChangeNotifier {
           isGroup: false,
           muted: isDmMuted(peerId),
           member: m,
+          lastMessageText: last?.text,
+          lastMessageTime: last?.time,
         ),
       );
     }

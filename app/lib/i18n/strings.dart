@@ -96,6 +96,10 @@ abstract class AppStrings {
   // Sohbetler kategori başlıkları — son sözcük ("sohbetler(i)") sönük çizilir.
   /// En üstteki DÜZ liste bölümü: tüm sohbetler bir arada (WhatsApp gibi).
   String get chatSectionAll;
+
+  /// HEPSİ satırındaki son-mesaj saatinde "dün" etiketi (bugün→saat, dün→bu,
+  /// daha eski→gg.aa).
+  String get yesterdayShort;
   String get chatSectionOrganized;
   String get chatSectionPrivate;
   String get chatSectionPersonal;
@@ -184,14 +188,11 @@ abstract class AppStrings {
   /// Açık grup daveti DIŞLAMAZ: hem herkes katılabilir hem davet gönderilebilir.
   String get groupAccessLabel;
   String get openGroup;
-  String get openGroupHint;
   String get closedGroup;
-  String get closedGroupHint;
 
   /// Grup Bilgisi'ndeki erişim rozeti — tür ("Özel") değil, ERİŞİM yazar.
   String get accessOpenChip;
   String get accessClosedChip;
-  String get openGroupToggleHint;
   String get organized;
   String get privateGroup;
   String get groupAdmin;
@@ -406,6 +407,8 @@ class _Tr extends AppStrings {
   @override
   String get chatSectionAll => 'HEPSİ';
   @override
+  String get yesterdayShort => 'Dün';
+  @override
   String get chatSectionOrganized => 'Kurumsal Grup sohbetleri';
   @override
   String get chatSectionPrivate => 'Özel Grup sohbetleri';
@@ -562,18 +565,11 @@ class _Tr extends AppStrings {
   @override
   String get openGroup => 'Açık Grup';
   @override
-  String get openGroupHint =>
-      'Kurumdaki herkes bulup davetsiz katılabilir. Ayrıca davet de gönderebilirsin.';
-  @override
   String get closedGroup => 'Kapalı Grup';
-  @override
-  String get closedGroupHint => 'Yalnız davet ettiklerin katılabilir.';
   @override
   String get accessOpenChip => 'Açık Grup';
   @override
   String get accessClosedChip => 'Kapalı Grup';
-  @override
-  String get openGroupToggleHint => 'Kapatmak mevcut üyeleri çıkarmaz.';
   @override
   String get organized => 'Kurumsal';
   @override
@@ -851,6 +847,8 @@ class _En extends AppStrings {
   @override
   String get chatSectionAll => 'ALL';
   @override
+  String get yesterdayShort => 'Yesterday';
+  @override
   String get chatSectionOrganized => 'Organized group chats';
   @override
   String get chatSectionPrivate => 'Private group chats';
@@ -1007,18 +1005,11 @@ class _En extends AppStrings {
   @override
   String get openGroup => 'Open Group';
   @override
-  String get openGroupHint =>
-      'Anyone in the organization can find and join without an invite. You can still send invitations.';
-  @override
   String get closedGroup => 'Closed Group';
-  @override
-  String get closedGroupHint => 'Only the people you invite can join.';
   @override
   String get accessOpenChip => 'Open Group';
   @override
   String get accessClosedChip => 'Closed Group';
-  @override
-  String get openGroupToggleHint => 'Closing it does not remove current members.';
   @override
   String get organized => 'Organized';
   @override
