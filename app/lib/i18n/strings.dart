@@ -33,7 +33,6 @@ abstract class AppStrings {
   String get add;
   String get selectAll;
   String get clearSelection;
-  String contactsAddedSummary(int added, int invited);
   String get remove;
   String get delete;
   String get edit;
@@ -146,8 +145,6 @@ abstract class AppStrings {
   String get commonGroups;
   String get noCommonGroups;
   String get removeFromContacts;
-  String addedDirectly(String name);
-  String removedFromContacts(String name);
   String get inviteSent;
   String get inviteMessageHint;
   String get favorite;
@@ -200,6 +197,9 @@ abstract class AppStrings {
   /// Katılabileceklerim satırındaki kısa hali — "Yönetici: Ad Soyad".
   String get adminShort;
   String memberCount(int n);
+
+  /// Grup başlığında üye sayısının yanına: gönderdiğim bekleyen davet sayısı.
+  String invitedCount(int n);
   String get membersTitle;
   String get groupInfoTitle;
   String get openChat;
@@ -283,15 +283,6 @@ class _Tr extends AppStrings {
   String get selectAll => 'Hepsini Seç';
   @override
   String get clearSelection => 'Temizle';
-  @override
-  String contactsAddedSummary(int added, int invited) {
-    if (added > 0 && invited > 0) {
-      return '$added kişi eklendi · $invited davet gönderildi';
-    }
-    if (invited > 0) return '$invited davet gönderildi';
-    return '$added kişi rehbere eklendi';
-  }
-
   @override
   String get remove => 'Çıkar';
   @override
@@ -497,10 +488,6 @@ class _Tr extends AppStrings {
   @override
   String get removeFromContacts => 'Rehberden Çıkar';
   @override
-  String addedDirectly(String name) => 'Rehbere Eklendi: $name';
-  @override
-  String removedFromContacts(String name) => 'Rehberden Çıkartıldı: $name';
-  @override
   String get inviteSent => 'Davet gönderildi — onay bekleniyor';
   @override
   String get inviteMessageHint => 'Davet mesajı (opsiyonel)';
@@ -580,6 +567,8 @@ class _Tr extends AppStrings {
   String get adminShort => 'Yönetici';
   @override
   String memberCount(int n) => '$n üye';
+  @override
+  String invitedCount(int n) => '$n davetli';
   @override
   String get membersTitle => 'Üyeler';
   @override
@@ -722,15 +711,6 @@ class _En extends AppStrings {
   String get selectAll => 'Select all';
   @override
   String get clearSelection => 'Clear';
-  @override
-  String contactsAddedSummary(int added, int invited) {
-    if (added > 0 && invited > 0) {
-      return '$added added · $invited invited';
-    }
-    if (invited > 0) return '$invited invitation(s) sent';
-    return '$added added to contacts';
-  }
-
   @override
   String get remove => 'Remove';
   @override
@@ -937,10 +917,6 @@ class _En extends AppStrings {
   @override
   String get removeFromContacts => 'Remove from Contacts';
   @override
-  String addedDirectly(String name) => 'Added to Contacts: $name';
-  @override
-  String removedFromContacts(String name) => 'Removed from Contacts: $name';
-  @override
   String get inviteSent => 'Invitation sent — awaiting approval';
   @override
   String get inviteMessageHint => 'Invitation message (optional)';
@@ -1020,6 +996,8 @@ class _En extends AppStrings {
   String get adminShort => 'Admin';
   @override
   String memberCount(int n) => '$n members';
+  @override
+  String invitedCount(int n) => '$n invited';
   @override
   String get membersTitle => 'Members';
   @override

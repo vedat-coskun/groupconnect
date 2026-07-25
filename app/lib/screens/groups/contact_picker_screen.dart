@@ -116,7 +116,9 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
           roleName: state.roleName,
           header: (t) => _SubHeader(t),
           otherLabel: s.contactsTitle,
-          pinned: (m) => state.isFavorite(m.id),
+          // Favoriler gibi, zaten DAVET ETTİKLERİM de rol bölümünün üstüne
+          // pinlenir (kullanıcı hükmü 2026-07-25) — ayrı bir davetli listesi yok.
+          pinned: (m) => state.isFavorite(m.id) || _alreadyInvited.contains(m.id),
           row: _personRow,
         ),
       ];

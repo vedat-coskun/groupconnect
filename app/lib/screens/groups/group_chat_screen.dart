@@ -61,7 +61,18 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     ),
                     Text(
                       // Hiyerarşi düğümünde alt ağacın toplamı (FR-71).
-                      s.memberCount(state.groupMemberCount(group)),
+                      // Gönderdiğim bekleyen davet varsa "· N davetli" eklenir
+                      // (yalnız davet edende >0; ayrı bir davetli listesine
+                      // gerek yok — kullanıcı hükmü 2026-07-25).
+                      () {
+                        final members = s.memberCount(
+                          state.groupMemberCount(group),
+                        );
+                        final invited = state.pendingGroupInvites(groupId);
+                        return invited > 0
+                            ? '$members · ${s.invitedCount(invited)}'
+                            : members;
+                      }(),
                       style: Theme.of(context).textTheme.labelSmall,
                     ),
                   ],

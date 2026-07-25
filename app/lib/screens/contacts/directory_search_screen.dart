@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../i18n/strings.dart';
 import '../../state/app_scope.dart';
-import '../../state/app_state.dart';
 import '../../widgets/common.dart';
 
 /// Organization directory search & discovery with **multi-select bulk add**
@@ -81,25 +80,15 @@ class _DirectorySearchScreenState extends State<DirectorySearchScreen> {
     });
   }
 
-  /// Add every ticked member, tallying direct adds vs approval invites, then
-  /// pop back with a summary (FR-22/FR-23).
+  /// Add every ticked member (FR-22/FR-23) and pop back. Bildirim yok: doğrudan
+  /// eklenenler Rehberim'de, onay gerekenler Davetler'de görünür — sonuç
+  /// sekmelerden anlaşılır (transient özet snackbar kaldırıldı 2026-07-25).
   void _save() {
     final state = AppScope.of(context, listen: false);
-    final messenger = ScaffoldMessenger.of(context);
-    final s = context.s;
-    var added = 0, invited = 0;
     for (final id in _selected) {
-      final r = state.addContact(id);
-      if (r == AddResult.added) {
-        added++;
-      } else if (r == AddResult.invited) {
-        invited++;
-      }
+      state.addContact(id);
     }
     Navigator.of(context).pop();
-    messenger.showSnackBar(
-      SnackBar(content: Text(s.contactsAddedSummary(added, invited))),
-    );
   }
 
   @override

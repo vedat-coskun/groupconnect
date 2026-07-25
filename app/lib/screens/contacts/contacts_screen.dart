@@ -328,16 +328,12 @@ Widget _contactTile(
                       Icons.person_remove_outlined,
                       color: Colors.red,
                     ),
-                    onPressed: () {
-                      final messenger = ScaffoldMessenger.of(context);
-                      final name = m.nameSurnameUpper(context);
-                      AppScope.of(context, listen: false).removeContact(m.id);
-                      messenger.showSnackBar(
-                        SnackBar(
-                          content: Text(context.s.removedFromContacts(name)),
-                        ),
-                      );
-                    },
+                    // Bildirim yok — ikon değişimi kalıcı onay (bkz. ekleme).
+                    onPressed:
+                        () => AppScope.of(
+                          context,
+                          listen: false,
+                        ).removeContact(m.id),
                   )
                   : IconButton(
                     tooltip: context.s.addToContacts,
@@ -346,17 +342,14 @@ Widget _contactTile(
                       Icons.person_add_alt,
                       color: Colors.green,
                     ),
-                    onPressed: () {
-                      final messenger = ScaffoldMessenger.of(context);
-                      final name = m.nameSurnameUpper(context);
-                      AppScope.of(
-                        context,
-                        listen: false,
-                      ).addContactDirect(m.id);
-                      messenger.showSnackBar(
-                        SnackBar(content: Text(context.s.addedDirectly(name))),
-                      );
-                    },
+                    // Bildirim yok: ikon anında yeşil "+" → kırmızı "−" olur,
+                    // bu kalıcı görsel onay yeter (transient snackbar, kullanıcı
+                    // başka işteyken araya girer — kaldırıldı 2026-07-25).
+                    onPressed:
+                        () => AppScope.of(
+                          context,
+                          listen: false,
+                        ).addContactDirect(m.id),
                   ),
             // Rehberim'de silme (kurum sahibi hükmü): onaysız (NFR-18).
             // Onayla eklenmişse kişi DAVETLER → Onaylananlar'a düşer (rıza
@@ -369,16 +362,11 @@ Widget _contactTile(
                   Icons.person_remove_outlined,
                   color: Colors.red,
                 ),
-                onPressed: () {
-                  final messenger = ScaffoldMessenger.of(context);
-                  final name = m.nameSurnameUpper(context);
-                  AppScope.of(context, listen: false).removeContact(m.id);
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(context.s.removedFromContacts(name)),
-                    ),
-                  );
-                },
+                // Bildirim yok: çıkarınca satır Rehberim'den kaybolur, bu
+                // yeterli görsel geri bildirim.
+                onPressed:
+                    () =>
+                        AppScope.of(context, listen: false).removeContact(m.id),
               ),
           ],
         ),

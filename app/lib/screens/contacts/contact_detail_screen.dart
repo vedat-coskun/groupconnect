@@ -234,10 +234,9 @@ class ContactDetailScreen extends StatelessWidget {
   void _add(BuildContext context, Member m, AppStrings s) {
     final state = AppScope.of(context, listen: false);
     if (m.addPolicy == AddPolicy.everyone) {
+      // Bildirim yok: eklenince "Rehbere Ekle" butonu kaybolur ve ekran rehber-
+      // içi görünüme geçer — bu kalıcı görsel onay yeter (2026-07-25).
       state.addContact(m.id);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(s.addedDirectly(m.nameSurnameUpper(context)))),
-      );
     } else {
       _showInviteSheet(context, m.id, s);
     }
@@ -301,13 +300,11 @@ class ContactDetailScreen extends StatelessWidget {
   }
 
   // Ürün kuralı: hiçbir eylem "Emin misin?" ikinci onayı istemez. Doğrudan
-  // uygulanır; sonuç bildirimle söylenir. Rehberden çıkarmak geri alınabilir
-  // (kişiyi yeniden ekleyebilirsin).
+  // uygulanır; sonuç EKRANDAKİ durum değişiminden anlaşılır (buton geri döner) —
+  // transient snackbar kaldırıldı (2026-07-25). Rehberden çıkarmak geri
+  // alınabilir (kişiyi yeniden ekleyebilirsin).
   void _remove(BuildContext context, String id, AppStrings s) {
     AppScope.of(context, listen: false).removeContact(id);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(s.removeFromContacts)),
-    );
   }
 }
 
