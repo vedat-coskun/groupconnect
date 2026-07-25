@@ -28,7 +28,6 @@ abstract class AppStrings {
 
   /// Seçimi yürürlüğe koyan buton — "Kaydet"ten farkı: yalnız eklemez, geri
   /// alınan seçimlerin davetini de iptal eder (iki yönlü senkron).
-  String get apply;
   String get send;
   String get add;
   String get selectAll;
@@ -223,6 +222,9 @@ abstract class AppStrings {
   String get groupInviteMessage;
   String get inviteMembers;
   String get sendInvite;
+
+  /// Davet pikerinin YÖNETİM modunda kaydet eylemi ("Uygula" yerine, daha net).
+  String get updateInvites;
   String inviteSyncSummary(int sent, int cancelled);
   String get joinedGroup;
   String get leftGroup;
@@ -274,7 +276,6 @@ class _Tr extends AppStrings {
   @override
   String get save => 'Kaydet';
   @override
-  String get apply => 'Uygula';
   @override
   String get send => 'Gönder';
   @override
@@ -616,6 +617,8 @@ class _Tr extends AppStrings {
   @override
   String get sendInvite => 'Davet Gönder';
   @override
+  String get updateInvites => 'Davetleri Güncelle';
+  @override
   String inviteSyncSummary(int sent, int cancelled) =>
       '$sent davet gönderildi · $cancelled iptal edildi';
   @override
@@ -702,7 +705,6 @@ class _En extends AppStrings {
   @override
   String get save => 'Save';
   @override
-  String get apply => 'Apply';
   @override
   String get send => 'Send';
   @override
@@ -1044,6 +1046,8 @@ class _En extends AppStrings {
   String get inviteMembers => 'Invite Members from Contacts';
   @override
   String get sendInvite => 'Send Invite';
+  @override
+  String get updateInvites => 'Update Invites';
   @override
   String inviteSyncSummary(int sent, int cancelled) =>
       '$sent invited · $cancelled cancelled';

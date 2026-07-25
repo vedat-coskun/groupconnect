@@ -131,7 +131,9 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
           TextButton(
             onPressed: canSave ? _save : null,
             child: Text(
-              _manage ? s.apply : '${s.sendInvite} (${_selected.length})',
+              _manage
+                  ? s.updateInvites
+                  : '${s.sendInvite} (${_selected.length})',
             ),
           ),
         ],
