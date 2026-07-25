@@ -197,6 +197,19 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// GELİŞTİRME KISAYOLU (yalnız debug — [kDevAutoLogin]): onboarding/telefon/
+  /// OTP/kurum akışını atlayıp doğrudan verilen kimlik + kurumla ana ekrana
+  /// düşer. Normal giriş yolunu (setPendingPhone → selectTenant) kullanır, yani
+  /// tüm state doğru kurulur; sadece ara ekranları es geçer.
+  void devAutoLogin({
+    String phone = '5555555501',
+    String tenantId = 'uni',
+  }) {
+    _onboardingSeen = true;
+    setPendingPhone('+90', phone);
+    selectTenant(tenantId);
+  }
+
   void setPendingPhone(String countryCode, String phone) {
     _countryCode = countryCode;
     _phone = phone;
@@ -396,9 +409,16 @@ class AppState extends ChangeNotifier {
       ..addAll(
         ((blob['n'] as Map?)?.cast<String, String>()) ?? const {},
       );
+    // Kayıtlı blob'da 'dv' varsa onu kullan; YOKSA (ilk giriş) BU KİMLİĞİN mock
+    // seed'ine dön — prototip ilk açılışta dolu bir HEPSİ göstersin. Kimlik-
+    // başına seed olduğundan sızıntı olmaz (seed'i olmayan kimlik boşa düşer).
     d.dmVisible
       ..clear()
-      ..addAll((blob['dv'] as List?)?.cast<String>() ?? const []);
+      ..addAll(
+        blob.containsKey('dv')
+            ? (blob['dv'] as List).cast<String>()
+            : (d.initialDmVisibleByMyId[myId] ?? const <String>{}),
+      );
     d.mutedDms
       ..clear()
       ..addAll((blob['md'] as List?)?.cast<String>() ?? const []);

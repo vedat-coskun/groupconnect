@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'dev_config.dart';
 import 'screens/auth/auth_flow.dart';
 import 'screens/auth/profile_setup_screen.dart';
 import 'screens/auth/tenant_select_screen.dart';
@@ -26,7 +28,16 @@ class _GroupConnectAppState extends State<GroupConnectApp> {
   void initState() {
     super.initState();
     // Diske kaydedilmiş rehber/favorileri geri yükle (açılışta, splash sürerken).
-    _state.restore();
+    // DEBUG + kDevAutoLogin: restore bitince onboarding/giriş akışını atla ve
+    // doğrudan ana ekrana düş (geliştirme kısayolu). Release'de asla çalışmaz.
+    _state.restore().then((_) {
+      if (kDebugMode && kDevAutoLogin && mounted) {
+        _state.devAutoLogin(
+          phone: kDevAutoLoginPhone,
+          tenantId: kDevAutoLoginTenant,
+        );
+      }
+    });
   }
 
   @override

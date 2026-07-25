@@ -552,38 +552,51 @@ class MockData {
       ),
     ];
 
+    // Zaman damgaları BİLİNÇLİ olarak çeşitli: bugün (SS:dd), dün ("Dün") ve
+    // birkaç gün öncesi (gg.aa) — HEPSİ gelen-kutusunun saat biçimi + son-
+    // aktivite sıralaması gerçekçi görünsün (kullanıcı: "zengin mock veri").
     final threads = <String, List<Message>>{
+      // === Kişisel (1:1) ===
+      // Suden — en yeni (bugün, ~8 dk önce).
+      'dm:u_me:u_zeynep': [
+        _msg('z1', meId, 'Suden, bitirme sunumunu ne zaman yapıyoruz?',
+            ago(const Duration(hours: 3))),
+        _msg('z2', 'u_zeynep', 'Cuma öğleden sonra uygun.',
+            ago(const Duration(hours: 2, minutes: 50))),
+        _msg('z3', meId, 'Cuma 15:00 olsun o zaman.',
+            ago(const Duration(minutes: 12))),
+        _msg('z4', 'u_zeynep', 'Harika, slaytları akşam atarım.',
+            ago(const Duration(minutes: 8))),
+      ],
+      // Ayşe (bugün, ~35 dk önce).
       'dm:u_ayse:u_me': [
         _msg('a1', 'u_ayse', 'Merhaba Vedat, ödev teslimini aldım.',
             ago(const Duration(hours: 2))),
         _msg('a2', meId, 'Teşekkürler hocam, iyi günler.',
             ago(const Duration(hours: 1, minutes: 55))),
         _msg('a3', 'u_ayse', 'Yarınki derste test otomasyonuna bakacağız.',
-            ago(const Duration(minutes: 30))),
+            ago(const Duration(minutes: 35))),
       ],
-      'dm:u_me:u_zeynep': [
-        _msg('z1', meId, 'Suden, bitirme sunumunu ne zaman yapıyoruz?',
-            ago(const Duration(hours: 3))),
-        _msg('z2', 'u_zeynep', 'Cuma öğleden sonra uygun.',
-            ago(const Duration(hours: 2, minutes: 50))),
+      // Selin (dün → "Dün"). (Not: Can'la DM eklenmez — user_scoping testi
+      // Can'ın Vedat'la yazışmasının BOŞ olmasına dayanır.)
+      'dm:u_me:u_selin': [
+        _msg('ds1', 'u_selin', 'Hocam, lab raporu için şablon var mı?',
+            ago(const Duration(days: 1, hours: 4))),
+        _msg('ds2', meId, 'Evet, ders grubuna yükledim.',
+            ago(const Duration(days: 1, hours: 3, minutes: 30))),
+        _msg('ds3', 'u_selin', 'Buldum, teşekkürler!',
+            ago(const Duration(days: 1, hours: 3))),
       ],
-      // Bölüm duyuruları hiyerarşi grubunun (g_dept_cs) sohbetinde (FR-68).
-      'grp:g_dept_cs': [
-        _msg('c1', 'u_ayse', 'Bu hafta bölüm semineri Cuma 14:00’te.',
-            ago(const Duration(hours: 5))),
-        _msg('c2', 'u_elif', 'Katılım zorunlu mu hocam?',
-            ago(const Duration(hours: 4))),
-        _msg('c3', 'u_ayse', 'Tavsiye edilir, zorunlu değil.',
-            ago(const Duration(hours: 3, minutes: 55))),
+      // Elif (birkaç gün önce → gg.aa).
+      'dm:u_elif:u_me': [
+        _msg('de1', 'u_elif', 'Ortak makale için müsait misin?',
+            ago(const Duration(days: 3, hours: 2))),
+        _msg('de2', meId, 'Önümüzdeki hafta oturalım.',
+            ago(const Duration(days: 3, hours: 1))),
       ],
-      'grp:g_test': [
-        _msg('t1', 'u_ayse', 'Proje raporlarını Pazar’a kadar yükleyin.',
-            ago(const Duration(hours: 6))),
-        _msg('t2', 'u_can', 'Grup halinde mi bireysel mi hocam?',
-            ago(const Duration(hours: 5, minutes: 30))),
-        _msg('t3', meId, 'Ben Suden ile grup yapıyorum.',
-            ago(const Duration(hours: 5))),
-      ],
+
+      // === Kurumsal / özel grup sohbetleri ===
+      // Bitirme ekibi (bugün, ~70 dk önce).
       'grp:g_bitirme': [
         _msg('b1', 'u_zeynep', 'Arayüz kısmını ben hallederim.',
             ago(const Duration(minutes: 90))),
@@ -591,6 +604,31 @@ class MockData {
             ago(const Duration(minutes: 80))),
         _msg('b3', meId, 'Süper, yarın senkron olalım.',
             ago(const Duration(minutes: 70))),
+      ],
+      // Bilgisayar Müh. bölümü (bugün, birkaç saat). Duyurular g_dept_cs'te (FR-68).
+      'grp:g_dept_cs': [
+        _msg('c1', 'u_ayse', 'Bu hafta bölüm semineri Cuma 14:00’te.',
+            ago(const Duration(hours: 5))),
+        _msg('c2', 'u_elif', 'Katılım zorunlu mu hocam?',
+            ago(const Duration(hours: 4))),
+        _msg('c3', 'u_ayse', 'Tavsiye edilir, zorunlu değil.',
+            ago(const Duration(hours: 3))),
+      ],
+      // Yazılım Test Dersi (bugün, ~6 saat).
+      'grp:g_test': [
+        _msg('t1', 'u_ayse', 'Proje raporlarını Pazar’a kadar yükleyin.',
+            ago(const Duration(hours: 8))),
+        _msg('t2', 'u_can', 'Grup halinde mi bireysel mi hocam?',
+            ago(const Duration(hours: 7))),
+        _msg('t3', meId, 'Ben Suden ile grup yapıyorum.',
+            ago(const Duration(hours: 6))),
+      ],
+      // Mühendislik Fakültesi (dün) — akademisyen sohbeti (yalnız yetkili görür).
+      'grp:g_fac': [
+        _msg('f1', 'u_ayse', 'Fakülte kurulu toplantısı Perşembe 10:00.',
+            ago(const Duration(days: 1, hours: 6))),
+        _msg('f2', 'u_mehmet', 'Gündeme bütçe kalemini ekleyelim.',
+            ago(const Duration(days: 1, hours: 5))),
       ],
     };
 
@@ -601,6 +639,13 @@ class MockData {
       groups: groups,
       invitations: invitations,
       threads: threads,
+      // İlk açılışta HEPSİ dolu görünsün diye Vedat'ın geçmişi olan 1:1'leri
+      // yüzeyde (KİMLİK-BAŞINA seed — kayıtlı blob yoksa geri dönülür, bkz.
+      // TenantData.initialDmVisibleByMyId). Yalnız u_me seed'lenir → başka
+      // kimliğe sızmaz. Kullanıcı gizlerse blob'a yazılır.
+      initialDmVisibleByMyId: const {
+        'u_me': {'u_ayse', 'u_zeynep', 'u_selin', 'u_elif'},
+      },
       // Rehber starts empty (FR-20). First-login profile setup is skipped:
       // identity fields are admin-owned/read-only, so there is nothing for the
       // user to set here (a photo can be added later from Profil).

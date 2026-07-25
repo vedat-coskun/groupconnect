@@ -22,6 +22,7 @@ class TenantData {
     Set<String>? blockedIds,
     Map<String, String>? notes,
     Set<String>? dmVisible,
+    Map<String, Set<String>>? initialDmVisibleByMyId,
     Set<String>? mutedDms,
     Set<String>? mutedGroupIds,
     this.profileComplete = false,
@@ -32,6 +33,7 @@ class TenantData {
        blockedIds = blockedIds ?? {},
        notes = notes ?? {},
        dmVisible = dmVisible ?? {},
+       initialDmVisibleByMyId = initialDmVisibleByMyId ?? const {},
        mutedDms = mutedDms ?? {},
        mutedGroupIds = mutedGroupIds ?? {};
 
@@ -65,6 +67,13 @@ class TenantData {
   final Set<String> blockedIds; // FR-18, FR-53
   final Map<String, String> notes; // FR-24: rehber owner's notes
   final Set<String> dmVisible; // 1:1 threads surfaced in the chat list
+
+  /// Mock seed: **kimlik (myId) başına** başlangıç DM görünürlüğü. Bir kimliğin
+  /// KAYITLI blob'u yoksa (ilk giriş) [AppState._applyUser] o kimliğin seed'ine
+  /// döner — prototip ilk açılışta dolu bir HEPSİ göstersin. Kimlik-başına
+  /// olduğu için sızıntı olmaz: seed'i olmayan kimlik boş kümeye düşer (Vedat'ın
+  /// yazışmaları Can/Suden'e yüzmez).
+  final Map<String, Set<String>> initialDmVisibleByMyId;
   final Set<String> mutedDms; // FR-49 for 1:1 threads
   final Set<String> mutedGroupIds; // FR-49 for groups — kişisel, grup-üstü değil
 
