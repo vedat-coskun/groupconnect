@@ -303,6 +303,10 @@ class MockData {
       course: 'Veri Yapıları',
       groups: ['g_dept_cs'],
     );
+    // Login öğrencileri (Suden, Arda) başlangıçta KENDİNİ GİZLEMİŞ (kullanıcı
+    // hükmü 2026-08-01) — böylece görünürlük modeli demo'da hazır görünür: bir
+    // öğrenci diğer (görünür) öğrencileri görür ama bu ikisini görmez; yetkili
+    // (akademisyen) matris gereği yine hepsini görür. Diğer öğrenciler görünür.
     final zeynep = _m(
       'u_zeynep',
       'Suden Çalışkan',
@@ -311,6 +315,7 @@ class MockData {
       _student,
       course: 'Yazılım Test Mühendisliği',
       groups: ['g_dept_cs', 'g_test', 'g_bitirme'],
+      visibility: MemberVisibility.hidden,
     );
     final can = _m(
       'u_can',
@@ -319,6 +324,7 @@ class MockData {
       'Bilgisayar Mühendisliği',
       _student,
       groups: ['g_dept_cs', 'g_test', 'g_bitirme'],
+      visibility: MemberVisibility.hidden,
     );
     final merve = _m(
       'u_merve',

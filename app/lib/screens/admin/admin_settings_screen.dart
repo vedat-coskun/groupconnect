@@ -163,17 +163,19 @@ class AdminSettingsScreen extends StatelessWidget {
 
           const Divider(height: 28),
 
-          // §3+§4'ün yerini alan TEK ayar: doğrudan görme/ekleme matrisi.
+          // §3+§4'ün yerini alan TEK ayar: otomatik görme/ekleme matrisi.
           const _SectionHeader(
-            'Doğrudan Görme ve Ekleme',
+            'Otomatik Görme ve Ekleme',
             note: '🟢 Canlı — ileriye dönük',
           ),
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 0, 16, 4),
             child: Text(
-              'Her rol için: hangi rolleri DOĞRUDAN görür (Kişiler → Herkes) '
-              've sormadan rehberine ekler. İşaretli olmayan roller dizinde '
-              'görünmez; onlara ekleme karşı tarafın ONAYIYLA olur (Davetler).',
+              'İşaretli roller birbirini OTOMATİK görür (Kişiler → Herkes) ve '
+              'sormadan rehbere eklenir. İşaretsizler ancak KARŞI TARAF kendini '
+              '"Görünür" yaptığında görünür ve ekleme ONAYLA olur (Davetler). '
+              '"Tamamen gizli" yoktur — herkes en azından kendi ayarıyla '
+              'görünebilir.',
             ),
           ),
           for (final viewer in tenant.roles)
@@ -182,7 +184,7 @@ class AdminSettingsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${roleName(viewer)} şunları doğrudan görür:'),
+                  Text('${roleName(viewer)} şunları otomatik görür:'),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 8,
