@@ -439,7 +439,9 @@ class _EveryoneList extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.s;
     final state = AppScope.of(context);
-    final people = state.everyoneVisible;
+    // Keşif ∪ REHBERİM: rehberdeki biri "Görünmez" olsa da Herkes'te kalır
+    // (rehber ⊆ Herkes), Rehberim'de olup Herkes'te olmama tutarsızlığı gider.
+    final people = state.everyoneVisibleOrContact;
 
     if (people.isEmpty) {
       return EmptyState(

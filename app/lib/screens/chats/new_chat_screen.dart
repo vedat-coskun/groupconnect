@@ -122,15 +122,11 @@ class _NewChatScreenState extends State<NewChatScreen> {
     final s = context.s;
     final state = AppScope.of(context);
     final q = _query.trim().toLowerCase();
-    // Keşif (everyoneVisible) + REHBERİM: rehberdeki biri sonradan "Görünmez"
-    // olsa bile onunla yeni sohbet başlatılabilir (görünürlük yalnız YENİ kişi
-    // keşfini kısıtlar, mevcut kişiyle mesajlaşmayı değil — kullanıcı hükmü
-    // 2026-08-01). id ile tekilleştirilir.
+    // Keşif ∪ REHBERİM (ortak getter): rehberdeki biri "Görünmez" olsa bile
+    // onunla yeni sohbet başlatılabilir — görünürlük yalnız YENİ kişi keşfini
+    // kısıtlar, mevcut kişiyle mesajlaşmayı değil.
     final people =
-        <String, Member>{
-          for (final m in state.everyoneVisible) m.id: m,
-          for (final m in state.contacts) m.id: m,
-        }.values
+        state.everyoneVisibleOrContact
             .where(
               (m) =>
                   q.isEmpty ||

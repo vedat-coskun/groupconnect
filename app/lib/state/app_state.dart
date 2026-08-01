@@ -581,6 +581,17 @@ class AppState extends ChangeNotifier {
           )
           .toList();
 
+  /// HERKES sekmesi + Yeni Sohbet için: **gördüğüm herkes = keşif
+  /// ([everyoneVisible]) ∪ REHBERİM**. Rehberdeki biri sonradan "Görünmez"
+  /// olsa da burada KALIR (rehber ⊆ görünenler) — çünkü onu zaten görüyor/
+  /// tanıyorsun; görünürlük yalnız YENİ kişi keşfini kısıtlar (kullanıcı hükmü
+  /// 2026-08-01). id ile tekilleştirilir.
+  List<Member> get everyoneVisibleOrContact =>
+      <String, Member>{
+        for (final m in everyoneVisible) m.id: m,
+        for (final m in contacts) m.id: m,
+      }.values.toList();
+
   // ---- Directory & discovery (FR-12..FR-19) -------------------------------
   List<Member> directorySearch({
     String query = '',

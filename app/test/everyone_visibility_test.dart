@@ -36,4 +36,18 @@ void main() {
     // Suden gizli olsa da akademisyen matrisle her zaman görür.
     expect(s.everyoneVisible.map((m) => m.id), contains('u_zeynep'));
   });
+
+  test('REHBERDEKİ gizli kişi Herkes\'te (everyoneVisibleOrContact) kalır', () {
+    final s = AppState();
+    s.setPendingPhone('+90', '5555555504'); // Merve — görünür öğrenci
+    s.selectTenant('uni');
+    s.addContactDirect('u_can'); // Arda (gizli) rehbere
+
+    // Keşif listesinde Arda YOK (gizli); ama Herkes = keşif ∪ rehber → VAR.
+    expect(s.everyoneVisible.map((m) => m.id), isNot(contains('u_can')));
+    expect(
+      s.everyoneVisibleOrContact.map((m) => m.id),
+      contains('u_can'),
+    );
+  });
 }
