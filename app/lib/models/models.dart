@@ -261,7 +261,8 @@ class Invitation {
     this.groupId,
     this.message = '',
     this.status = InviteStatus.pending,
-  });
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
 
   final String id;
   final InviteKind kind;
@@ -271,6 +272,11 @@ class Invitation {
   final String? groupId; // target group (group invites)
   String message;
   InviteStatus status;
+
+  /// Davetin oluşturulma zamanı — "gönderdiğim davetler" geçmişinde tarih
+  /// olarak gösterilir. Runtime'da oluşturulan davetler otomatik `now` alır;
+  /// mock açık tarih verir. Kabul/red edilse de değişmez (davet anı).
+  final DateTime createdAt;
 }
 
 /// Sentinel id used for the current signed-in user inside message threads.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../i18n/strings.dart';
+import '../../models/enums.dart';
 import '../../models/models.dart';
 import '../../state/app_scope.dart';
 import '../../state/mock_data.dart';
@@ -462,7 +463,8 @@ class _AddedMeTab extends StatelessWidget {
     final s = context.s;
     final state = AppScope.of(context);
     final invites = state.incomingInvites; // onay bekleyen (kişi daveti)
-    final outgoing = state.outgoingInvites; // benim gönderdiğim (bekleyen)
+    // Gönderdiğim rehber davetlerinin TAM geçmişi (bekleyen+kabul+red, tarihli).
+    final outgoing = state.sentContactInvites;
     // Rehberim'den silinen ONAYLI kişiler — rıza durur, tek dokunuşla eklenir.
     final approved = state.approvedNotInContacts;
 
@@ -584,32 +586,94 @@ class _AddedMeTab extends StatelessWidget {
     );
   }
 
-  // Giden (gönderdiğim) → bekliyor etiketi + iptal.
+  // Gönderdiğim davet → durum çipi (renk kodlu) + göreli tarih; bekleyende
+  // ayrıca iptal (✕). Kabul/red edilmişler salt-okur geçmiştir.
   Widget _outgoingRow(BuildContext context, Invitation inv) {
     final state = AppScope.of(context);
     final id = inv.toMemberId;
     final m = id != null ? state.td.member(id) : null;
     if (m == null) return const SizedBox.shrink();
     final s = context.s;
+    final pending = inv.status == InviteStatus.pending;
     return _row(
       context,
       m,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Chip(
-            label: Text(s.pending),
-            visualDensity: VisualDensity.compact,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _statusChip(context, inv.status),
+              const SizedBox(height: 2),
+              Text(
+                _inviteDate(context, inv.createdAt),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
-          IconButton(
-            tooltip: s.cancel,
-            icon: const Icon(Icons.close),
-            onPressed:
-                () => AppScope.of(context, listen: false).cancelInvite(inv),
-          ),
+          if (pending)
+            IconButton(
+              tooltip: s.cancel,
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.close),
+              onPressed:
+                  () => AppScope.of(context, listen: false).cancelInvite(inv),
+            ),
         ],
       ),
     );
+  }
+
+  // Durum çipi: bekleyen (nötr), kabul (yeşil), red (hata rengi).
+  Widget _statusChip(BuildContext context, InviteStatus status) {
+    final scheme = Theme.of(context).colorScheme;
+    final s = context.s;
+    final (String label, Color bg, Color fg) = switch (status) {
+      InviteStatus.pending => (
+        s.statusPending,
+        scheme.tertiaryContainer,
+        scheme.onTertiaryContainer,
+      ),
+      InviteStatus.accepted => (
+        s.statusAccepted,
+        const Color(0xFFD7F0DB),
+        const Color(0xFF1B5E20),
+      ),
+      InviteStatus.rejected => (
+        s.statusRejected,
+        scheme.errorContainer,
+        scheme.onErrorContainer,
+      ),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  // Göreli tarih: bugün→"Bugün", dün→"Dün", <7g→"N gün önce", eski→gg.aa.
+  String _inviteDate(BuildContext context, DateTime t) {
+    final s = context.s;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(t.year, t.month, t.day);
+    final diff = today.difference(day).inDays;
+    if (diff <= 0) return s.today;
+    if (diff == 1) return s.yesterdayShort;
+    if (diff < 7) return s.daysAgo(diff);
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${two(t.day)}.${two(t.month)}';
   }
 }
 

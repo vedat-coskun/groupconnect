@@ -550,6 +550,32 @@ class MockData {
         groupId: 'g_chess',
         message: 'Satranç kulübüne davetlisin!',
       ),
+      // Vedat'ın GÖNDERDİĞİ rehber davetleri — "Davetler → Gönderdiğim"
+      // geçmişini doldurur (durum + tarih). NOT: Vedat akademisyendir ve matris
+      // gereği herkesi DOĞRUDAN ekler → onay davetleri (dolayısıyla "beklemede"
+      // durumu) onun için oluşmaz; bu yüzden yalnız kabul/red geçmişi seed'lenir
+      // (bunlar reconcile'a takılmaz). Bekleyen durum temel-rol (öğrenci)
+      // kullanıcılarında görülür.
+      Invitation(
+        id: 'sent_ece',
+        kind: InviteKind.contact,
+        direction: InviteDirection.outgoing,
+        fromMemberId: 'u_me',
+        toMemberId: 'u_ece',
+        message: 'Tasarım tarafı için tanışalım.',
+        status: InviteStatus.accepted,
+        createdAt: ago(const Duration(days: 5, hours: 6)),
+      ),
+      Invitation(
+        id: 'sent_asli',
+        kind: InviteKind.contact,
+        direction: InviteDirection.outgoing,
+        fromMemberId: 'u_me',
+        toMemberId: 'u_asli',
+        message: 'Rehberime eklemek istedim.',
+        status: InviteStatus.rejected,
+        createdAt: ago(const Duration(days: 12)),
+      ),
     ];
 
     // Zaman damgaları BİLİNÇLİ olarak çeşitli: bugün (SS:dd), dün ("Dün") ve

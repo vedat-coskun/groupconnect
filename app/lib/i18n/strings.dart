@@ -127,6 +127,12 @@ abstract class AppStrings {
   String get myContactsTab;
   String get addedMeTab;
   String get sentInvites;
+
+  /// Gönderdiğim davet satırındaki durum etiketleri + göreli tarih.
+  String get statusPending;
+  String get statusAccepted;
+  String get statusRejected;
+  String daysAgo(int n);
   String get approvedSection;
   String get contactsEmpty;
   String get contactsEmptyHint;
@@ -453,6 +459,14 @@ class _Tr extends AppStrings {
   String get addedMeTab => 'Davetler';
   @override
   String get sentInvites => 'Gönderdiğim';
+  @override
+  String get statusPending => 'Beklemede';
+  @override
+  String get statusAccepted => 'Kabul edildi';
+  @override
+  String get statusRejected => 'Reddedildi';
+  @override
+  String daysAgo(int n) => '$n gün önce';
   @override
   String get approvedSection => 'Onaylananlar';
   @override
@@ -883,6 +897,14 @@ class _En extends AppStrings {
   String get addedMeTab => 'Invitations';
   @override
   String get sentInvites => 'Sent';
+  @override
+  String get statusPending => 'Pending';
+  @override
+  String get statusAccepted => 'Accepted';
+  @override
+  String get statusRejected => 'Rejected';
+  @override
+  String daysAgo(int n) => '$n days ago';
   @override
   String get approvedSection => 'Approved';
   @override

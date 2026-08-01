@@ -811,15 +811,20 @@ class AppState extends ChangeNotifier {
           )
           .toList();
 
-  List<Invitation> get outgoingInvites =>
+  /// Gönderdiğim REHBER (kişi) davetlerinin TAM geçmişi — bekleyen + kabul +
+  /// red, en yeni üstte. "Davetler → Gönderdiğim" bölümü bunu gösterir (durum +
+  /// tarih). Grup davetleri KAPSAM DIŞI (onlar Gruplar tarafına aittir —
+  /// kullanıcı hükmü: rehber daveti=Kişiler, grup daveti=Gruplar).
+  List<Invitation> get sentContactInvites =>
       td.invitations
           .where(
             (i) =>
                 i.kind == InviteKind.contact &&
-                i.status == InviteStatus.pending &&
+                i.direction == InviteDirection.outgoing &&
                 i.fromMemberId == td.myId,
           )
-          .toList();
+          .toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
   void acceptInvite(Invitation inv) {
     inv.status = InviteStatus.accepted;
