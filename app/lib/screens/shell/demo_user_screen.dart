@@ -16,8 +16,8 @@ class DemoUserScreen extends StatelessWidget {
   // (telefon, ad, rol etiketi, uni'deki myId).
   static const _users = <(String, String, String, String)>[
     ('5555555501', 'Vedat Coşkun', 'Akademisyen', 'u_me'),
-    ('5555555502', 'Suden Çalışkan', 'Öğrenci', 'u_zeynep'),
-    ('5555555503', 'Arda Yetkin', 'Öğrenci', 'u_can'),
+    ('5555555502', 'Suden Test', 'Öğrenci', 'u_zeynep'),
+    ('5555555503', 'Arda Test', 'Öğrenci', 'u_can'),
   ];
 
   @override

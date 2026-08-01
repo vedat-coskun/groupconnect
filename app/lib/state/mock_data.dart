@@ -188,13 +188,13 @@ class MockData {
   );
   static const _idSuden = MockIdentity(
     phone: '5555555502',
-    name: 'Suden Çalışkan',
+    name: 'Suden Test',
     tenantIds: [uniId],
     myIdByTenant: {uniId: 'u_zeynep'},
   );
   static const _idArda = MockIdentity(
     phone: '5555555503',
-    name: 'Arda Yetkin',
+    name: 'Arda Test',
     tenantIds: [uniId],
     myIdByTenant: {uniId: 'u_can'},
   );
@@ -309,7 +309,7 @@ class MockData {
     // (akademisyen) matris gereği yine hepsini görür. Diğer öğrenciler görünür.
     final zeynep = _m(
       'u_zeynep',
-      'Suden Çalışkan',
+      'Suden Test',
       '2021510012',
       'Bilgisayar Mühendisliği',
       _student,
@@ -319,7 +319,7 @@ class MockData {
     );
     final can = _m(
       'u_can',
-      'Arda Yetkin',
+      'Arda Test',
       '2021510033',
       'Bilgisayar Mühendisliği',
       _student,
