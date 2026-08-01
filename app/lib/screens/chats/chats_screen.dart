@@ -5,7 +5,6 @@ import '../../models/models.dart';
 import '../../state/app_scope.dart';
 import '../../state/app_state.dart';
 import '../../widgets/common.dart';
-import '../contacts/directory_search_screen.dart';
 import '../groups/group_chat_screen.dart';
 import 'chat_screen.dart';
 import 'new_chat_screen.dart';
@@ -48,12 +47,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
                       ? EmptyState(
                         icon: Icons.forum_outlined,
                         title: s.chatsEmpty,
+                        // Yeni sohbet sağ üstteki "+" ile açılır — ayrı "Kişi
+                        // Ekle" butonu kaldırıldı (o Kişiler'in işi; burada
+                        // çift/farklı-yön eylem kafa karıştırıyordu — 2026-08-01).
                         subtitle: s.chatsEmptyHint,
-                        action: FilledButton.icon(
-                          onPressed: () => _openDirectory(context),
-                          icon: const Icon(Icons.person_add_alt),
-                          label: Text(s.addContact),
-                        ),
                       )
                       : ListView(
                         padding: const EdgeInsets.only(top: 4, bottom: 24),
@@ -204,12 +201,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
     emit(null, 0);
     return out;
-  }
-
-  void _openDirectory(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const DirectorySearchScreen()),
-    );
   }
 }
 

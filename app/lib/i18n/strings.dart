@@ -399,7 +399,7 @@ class _Tr extends AppStrings {
   String get chatsEmpty => 'Henüz sohbet yok';
   @override
   String get chatsEmptyHint =>
-      'Kişi ekleyip mesajlaşmaya başla veya grup sohbetlerine göz at.';
+      'Sağ üstteki + ile yeni bir sohbet başlat veya grup sohbetlerine göz at.';
   @override
   String get chatsFilterPersonal => 'Kişisel';
   @override
@@ -837,7 +837,7 @@ class _En extends AppStrings {
   String get chatsEmpty => 'No conversations yet';
   @override
   String get chatsEmptyHint =>
-      'Add a contact to start messaging, or browse your group chats.';
+      'Start a new chat with the + at the top right, or browse your group chats.';
   @override
   String get chatsFilterPersonal => 'Personal';
   @override
