@@ -198,8 +198,19 @@ class MockData {
     tenantIds: [uniId],
     myIdByTenant: {uniId: 'u_can'},
   );
+  static const _idMerve = MockIdentity(
+    phone: '5555555504',
+    name: 'Merve Test',
+    tenantIds: [uniId],
+    myIdByTenant: {uniId: 'u_merve'},
+  );
 
-  static const identities = <MockIdentity>[_idVedat, _idSuden, _idArda];
+  static const identities = <MockIdentity>[
+    _idVedat,
+    _idSuden,
+    _idArda,
+    _idMerve,
+  ];
 
   /// Resolve the login identity from a phone; defaults to the first identity
   /// (Vedat) when the number doesn't match a seeded one.
@@ -326,9 +337,11 @@ class MockData {
       groups: ['g_dept_cs', 'g_test', 'g_bitirme'],
       visibility: MemberVisibility.hidden,
     );
+    // GÖRÜNÜR (varsayılan) demo öğrencisi — login kimliği (04) olarak da Demo
+    // sekmesinde; davet-kabul senaryolarında hedef/kabul tarafı için.
     final merve = _m(
       'u_merve',
-      'Merve Aydın',
+      'Merve Test',
       '2020430077',
       'Endüstri Mühendisliği',
       _student,
