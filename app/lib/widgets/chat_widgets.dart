@@ -125,12 +125,17 @@ class MessageList extends StatefulWidget {
     required this.messages,
     required this.isGroup,
     required this.threadId,
+    required this.myId,
     this.resolveSender,
     this.onReply,
   });
 
   final List<Message> messages;
   final bool isGroup;
+
+  /// Bakan kişinin MUTLAK üye id'si — "benim mi?" bunu karşılaştırır (eski 'me'
+  /// sabiti yerine; kullanıcı değişince mesaj doğru tarafta çizilir).
+  final String myId;
 
   /// Düzenle/Sil işlemleri için mesajın yaşadığı dizi.
   final String threadId;
@@ -186,7 +191,7 @@ class _MessageListState extends State<MessageList> {
       itemCount: widget.messages.length,
       itemBuilder: (context, i) {
         final m = widget.messages[i];
-        final isMine = m.senderId == meId;
+        final isMine = m.senderId == widget.myId;
         String? name;
         Color? color;
         if (widget.isGroup && !isMine) {
@@ -202,7 +207,7 @@ class _MessageListState extends State<MessageList> {
             if (q.id == m.replyToId) {
               qText = q.text;
               qName =
-                  q.senderId == meId
+                  q.senderId == widget.myId
                       ? context.s.you
                       : (widget.resolveSender
                               ?.call(q.senderId)

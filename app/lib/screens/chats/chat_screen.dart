@@ -129,6 +129,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       messages: List.of(messages),
                       isGroup: false,
                       threadId: state.dmThread(memberId),
+                      myId: state.td.myId,
                       resolveSender: (id) => state.td.member(id),
                       onReply: (m) => setState(() => _replyingTo = m),
                     ),
@@ -136,7 +137,7 @@ class _ChatScreenState extends State<ChatScreen> {
           if (_replyingTo != null)
             _ReplyBar(
               name:
-                  _replyingTo!.senderId == meId
+                  _replyingTo!.senderId == state.td.myId
                       ? s.you
                       : member.namePlusTitle,
               text: _replyingTo!.text,

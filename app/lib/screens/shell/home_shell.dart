@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../i18n/strings.dart';
@@ -5,9 +6,11 @@ import '../chats/chats_screen.dart';
 import '../contacts/contacts_screen.dart';
 import '../groups/groups_screen.dart';
 import '../menu/menu_screen.dart';
+import 'demo_user_screen.dart';
 
 /// Main app shell with bottom navigation:
-/// Sohbetler · Gruplar · Kişiler · Menü.
+/// Sohbetler · Gruplar · Kişiler · Menü. In debug builds a leftmost "Demo"
+/// tab is prepended (instant identity switch — see [DemoUserScreen]).
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -16,31 +19,37 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
-  int _index = 0;
-
-  static const _tabs = [
-    ChatsScreen(),
-    GroupsScreen(),
-    ContactsScreen(),
-    MenuScreen(),
-  ];
+  // Debug'da 0 = Demo sekmesi olduğundan Sohbetler'de aç (1); release'de 0.
+  int _index = kDebugMode ? 1 : 0;
 
   @override
   Widget build(BuildContext context) {
     final s = context.s;
+    // Debug'da EN SOLA "Demo" (anlık kullanıcı değiştirme) sekmesi eklenir;
+    // release'de hiç yoktur (sekme sırası: Sohbetler·Gruplar·Kişiler·Menü).
+    final tabs = <Widget>[
+      if (kDebugMode) const DemoUserScreen(),
+      const ChatsScreen(),
+      const GroupsScreen(),
+      const ContactsScreen(),
+      const MenuScreen(),
+    ];
+    final items = <(IconData, IconData, String)>[
+      if (kDebugMode)
+        (Icons.switch_account_outlined, Icons.switch_account, 'Demo'),
+      (Icons.chat_bubble_outline, Icons.chat_bubble, s.tabChats),
+      (Icons.groups_outlined, Icons.groups, s.tabGroups),
+      (Icons.contacts_outlined, Icons.contacts, s.tabContacts),
+      (Icons.menu, Icons.menu, s.tabMenu),
+    ];
     return Scaffold(
-      body: IndexedStack(index: _index, children: _tabs),
+      body: IndexedStack(index: _index, children: tabs),
       // "Kutu kutu" tasarım pilotu (kullanıcı tercihi): NavigationBar yerine
       // her sekme kendi yuvarlatılmış kutusunda (seçili = dolgulu kutu).
       bottomNavigationBar: _BoxedNavBar(
         index: _index,
         onSelect: (i) => setState(() => _index = i),
-        items: [
-          (Icons.chat_bubble_outline, Icons.chat_bubble, s.tabChats),
-          (Icons.groups_outlined, Icons.groups, s.tabGroups),
-          (Icons.contacts_outlined, Icons.contacts, s.tabContacts),
-          (Icons.menu, Icons.menu, s.tabMenu),
-        ],
+        items: items,
       ),
     );
   }

@@ -107,6 +107,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       messages: List.of(messages),
                       isGroup: true,
                       threadId: 'grp:$groupId',
+                      myId: state.td.myId,
                       resolveSender: (id) => state.td.member(id),
                       onReply: (m) => setState(() => _replyingTo = m),
                     ),
@@ -119,7 +120,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             if (_replyingTo != null)
               _ReplyBar(
                 name:
-                    _replyingTo!.senderId == meId
+                    _replyingTo!.senderId == state.td.myId
                         ? s.you
                         : (state.td
                                 .member(_replyingTo!.senderId)

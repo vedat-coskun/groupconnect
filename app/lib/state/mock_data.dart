@@ -585,11 +585,11 @@ class MockData {
       // === Kişisel (1:1) ===
       // Suden — en yeni (bugün, ~8 dk önce).
       'dm:u_me:u_zeynep': [
-        _msg('z1', meId, 'Suden, bitirme sunumunu ne zaman yapıyoruz?',
+        _msg('z1', 'u_me', 'Suden, bitirme sunumunu ne zaman yapıyoruz?',
             ago(const Duration(hours: 3))),
         _msg('z2', 'u_zeynep', 'Cuma öğleden sonra uygun.',
             ago(const Duration(hours: 2, minutes: 50))),
-        _msg('z3', meId, 'Cuma 15:00 olsun o zaman.',
+        _msg('z3', 'u_me', 'Cuma 15:00 olsun o zaman.',
             ago(const Duration(minutes: 12))),
         _msg('z4', 'u_zeynep', 'Harika, slaytları akşam atarım.',
             ago(const Duration(minutes: 8))),
@@ -598,7 +598,7 @@ class MockData {
       'dm:u_ayse:u_me': [
         _msg('a1', 'u_ayse', 'Merhaba Vedat, ödev teslimini aldım.',
             ago(const Duration(hours: 2))),
-        _msg('a2', meId, 'Teşekkürler hocam, iyi günler.',
+        _msg('a2', 'u_me', 'Teşekkürler hocam, iyi günler.',
             ago(const Duration(hours: 1, minutes: 55))),
         _msg('a3', 'u_ayse', 'Yarınki derste test otomasyonuna bakacağız.',
             ago(const Duration(minutes: 35))),
@@ -608,7 +608,7 @@ class MockData {
       'dm:u_me:u_selin': [
         _msg('ds1', 'u_selin', 'Hocam, lab raporu için şablon var mı?',
             ago(const Duration(days: 1, hours: 4))),
-        _msg('ds2', meId, 'Evet, ders grubuna yükledim.',
+        _msg('ds2', 'u_me', 'Evet, ders grubuna yükledim.',
             ago(const Duration(days: 1, hours: 3, minutes: 30))),
         _msg('ds3', 'u_selin', 'Buldum, teşekkürler!',
             ago(const Duration(days: 1, hours: 3))),
@@ -617,7 +617,7 @@ class MockData {
       'dm:u_elif:u_me': [
         _msg('de1', 'u_elif', 'Ortak makale için müsait misin?',
             ago(const Duration(days: 3, hours: 2))),
-        _msg('de2', meId, 'Önümüzdeki hafta oturalım.',
+        _msg('de2', 'u_me', 'Önümüzdeki hafta oturalım.',
             ago(const Duration(days: 3, hours: 1))),
       ],
 
@@ -628,7 +628,7 @@ class MockData {
             ago(const Duration(minutes: 90))),
         _msg('b2', 'u_can', 'Ben de backend mock’unu yazıyorum.',
             ago(const Duration(minutes: 80))),
-        _msg('b3', meId, 'Süper, yarın senkron olalım.',
+        _msg('b3', 'u_me', 'Süper, yarın senkron olalım.',
             ago(const Duration(minutes: 70))),
       ],
       // Bilgisayar Müh. bölümü (bugün, birkaç saat). Duyurular g_dept_cs'te (FR-68).
@@ -646,7 +646,7 @@ class MockData {
             ago(const Duration(hours: 8))),
         _msg('t2', 'u_can', 'Grup halinde mi bireysel mi hocam?',
             ago(const Duration(hours: 7))),
-        _msg('t3', meId, 'Ben Suden ile grup yapıyorum.',
+        _msg('t3', 'u_me', 'Ben Suden ile grup yapıyorum.',
             ago(const Duration(hours: 6))),
       ],
       // Mühendislik Fakültesi (dün) — akademisyen sohbeti (yalnız yetkili görür).

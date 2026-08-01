@@ -153,7 +153,10 @@ class Message {
   });
 
   final String id;
-  final String senderId; // Member id, or [meId] for the current user.
+  // Gönderenin MUTLAK üye id'si (ör. 'u_me'). ("me" sabiti kaldırıldı 2026-08-01:
+  // kullanıcı değiştirince mesajın doğru tarafta görünmesi için mutlak id şart —
+  // "benim mi?" kontrolü artık bakan kişinin td.myId'siyle yapılır.)
+  final String senderId;
   String text; // düzenlenebilir (yalnız gönderen — NFR-17)
   final DateTime time;
 
@@ -278,6 +281,3 @@ class Invitation {
   /// mock açık tarih verir. Kabul/red edilse de değişmez (davet anı).
   final DateTime createdAt;
 }
-
-/// Sentinel id used for the current signed-in user inside message threads.
-const String meId = 'me';

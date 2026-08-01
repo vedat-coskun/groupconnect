@@ -210,6 +210,19 @@ class AppState extends ChangeNotifier {
     selectTenant(tenantId);
   }
 
+  /// GELİŞTİRME KISAYOLU (yalnız debug — alt çubuktaki "Demo" sekmesi): kimliği
+  /// telefon/OTP olmadan ANINDA değiştirir. Paylaşılan veri (`_data`: mesajlar/
+  /// gruplar) tek bellekte durduğundan, bir kullanıcı mesaj atıp diğerine
+  /// geçince o mesaj görünür — iki-kişilik akışları tek simülatörde test etmek
+  /// için. Mevcut kimliğin kişisel durumu önce saklanır ([_saveUser]), sonra
+  /// yeni kimlik yüklenir ([_applyUser]). Kimlik zaten aktifse hiçbir şey yapmaz.
+  void switchDemoUser(String phone, {String tenantId = 'uni'}) {
+    if (phone == _phone && _phase == AppPhase.home) return;
+    if (_activeTenantId != null) _saveUser();
+    setPendingPhone('+90', phone);
+    selectTenant(tenantId);
+  }
+
   void setPendingPhone(String countryCode, String phone) {
     _countryCode = countryCode;
     _phone = phone;
@@ -891,7 +904,7 @@ class AppState extends ChangeNotifier {
     if (t.isEmpty) return;
     for (final m in td.threads[threadId] ?? const <Message>[]) {
       if (m.id == messageId) {
-        if (m.senderId != meId) return; // başkasının mesajı düzenlenemez
+        if (m.senderId != td.myId) return; // başkasının mesajı düzenlenemez
         m.text = t;
         m.edited = true;
         notifyListeners();
@@ -922,7 +935,7 @@ class AppState extends ChangeNotifier {
     td.threads[id]!.add(
       Message(
         id: 'm${DateTime.now().microsecondsSinceEpoch}',
-        senderId: meId,
+        senderId: td.myId, // MUTLAK gönderen (kullanıcı değişince doğru taraf)
         text: t,
         time: DateTime.now(),
         replyToId: replyToId,
@@ -930,7 +943,28 @@ class AppState extends ChangeNotifier {
     );
     td.dmVisible.add(memberId); // surfaces the thread in the chat list (FR-32)
     _saveUser(); // dmVisible kişiseldir — kimlik başına saklanır
+    // Karşı taraf da bu 1:1'i Sohbetler listesinde HEMEN görsün diye ONUN kayıtlı
+    // dmVisible'ına beni ekle (gerçek üründe sunucu/push yapardı). Demo kullanıcı
+    // değiştirmede alıcıya geçince mesaj listede belirir.
+    _surfaceDmForPeer(memberId);
     notifyListeners();
+  }
+
+  /// [peerId]'nin (aktif OLMAYAN) kayıtlı dmVisible'ına beni ekler — böylece o
+  /// kimliğe geçilince bu 1:1 Sohbetler listesinde görünür. Kişisel-durum
+  /// yalıtımını bozmaz: yalnız "sana biri yazdı → thread listende belirsin"
+  /// gerçek davranışını taklit eder.
+  void _surfaceDmForPeer(String peerId) {
+    final tid = _activeTenantId;
+    if (tid == null) return;
+    final key = '$tid::$peerId';
+    final blob = Map<String, dynamic>.from(_userCache[key] ?? const {});
+    final dv =
+        ((blob['dv'] as List?)?.cast<String>().toSet() ?? <String>{})
+          ..add(td.myId);
+    blob['dv'] = dv.toList();
+    _userCache[key] = blob;
+    _persist(tid, peerId, blob);
   }
 
   /// FR-90 (yeniden düzenlendi): grup sohbetini GÖREBİLİR miyim?
@@ -984,7 +1018,7 @@ class AppState extends ChangeNotifier {
     td.threads[id]!.add(
       Message(
         id: 'm${DateTime.now().microsecondsSinceEpoch}',
-        senderId: meId,
+        senderId: td.myId, // MUTLAK gönderen (grup üyeleri doğru tarafı görür)
         text: t,
         time: DateTime.now(),
         replyToId: replyToId,
