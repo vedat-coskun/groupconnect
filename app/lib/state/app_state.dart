@@ -564,16 +564,20 @@ class AppState extends ChangeNotifier {
       adminSettings.directRolesByRole[viewerRoleId]?.contains(targetRoleId) ??
       false;
 
-  /// HERKES sekmesi: rehbere eklemeden erişebildiğim herkes — rolümün
-  /// matriste doğrudan gördüğü rollerin tüm üyeleri. Kişinin bireysel
-  /// "görünmez" ayarı burada İŞLEMEZ (kurumsal görünürlük matris kararıdır).
+  /// HERKES sekmesi: erişebildiğim herkes. Matris bir **engel değil,
+  /// varsayılandır** (kurum sahibi hükmü 2026-08-01): matris DOĞRUDAN
+  /// görüyorsa kişi bireysel ayarından bağımsız her zaman görünür; matris
+  /// görmüyorsa da ENGELLİ değildir — kişi kendini "Görünür" tuttuğu sürece
+  /// listede kalır (yalnız ekleme onaya bağlıdır). Tek dışlanan: matris-dışı
+  /// VE kendini "Görünmez" yapan. (Aynı koşulu [directorySearch] da kullanır.)
   List<Member> get everyoneVisible =>
       td.members.values
           .where(
             (m) =>
                 m.id != td.myId &&
                 !td.blockedIds.contains(m.id) &&
-                canSeeDirectly(me.roleId, m.roleId),
+                !(!canSeeDirectly(me.roleId, m.roleId) &&
+                    m.visibility == MemberVisibility.hidden),
           )
           .toList();
 
@@ -830,6 +834,21 @@ class AppState extends ChangeNotifier {
   /// hükmü 2026-08-01): kabul = başarı → kişi zaten Rehberim'de ya da (rehberden
   /// çıkmışsa) "Kabul Edilenler"de görünür; burada tekrar göstermek çift kayıt
   /// olurdu. Grup davetleri de kapsam dışı (onlar Gruplar tarafına aittir).
+  /// [id]'ye gönderdiğim BEKLEYEN rehber daveti (varsa) — Herkes listesinde
+  /// "beklemede" durumunu göstermek/iptal için. Yoksa null.
+  Invitation? pendingContactInviteTo(String id) {
+    for (final i in td.invitations) {
+      if (i.kind == InviteKind.contact &&
+          i.direction == InviteDirection.outgoing &&
+          i.fromMemberId == td.myId &&
+          i.toMemberId == id &&
+          i.status == InviteStatus.pending) {
+        return i;
+      }
+    }
+    return null;
+  }
+
   List<Invitation> get sentContactInvites =>
       td.invitations
           .where(

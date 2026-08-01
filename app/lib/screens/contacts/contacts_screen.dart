@@ -317,8 +317,12 @@ Widget _contactTile(
               ),
             ),
             const SizedBox(width: 4),
-            // HERKES'te Rehberim durumu: tek dokunuşla ekle/çıkar — ikisi de
-            // matris-doğrudan-görünür için onaysız (FR-23, NFR-18).
+            // HERKES'te Rehberim durumu — ÜÇ durum:
+            //  • kişi zaten rehberde → kırmızı "−" (çıkar);
+            //  • ona bekleyen davetim var → saat (dokun: daveti iptal et);
+            //  • değilse → yeşil "+" (onay-FARKINDA ekle: matris/politika
+            //    doğrudan ekletiyorsa anında; değilse onay daveti gider —
+            //    "Görünür ama matris-dışı" kişide, kurum sahibi hükmü 2026-08-01).
             if (showAddToContacts && !selecting)
               isContact
                   ? IconButton(
@@ -336,6 +340,21 @@ Widget _contactTile(
                           listen: false,
                         ).removeContact(m.id),
                   )
+                  : state.pendingContactInviteTo(m.id) != null
+                  ? IconButton(
+                    tooltip: context.s.cancel,
+                    visualDensity: VisualDensity.compact,
+                    // Bekleyen davet: saat ikonu, dokununca iptal.
+                    icon: Icon(
+                      Icons.schedule,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    onPressed: () {
+                      final st = AppScope.of(context, listen: false);
+                      final inv = st.pendingContactInviteTo(m.id);
+                      if (inv != null) st.cancelInvite(inv);
+                    },
+                  )
                   : IconButton(
                     tooltip: context.s.addToContacts,
                     visualDensity: VisualDensity.compact,
@@ -343,14 +362,13 @@ Widget _contactTile(
                       Icons.person_add_alt,
                       color: Colors.green,
                     ),
-                    // Bildirim yok: ikon anında yeşil "+" → kırmızı "−" olur,
-                    // bu kalıcı görsel onay yeter (transient snackbar, kullanıcı
-                    // başka işteyken araya girer — kaldırıldı 2026-07-25).
+                    // Onay-farkında ekleme: doğrudan eklenirse ikon "−"ye döner;
+                    // onay gerekiyorsa "beklemede" (saat) durumuna geçer.
                     onPressed:
                         () => AppScope.of(
                           context,
                           listen: false,
-                        ).addContactDirect(m.id),
+                        ).addContact(m.id),
                   ),
             // Rehberim'de silme (kurum sahibi hükmü): onaysız (NFR-18).
             // Onayla eklenmişse kişi DAVETLER → Onaylananlar'a düşer (rıza
