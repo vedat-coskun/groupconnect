@@ -811,17 +811,20 @@ class AppState extends ChangeNotifier {
           )
           .toList();
 
-  /// Gönderdiğim REHBER (kişi) davetlerinin TAM geçmişi — bekleyen + kabul +
-  /// red, en yeni üstte. "Davetler → Gönderdiğim" bölümü bunu gösterir (durum +
-  /// tarih). Grup davetleri KAPSAM DIŞI (onlar Gruplar tarafına aittir —
-  /// kullanıcı hükmü: rehber daveti=Kişiler, grup daveti=Gruplar).
+  /// Gönderdiğim REHBER (kişi) davetlerinin ÇÖZÜLMEMİŞ/BAŞARISIZ geçmişi —
+  /// **Beklemede + Reddedildi**, en yeni üstte. "Davetler → Gönderdiğim" bölümü
+  /// bunu gösterir (durum + tarih). **Kabul edilenler KAPSAM DIŞI** (kullanıcı
+  /// hükmü 2026-08-01): kabul = başarı → kişi zaten Rehberim'de ya da (rehberden
+  /// çıkmışsa) "Kabul Edilenler"de görünür; burada tekrar göstermek çift kayıt
+  /// olurdu. Grup davetleri de kapsam dışı (onlar Gruplar tarafına aittir).
   List<Invitation> get sentContactInvites =>
       td.invitations
           .where(
             (i) =>
                 i.kind == InviteKind.contact &&
                 i.direction == InviteDirection.outgoing &&
-                i.fromMemberId == td.myId,
+                i.fromMemberId == td.myId &&
+                i.status != InviteStatus.accepted,
           )
           .toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));

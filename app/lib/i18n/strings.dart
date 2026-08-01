@@ -468,7 +468,7 @@ class _Tr extends AppStrings {
   @override
   String daysAgo(int n) => '$n gün önce';
   @override
-  String get approvedSection => 'Onaylananlar';
+  String get approvedSection => 'Kabul Edilenler';
   @override
   String get contactsEmpty => 'Rehberin boş';
   @override
@@ -906,7 +906,7 @@ class _En extends AppStrings {
   @override
   String daysAgo(int n) => '$n days ago';
   @override
-  String get approvedSection => 'Approved';
+  String get approvedSection => 'Accepted';
   @override
   String get contactsEmpty => 'Your contacts are empty';
   @override

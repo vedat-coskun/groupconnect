@@ -6,6 +6,7 @@
 // çiplerini doğrular (sim otomasyonu Xcode 26.6 ile kırık olduğundan güvence).
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:groupconnect/models/enums.dart';
 import 'package:groupconnect/screens/contacts/contacts_screen.dart';
 import 'package:groupconnect/state/app_scope.dart';
 import 'package:groupconnect/state/app_state.dart';
@@ -22,14 +23,12 @@ void main() {
     state.setPendingPhone('+90', '5555555501'); // Vedat
     state.selectTenant('uni');
 
-    // State katmanı: gönderdiğim rehber davetleri (kabul + red), en yeni üstte.
+    // State katmanı: GÖNDERDİĞİM yalnız çözülmemiş/başarısız (beklemede+red)
+    // gösterir — KABUL edilenler çıkarılır (çift kayıt olmasın). Vedat'ta yalnız
+    // Aslı (red) kalır; Ece (kabul) "Kabul Edilenler"e düşer.
     final sent = state.sentContactInvites;
-    expect(sent.length, 2);
-    expect(
-      sent.first.createdAt.isAfter(sent.last.createdAt),
-      isTrue,
-      reason: 'en yeni üstte sıralanmalı',
-    );
+    expect(sent.length, 1);
+    expect(sent.every((i) => i.status != InviteStatus.accepted), isTrue);
 
     await tester.pumpWidget(
       AppScope(
@@ -47,9 +46,12 @@ void main() {
     await tester.tap(find.text('Davetler'));
     await tester.pumpAndSettle();
 
-    // İki durum çipi görünür (kabul + red) — düz metin, büyük harfe çevrilmez.
-    expect(find.text('Kabul edildi'), findsOneWidget);
+    // GÖNDERDİĞİM'de yalnız "Reddedildi" (Aslı); "Kabul edildi" çipi HİÇ yok
+    // (kabul edilen Ece "Kabul Edilenler" bölümüne düştü). Ece yine ekranda.
     expect(find.text('Reddedildi'), findsOneWidget);
+    expect(find.text('Kabul edildi'), findsNothing);
+    expect(find.text('Aslı Bozkurt'), findsOneWidget);
+    expect(find.text('Ece Yalman'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
