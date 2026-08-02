@@ -128,6 +128,15 @@ abstract class AppStrings {
   String get addedMeTab;
   String get sentInvites;
 
+  /// Kabul modu (davet yanıtı) — çift yönlü / tek yönlü + açıklamaları; ve
+  /// Rehberim'de pasif etiketi/geçiş.
+  String get acceptMutual;
+  String get acceptMutualHint;
+  String get acceptOneWay;
+  String get acceptOneWayHint;
+  String get passiveLabel;
+  String get showPassive;
+
   /// Gönderdiğim davet satırındaki durum etiketleri + göreli tarih.
   String get statusPending;
   String get statusAccepted;
@@ -459,6 +468,19 @@ class _Tr extends AppStrings {
   String get addedMeTab => 'Davetler';
   @override
   String get sentInvites => 'Gönderdiğim';
+  @override
+  String get acceptMutual => 'Çift yönlü kabul';
+  @override
+  String get acceptMutualHint => 'İkimiz de birbirimizi rehbere ekleriz.';
+  @override
+  String get acceptOneWay => 'Tek yönlü kabul';
+  @override
+  String get acceptOneWayHint =>
+      'Yalnız o beni rehbere ekler; ben onu Pasif listeme koyarım.';
+  @override
+  String get passiveLabel => 'Pasif';
+  @override
+  String get showPassive => '+ Pasif';
   @override
   String get statusPending => 'Beklemede';
   @override
@@ -897,6 +919,19 @@ class _En extends AppStrings {
   String get addedMeTab => 'Invitations';
   @override
   String get sentInvites => 'Sent';
+  @override
+  String get acceptMutual => 'Accept both ways';
+  @override
+  String get acceptMutualHint => 'We each add the other to contacts.';
+  @override
+  String get acceptOneWay => 'Accept one way';
+  @override
+  String get acceptOneWayHint =>
+      'Only they add me; I keep them in my Passive list.';
+  @override
+  String get passiveLabel => 'Passive';
+  @override
+  String get showPassive => '+ Passive';
   @override
   String get statusPending => 'Pending';
   @override

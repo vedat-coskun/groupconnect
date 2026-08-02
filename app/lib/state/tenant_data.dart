@@ -25,6 +25,7 @@ class TenantData {
     Map<String, Set<String>>? initialDmVisibleByMyId,
     Set<String>? mutedDms,
     Set<String>? mutedGroupIds,
+    Set<String>? passiveIds,
     this.profileComplete = false,
   }) : threads = threads ?? {},
        contactIds = contactIds ?? [],
@@ -35,7 +36,8 @@ class TenantData {
        dmVisible = dmVisible ?? {},
        initialDmVisibleByMyId = initialDmVisibleByMyId ?? const {},
        mutedDms = mutedDms ?? {},
-       mutedGroupIds = mutedGroupIds ?? {};
+       mutedGroupIds = mutedGroupIds ?? {},
+       passiveIds = passiveIds ?? {};
 
   final Tenant tenant;
 
@@ -54,9 +56,15 @@ class TenantData {
   /// Message store, keyed by thread id (`dm:<memberId>` / `grp:<groupId>`).
   final Map<String, List<Message>> threads;
 
-  /// Personal contacts / rehber. Starts **empty** for the current user
+  /// Personal contacts / rehber (AKTİF). Starts **empty** for the current user
   /// (FR-20); grows as they add people through discovery.
   final List<String> contactIds;
+
+  /// PASİF bağlantılar (kullanıcı hükmü 2026-08-02): bana gelen bir daveti
+  /// **tek yönlü** kabul ettiğim (onayladım ama karşıyı AKTİF rehberime
+  /// eklemediğim) kişiler. Aktif rehberde DEĞİL; Rehberim'in "+ Pasif"
+  /// görünümünde çıkar. Kimlik başına saklanır (blob 'p').
+  final Set<String> passiveIds;
 
   // NOT: Aşağıdaki alanların TÜMÜ **bakan kimliğe** aittir ve (kurum + kimlik)
   // başına saklanıp kimlik değişiminde takas edilir (AppState._applyUser).

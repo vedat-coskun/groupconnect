@@ -73,6 +73,10 @@ class _PeopleListState extends State<_PeopleList> {
   bool _selecting = false;
   final Set<String> _selected = {};
 
+  // Rehberim görünümü: false = yalnız aktif; true = aktif + PASİF (kullanıcı
+  // hükmü 2026-08-02). Yalnız pasif kişi varken geçiş gösterilir.
+  bool _showPassive = false;
+
   void _exitSelection() => setState(() {
     _selecting = false;
     _selected.clear();
@@ -83,8 +87,9 @@ class _PeopleListState extends State<_PeopleList> {
     final s = context.s;
     final state = AppScope.of(context);
     final contacts = state.contacts;
+    final passive = state.passiveContacts;
 
-    if (contacts.isEmpty) {
+    if (contacts.isEmpty && passive.isEmpty) {
       return EmptyState(
         icon: Icons.people_outline,
         title: s.contactsEmpty,
@@ -92,7 +97,10 @@ class _PeopleListState extends State<_PeopleList> {
       );
     }
 
-    final allSelected = _selected.length == contacts.length;
+    // Görünen üyeler: aktif; "+ Pasif" açıksa pasifler de eklenir.
+    final members = _showPassive ? [...contacts, ...passive] : contacts;
+    final allSelected =
+        members.isNotEmpty && _selected.length == members.length;
 
     // FR-54/FR-79 (kullanıcı hükmüyle teyit): ayrı FAVORİLER bölümü YOK —
     // HERKES ile aynı düzen: rol başlıklı accordion, favoriler kendi rol
@@ -100,9 +108,20 @@ class _PeopleListState extends State<_PeopleList> {
     final list = ListView(
       padding: const EdgeInsets.only(bottom: 88),
       children: [
+        // Aktif/Pasif geçişi — yalnız pasif kişi varsa (ve seçim modunda değil).
+        if (passive.isNotEmpty && !_selecting)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 6, 12, 2),
+            child: BoxedBinaryChoice(
+              value: _showPassive,
+              onChanged: (v) => setState(() => _showPassive = v),
+              falseLabel: s.myContactsTab,
+              trueLabel: s.showPassive,
+            ),
+          ),
         ...roleSections(
           context: context,
-          members: contacts,
+          members: members,
           roles: AppScope.of(context).tenantRoles,
           roleName: AppScope.of(context).roleName,
           row:
@@ -110,6 +129,7 @@ class _PeopleListState extends State<_PeopleList> {
                 context,
                 m,
                 removable: true,
+                passive: state.isPassive(m.id),
                 selecting: _selecting,
                 selected: _selected.contains(m.id),
                 onEnterSelect:
@@ -154,7 +174,7 @@ class _PeopleListState extends State<_PeopleList> {
                   : () => setState(
                         () => _selected
                           ..clear()
-                          ..addAll(contacts.map((m) => m.id)),
+                          ..addAll(members.map((m) => m.id)),
                       ),
           onRemoveSelected:
               _selected.isEmpty
@@ -265,6 +285,7 @@ Widget _contactTile(
   Member m, {
   bool removable = false,
   bool showAddToContacts = false,
+  bool passive = false,
   bool selecting = false,
   bool selected = false,
   VoidCallback? onEnterSelect,
@@ -316,6 +337,25 @@ Widget _contactTile(
                 ),
               ),
             ),
+            // Pasif bağlantı rozeti (tek yönlü kabul ettiklerim).
+            if (passive) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  context.s.passiveLabel,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(width: 4),
             // HERKES'te Rehberim durumu — ÜÇ durum:
             //  • kişi zaten rehberde → kırmızı "−" (çıkar);
@@ -575,7 +615,7 @@ class _AddedMeTab extends StatelessWidget {
     );
   }
 
-  // Onay bekleyen → enabled: işaretle = kabul, ✕ = reddet.
+  // Onay bekleyen → ✕ reddet, ✓ kabul (dokununca çift/tek yönlü seçtiren sayfa).
   Widget _approvalRow(BuildContext context, Invitation inv) {
     final state = AppScope.of(context);
     final m = state.td.member(inv.fromMemberId);
@@ -589,20 +629,60 @@ class _AddedMeTab extends StatelessWidget {
         children: [
           IconButton(
             tooltip: s.reject,
-            icon: const Icon(Icons.close),
+            icon: const Icon(Icons.close, color: Colors.red),
             onPressed:
                 () => AppScope.of(context, listen: false).rejectInvite(inv),
           ),
-          Checkbox(
-            value: false,
-            onChanged: (v) {
-              if (v == true) {
-                AppScope.of(context, listen: false).acceptInvite(inv);
-              }
-            },
+          IconButton(
+            tooltip: s.accept,
+            icon: const Icon(Icons.check, color: Colors.green),
+            onPressed: () => _showAcceptSheet(context, inv, m.displayName),
           ),
         ],
       ),
+    );
+  }
+
+  // Kabul modunu seçtiren alt sayfa (kullanıcı hükmü 2026-08-02): çift yönlü
+  // (ikimiz de birbirini rehbere alır) ya da tek yönlü (yalnız o beni alır;
+  // ben onu PASİF listeme koyarım).
+  void _showAcceptSheet(BuildContext context, Invitation inv, String name) {
+    final s = context.s;
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder:
+          (ctx) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.swap_horiz),
+                  title: Text(s.acceptMutual),
+                  subtitle: Text(s.acceptMutualHint),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    AppScope.of(
+                      context,
+                      listen: false,
+                    ).acceptInvite(inv, mutual: true);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.call_received),
+                  title: Text(s.acceptOneWay),
+                  subtitle: Text(s.acceptOneWayHint),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    AppScope.of(
+                      context,
+                      listen: false,
+                    ).acceptInvite(inv, mutual: false);
+                  },
+                ),
+              ],
+            ),
+          ),
     );
   }
 

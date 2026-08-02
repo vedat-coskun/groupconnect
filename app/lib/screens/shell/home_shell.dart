@@ -19,8 +19,9 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
-  // Debug'da 0 = Demo sekmesi olduğundan Sohbetler'de aç (1); release'de 0.
-  int _index = kDebugMode ? 1 : 0;
+  // Açılış sekmesi 0: debug'da 0 = DEMO (kullanıcı hükmü 2026-08-02, başlangıç
+  // sayfası Demo olsun); release'de Demo sekmesi olmadığından 0 = Sohbetler.
+  int _index = 0;
 
   @override
   Widget build(BuildContext context) {

@@ -438,6 +438,9 @@ class AppState extends ChangeNotifier {
     d.mutedGroupIds
       ..clear()
       ..addAll((blob['mg'] as List?)?.cast<String>() ?? const []);
+    d.passiveIds
+      ..clear()
+      ..addAll((blob['p'] as List?)?.cast<String>() ?? const []);
     // Görünüm override'ları (kimlik başına). Yoksa null = kurum varsayılanı.
     d.userAccent =
         blob['ua'] is int ? Color(blob['ua'] as int) : null;
@@ -464,6 +467,7 @@ class AppState extends ChangeNotifier {
       'dv': d.dmVisible.toList(),
       'md': d.mutedDms.toList(),
       'mg': d.mutedGroupIds.toList(),
+      'p': d.passiveIds.toList(),
       if (d.userAccent != null) 'ua': d.userAccent!.toARGB32(),
       if (d.userTextScale != null) 'us': d.userTextScale!.name,
       if (d.userFont != null) 'uf': d.userFont,
@@ -680,6 +684,26 @@ class AppState extends ChangeNotifier {
     return list;
   }
 
+  bool isPassive(String id) =>
+      td.passiveIds.contains(id) && !td.contactIds.contains(id);
+
+  /// PASİF kişiler — tek yönlü kabul ettiklerim (aktif rehberde DEĞİL).
+  /// Rehberim'in "+ Pasif" görünümü bunları aktiflere ekler.
+  List<Member> get passiveContacts {
+    final list =
+        td.passiveIds
+            .where(
+              (id) => id != td.myId && !td.contactIds.contains(id),
+            )
+            .map((id) => td.member(id))
+            .whereType<Member>()
+            .toList();
+    list.sort(
+      (a, b) => a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase()),
+    );
+    return list;
+  }
+
   List<Member> get favorites =>
       contacts.where((m) => td.favoriteIds.contains(m.id)).toList();
 
@@ -776,6 +800,7 @@ class AppState extends ChangeNotifier {
 
   void removeContact(String id) {
     td.contactIds.remove(id);
+    td.passiveIds.remove(id); // pasif bağlantıysa o da kalksın
     td.favoriteIds.remove(id);
     td.notes.remove(id);
     _saveUser();
@@ -872,17 +897,58 @@ class AppState extends ChangeNotifier {
           .toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-  void acceptInvite(Invitation inv) {
+  /// Gelen daveti kabul et (kullanıcı hükmü 2026-08-02, üç-seçenekli model):
+  /// - **DAVET EDEN her zaman daveti kabul edileni AKTİF rehberine alır**
+  ///   (kabul = başarı; doğrudan eklemeyle tutarlı, "tekrar davet" döngüsünü
+  ///   bitirir). Bu, aktif olmayan davet edenin kayıtlı rehberine yazılır.
+  /// - **[mutual] true** → BEN de (kabul eden) davet edeni AKTİF rehberime
+  ///   alırım (çift yönlü). **false** → davet edeni yalnız PASİF listeme
+  ///   alırım (tek yönlü: onu aktif eklemedim, o beni aldı).
+  /// Grup daveti [mutual]'dan bağımsız — kabul edince gruba katılırım.
+  void acceptInvite(Invitation inv, {bool mutual = false}) {
     inv.status = InviteStatus.accepted;
     if (inv.kind == InviteKind.contact) {
-      if (!td.contactIds.contains(inv.fromMemberId)) {
-        td.contactIds.add(inv.fromMemberId);
+      final requester = inv.fromMemberId;
+      // Davet eden (aktif olmayan) daveti kabul edileni (=ben) AKTİF alır.
+      if (inv.toMemberId != null) {
+        _addContactForPeer(requester, inv.toMemberId!);
+      }
+      // Ben (kabul eden): çift yönlü → aktif; tek yönlü → pasif.
+      if (mutual) {
+        td.passiveIds.remove(requester);
+        if (!td.contactIds.contains(requester)) td.contactIds.add(requester);
+      } else if (!td.contactIds.contains(requester)) {
+        td.passiveIds.add(requester);
       }
     } else if (inv.kind == InviteKind.group && inv.groupId != null) {
       _joinGroup(inv.groupId!);
     }
     _saveUser();
     notifyListeners();
+  }
+
+  /// [peerId]'nin (aktif OLMAYAN) kayıtlı AKTİF rehberine [contactId]'yi ekler
+  /// — davet kabulünde "davet eden daveti kabul edileni alır" için. Kişisel
+  /// yalıtımı bozmaz: gerçek üründe sunucu yapardı; prototipte tek bellek/blob.
+  void _addContactForPeer(String peerId, String contactId) {
+    final tid = _activeTenantId;
+    if (tid == null) return;
+    final key = '$tid::$peerId';
+    final blob = Map<String, dynamic>.from(_userCache[key] ?? const {});
+    final list =
+        ((blob['c'] as List?)?.cast<String>().toList() ?? <String>[]);
+    if (!list.contains(contactId)) list.add(contactId);
+    blob['c'] = list;
+    // Davet eden artık aktif aldığı için (varsa) pasifinden düşür.
+    final p = ((blob['p'] as List?)?.cast<String>().toSet() ?? <String>{})
+      ..remove(contactId);
+    blob['p'] = p.toList();
+    _userCache[key] = blob;
+    _persist(tid, peerId, blob);
+    // Peer o an aktif kullanıcıysa (olası değil ama) canlı td'yi de güncelle.
+    if (peerId == td.myId && !td.contactIds.contains(contactId)) {
+      td.contactIds.add(contactId);
+    }
   }
 
   void rejectInvite(Invitation inv) {
