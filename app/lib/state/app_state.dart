@@ -504,6 +504,30 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// GÖRÜNÜRLÜK KİLİDİ (rol-başına, kullanıcı hükmü 2026-08-02).
+  bool isRoleVisibilityLocked(String roleId) =>
+      adminSettings.visibilityLockedRoleIds.contains(roleId);
+
+  void setRoleVisibilityLocked(String roleId, bool locked) {
+    if (locked) {
+      adminSettings.visibilityLockedRoleIds.add(roleId);
+    } else {
+      adminSettings.visibilityLockedRoleIds.remove(roleId);
+    }
+    notifyListeners();
+  }
+
+  /// Giren kullanıcı kendi görünürlük/ekleme ayarını değiştirebilir mi? Rolü
+  /// kilitliyse HAYIR (Profil'de her iki anahtar gizlenir).
+  bool get canUserSetVisibility => !isRoleVisibilityLocked(me.roleId);
+
+  /// [m]'in ETKİN görünürlüğü: rolü kilitliyse admin varsayılanı (kişisel ayar
+  /// yok sayılır), değilse kişinin kendi ayarı.
+  MemberVisibility effectiveVisibility(Member m) =>
+      isRoleVisibilityLocked(m.roleId)
+          ? adminSettings.defaultVisibility
+          : m.visibility;
+
   void setGroupMaxDepth(int depth) {
     // Kullanım-öncesi kilit: kullanımdaki en derin seviyenin altına inilemez.
     adminSettings.groupMaxDepth = depth.clamp(usedGroupDepth, 3);
@@ -581,7 +605,7 @@ class AppState extends ChangeNotifier {
                 m.id != td.myId &&
                 !td.blockedIds.contains(m.id) &&
                 !(!canSeeDirectly(me.roleId, m.roleId) &&
-                    m.visibility == MemberVisibility.hidden),
+                    effectiveVisibility(m) == MemberVisibility.hidden),
           )
           .toList();
 
@@ -614,7 +638,7 @@ class AppState extends ChangeNotifier {
           // çiftlerde kişi aramada KALIR ve ancak ONAYLI eklenebilir — ama
           // kendini GİZLEDİYSE bu yoldan da çıkar.
           if (!canSeeDirectly(me.roleId, m.roleId) &&
-              m.visibility == MemberVisibility.hidden) {
+              effectiveVisibility(m) == MemberVisibility.hidden) {
             return false;
           }
           if (td.blockedIds.contains(m.id)) return false; // FR-18

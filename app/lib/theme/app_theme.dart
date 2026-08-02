@@ -24,7 +24,7 @@ class Appearance {
   /// Tenant seçilmeden önce (splash/auth) kullanılan yansız varsayılan.
   static const Appearance fallback = Appearance(
     accent: AppTheme.seed,
-    scale: AppTextScale.medium,
+    scale: AppTextScale.small, // varsayılan Küçük (kullanıcı 2026-08-02)
     fontFamily: null,
   );
 }

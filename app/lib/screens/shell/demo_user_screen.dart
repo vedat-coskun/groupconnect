@@ -32,7 +32,7 @@ class DemoUserScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const BoxedPageHeader(title: 'Demo'),
+            const BoxedPageHeader(title: 'User'),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
               child: Text(

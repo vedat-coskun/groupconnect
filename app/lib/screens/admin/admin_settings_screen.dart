@@ -53,27 +53,6 @@ class AdminSettingsScreen extends StatelessWidget {
             ),
           ),
 
-          // §1 Görünürlük varsayılanı.
-          const _SectionHeader(
-            'Görünürlük Varsayılanı',
-            note: '🟡 Yeni-öğeye — mevcut üyeler korunur, yeni kayıtlara uygulanır',
-          ),
-          // Segmented toggle (kullanıcı tercihi 2026-07-22): sol=Görünür,
-          // sağ=Görünmez. false=visible (sol) olsun diye value=hidden.
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-            child: BoxedBinaryChoice(
-              value: admin.defaultVisibility == MemberVisibility.hidden,
-              onChanged: (v) => state.setDefaultVisibility(
-                v ? MemberVisibility.hidden : MemberVisibility.visible,
-              ),
-              falseLabel: 'Görünür (opt-out)',
-              trueLabel: 'Görünmez (opt-in)',
-            ),
-          ),
-
-          const Divider(height: 28),
-
           // §2 Grup hiyerarşisi.
           const _SectionHeader(
             'Grup Hiyerarşisi',
@@ -162,6 +141,54 @@ class AdminSettingsScreen extends StatelessWidget {
             ),
 
           const Divider(height: 28),
+
+          // GÖRÜNÜRLÜK — iki İLİŞKİLİ ayar birlikte (kullanıcı hükmü 2026-08-02):
+          // önce "varsayılan görünürlük", hemen altında "otomatik görme matrisi".
+          const _SectionHeader(
+            'Görünürlük Varsayılanı',
+            note: '🟡 Yeni-öğeye — mevcut üyeler korunur, yeni kayıtlara uygulanır',
+          ),
+          // Segmented toggle: sol=Görünür, sağ=Görünmez (value=hidden).
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            child: BoxedBinaryChoice(
+              value: admin.defaultVisibility == MemberVisibility.hidden,
+              onChanged: (v) => state.setDefaultVisibility(
+                v ? MemberVisibility.hidden : MemberVisibility.visible,
+              ),
+              falseLabel: 'Görünür (opt-out)',
+              trueLabel: 'Görünmez (opt-in)',
+            ),
+          ),
+
+          // Rol-başına görünürlük KİLİDİ (kullanıcı hükmü 2026-08-02): kilitli
+          // rolün üyeleri Profil'de kendi görünürlük/ekleme ayarını göremez;
+          // etkin görünürlük admin varsayılanına sabitlenir.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 2),
+            child: Text(
+              'Rol görünürlük kilidi — kilitli rol üyeleri kendi ayarını '
+              'değiştiremez.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          for (final r in tenant.roles)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 2, 16, 2),
+              child: Row(
+                children: [
+                  Expanded(child: Text(roleName(r))),
+                  _LockChip(
+                    locked: state.isRoleVisibilityLocked(r.id),
+                    onChanged: (v) => state.setRoleVisibilityLocked(r.id, v),
+                  ),
+                ],
+              ),
+            ),
+
+          const SizedBox(height: 12),
 
           // §3+§4'ün yerini alan TEK ayar: otomatik görme/ekleme matrisi.
           const _SectionHeader(

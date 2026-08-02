@@ -37,7 +37,7 @@ class _HomeShellState extends State<HomeShell> {
     ];
     final items = <(IconData, IconData, String)>[
       if (kDebugMode)
-        (Icons.switch_account_outlined, Icons.switch_account, 'Demo'),
+        (Icons.switch_account_outlined, Icons.switch_account, 'User'),
       (Icons.chat_bubble_outline, Icons.chat_bubble, s.tabChats),
       (Icons.groups_outlined, Icons.groups, s.tabGroups),
       (Icons.contacts_outlined, Icons.contacts, s.tabContacts),

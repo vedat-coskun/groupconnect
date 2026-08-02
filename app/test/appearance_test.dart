@@ -9,8 +9,8 @@ import 'package:groupconnect/state/app_state.dart';
 void main() {
   test('tenant seçilmeden fallback görünüm', () {
     final s = AppState();
-    // Aktif kurum yok → fallback (seed rengi, orta boyut, sistem font).
-    expect(s.appearance.scale, AppTextScale.medium);
+    // Aktif kurum yok → fallback (seed rengi, KÜÇÜK boyut, sistem font).
+    expect(s.appearance.scale, AppTextScale.small);
     expect(s.appearance.fontFamily, isNull);
   });
 

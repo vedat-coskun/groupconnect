@@ -17,11 +17,12 @@ class AdminSettings {
     required this.directRolesByRole,
     required this.accentColor,
     this.accentLocked = false,
-    this.textScale = AppTextScale.medium,
+    this.textScale = AppTextScale.small, // varsayılan Küçük (kullanıcı 2026-08-02)
     this.textScaleLocked = false,
     this.fontFamily,
     this.fontLocked = false,
-  });
+    Set<String>? visibilityLockedRoleIds,
+  }) : visibilityLockedRoleIds = visibilityLockedRoleIds ?? {};
 
   /// §1 Tenant-wide default: [MemberVisibility.visible] = opt-out,
   /// [MemberVisibility.hidden] = opt-in.
@@ -55,6 +56,12 @@ class AdminSettings {
   bool textScaleLocked;
   String? fontFamily;
   bool fontLocked;
+
+  /// GÖRÜNÜRLÜK KİLİDİ — rol-başına (kullanıcı hükmü 2026-08-02). Bir rol id'si
+  /// buradaysa o rolün üyeleri KENDİ görünürlüğünü/ekleme politikasını
+  /// DEĞİŞTİREMEZ (Profil'de her iki anahtar gizlenir); etkin görünürlük admin
+  /// varsayılanına ([defaultVisibility]) sabitlenir.
+  final Set<String> visibilityLockedRoleIds;
 
   /// Sensible defaults from the tenant: visibility from the tenant, authority
   /// roles get bulk-add + direct-add. [twoLevel] seeds a 2-level hierarchy

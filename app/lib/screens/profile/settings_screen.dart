@@ -43,9 +43,25 @@ class SettingsBody extends StatelessWidget {
       children: [
           _sectionHeader(context, s.account),
 
+          // Görünürlük KİLİDİ (kullanıcı hükmü 2026-08-02): admin bu rolü
+          // kilitlediyse üye kendi görünürlüğünü/ekleme politikasını göremez;
+          // etkin görünürlük admin varsayılanına sabittir. İki anahtar da gizli.
+          if (!state.canUserSetVisibility)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+              child: Text(
+                'Görünürlük ve ekleme ayarların kurum yönetimi tarafından '
+                'sabitlenmiştir.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+
           // MemberVisibility (FR-16, FR-51) — başlıksız, yalnız segment
           // (kurum sahibi: "yalnızca böyle bir bilgi yeterli").
-          Padding(
+          if (state.canUserSetVisibility)
+            Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
             child: SizedBox(
               width: double.infinity,
@@ -74,10 +90,10 @@ class SettingsBody extends StatelessWidget {
             ),
           ),
 
-          // Add-to-contacts policy (FR-52)
           // Add-to-contacts policy (FR-52) — label on top, control full-width
-          // below (açıklama notu kaldırıldı).
-          Padding(
+          // below (açıklama notu kaldırıldı). Kilitli rolde gizli.
+          if (state.canUserSetVisibility)
+            Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
