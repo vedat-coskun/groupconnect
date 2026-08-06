@@ -42,6 +42,65 @@ class DemoUserScreen extends StatelessWidget {
                 style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
               ),
             ),
+            // NORMAL GİRİŞ AKIŞINI DENE (kullanıcı hükmü 2026-08-06): oto-girişi
+            // bırakıp gerçek telefon/OTP/kurum akışına döner ([AppState.logout]
+            // → AppPhase.auth). Uygulama yeniden açılınca devAutoLogin yine
+            // çalışıp bu ekrana döndürür (dev_config.kDevAutoLogin), yani bu
+            // sadece o oturum için normal girişi test ettirir.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              child: Material(
+                color: scheme.tertiaryContainer,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap:
+                      () => AppScope.of(context, listen: false).logout(),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.login, color: scheme.onTertiaryContainer),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Normal giriş akışını dene',
+                                style: TextStyle(
+                                  color: scheme.onTertiaryContainer,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              Text(
+                                'Telefon/OTP ekranına döner. Uygulama yeniden '
+                                'açılınca yine bu ekrana gelir.',
+                                style: TextStyle(
+                                  color: scheme.onTertiaryContainer
+                                      .withValues(alpha: 0.85),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right,
+                          color: scheme.onTertiaryContainer,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),

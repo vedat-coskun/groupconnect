@@ -73,6 +73,11 @@ class AppState extends ChangeNotifier {
   AppLanguage _language = AppLanguage.tr;
   AppPhase _phase = AppPhase.splash;
   bool _onboardingSeen = false;
+  // DEBUG "User" (Demo) sekmesi başlangıç davranışı: yalnız oto-girişte (cold
+  // start) ana ekran User sekmesiyle açılır; kullanıcı "Normal giriş akışını
+  // dene" ile gerçek girişi yaparsa (logout→auth) uygulamaya Sohbetler'le düşer
+  // (kullanıcı hükmü 2026-08-06). Bkz. HomeShell başlangıç sekmesi.
+  bool _startOnDevUserTab = false;
   String _countryCode = '+90';
   String _phone = '';
   // Prototip: telefonun son haneleri kimliği belirler (MockData.identities).
@@ -85,6 +90,7 @@ class AppState extends ChangeNotifier {
   AppLanguage get language => _language;
   AppPhase get phase => _phase;
   bool get onboardingSeen => _onboardingSeen;
+  bool get startOnDevUserTab => _startOnDevUserTab;
   String get countryCode => _countryCode;
   String get phone => _phone;
   String get displayPhone => '$_countryCode $_phone';
@@ -206,6 +212,7 @@ class AppState extends ChangeNotifier {
     String tenantId = 'uni',
   }) {
     _onboardingSeen = true;
+    _startOnDevUserTab = true; // oto-giriş → ana ekran User sekmesiyle açılır
     setPendingPhone('+90', phone);
     selectTenant(tenantId);
   }
@@ -284,6 +291,9 @@ class AppState extends ChangeNotifier {
   }
 
   void logout() {
+    // "Normal giriş akışını dene" da buraya düşer: gerçek giriş sonrası ana
+    // ekran User sekmesiyle DEĞİL, Sohbetler'le açılsın (kullanıcı 2026-08-06).
+    _startOnDevUserTab = false;
     _activeTenantId = null;
     _phone = '';
     _identity = MockData.identityForPhone('');

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../i18n/strings.dart';
+import '../../state/app_scope.dart';
 import '../chats/chats_screen.dart';
 import '../contacts/contacts_screen.dart';
 import '../groups/groups_screen.dart';
@@ -19,13 +20,22 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
-  // Açılış sekmesi 0: debug'da 0 = DEMO (kullanıcı hükmü 2026-08-02, başlangıç
-  // sayfası Demo olsun); release'de Demo sekmesi olmadığından 0 = Sohbetler.
-  int _index = 0;
+  // Başlangıç sekmesi bir kez [_defaultIndex]'ten hesaplanır; kullanıcı dokununca
+  // sabitlenir. Debug'da oto-girişte 0 = "User" (kullanıcı 2026-08-02); ama
+  // "Normal giriş akışını dene" ile gerçek giriş yapıldıysa Sohbetler'le açılır
+  // (kullanıcı 2026-08-06). Release'de "User" sekmesi yoktur → 0 = Sohbetler.
+  int? _index;
 
   @override
   Widget build(BuildContext context) {
     final s = context.s;
+    // Debug'da sekmeler: [User, Sohbetler, ...]. Oto-giriş → User(0); gerçek
+    // giriş → Sohbetler(1). Release'de User yok → Sohbetler(0).
+    final defaultIndex =
+        kDebugMode && AppScope.of(context).startOnDevUserTab
+            ? 0
+            : (kDebugMode ? 1 : 0);
+    final index = _index ?? defaultIndex;
     // Debug'da EN SOLA "Demo" (anlık kullanıcı değiştirme) sekmesi eklenir;
     // release'de hiç yoktur (sekme sırası: Sohbetler·Gruplar·Kişiler·Menü).
     final tabs = <Widget>[
@@ -44,11 +54,11 @@ class _HomeShellState extends State<HomeShell> {
       (Icons.menu, Icons.menu, s.tabMenu),
     ];
     return Scaffold(
-      body: IndexedStack(index: _index, children: tabs),
+      body: IndexedStack(index: index, children: tabs),
       // "Kutu kutu" tasarım pilotu (kullanıcı tercihi): NavigationBar yerine
       // her sekme kendi yuvarlatılmış kutusunda (seçili = dolgulu kutu).
       bottomNavigationBar: _BoxedNavBar(
-        index: _index,
+        index: index,
         onSelect: (i) => setState(() => _index = i),
         items: items,
       ),
