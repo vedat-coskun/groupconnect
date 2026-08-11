@@ -94,7 +94,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
         children.addAll(
           layout != null
               ? layout(items)
-              : items.map((c) => _ChatTile(summary: c)),
+              // Kategori satırları da HEPSİ gibi gelen-kutusu görünümünde:
+              // son mesaj önizlemesi + saat; kişi statüsü/rol ve grup üye
+              // sayısı gösterilmez (kullanıcı hükmü 2026-08-06).
+              : items.map((c) => _ChatTile(summary: c, showActivity: true)),
         );
       }
     }
@@ -186,6 +189,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
           _ChatTile(
             summary: c,
             indent: depth * 20.0,
+            showActivity: true, // kurumsal satırlar da son mesaj + saat gösterir
             expanded: hasChildren ? isOpen : null,
             onToggle:
                 hasChildren
@@ -229,9 +233,10 @@ class _ChatTile extends StatelessWidget {
   final bool? expanded;
   final VoidCallback? onToggle;
 
-  /// YALNIZ "HEPSİ" bölümü: alt yazı son mesaj önizlemesi olur ve sağda saat
-  /// gösterilir (CountBox yerine — gelen-kutusu görünümü). Diğer bölümler
-  /// içerik taşımaz (false).
+  /// Gelen-kutusu görünümü: alt yazı son mesaj önizlemesi olur ve sağda saat
+  /// gösterilir (CountBox/statü yerine). Sohbetler ekranındaki TÜM bölümler
+  /// (HEPSİ + Kurumsal/Özel/Kişisel) bunu kullanır (kullanıcı hükmü 2026-08-06);
+  /// false = eski dizin düzeni (ad + açıklama/statü + üye sayısı).
   final bool showActivity;
 
   @override
@@ -241,9 +246,9 @@ class _ChatTile extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final g = summary.group;
     final m = summary.member;
-    // HEPSİ (showActivity): alt yazı = son mesaj önizlemesi. Diğer bölümlerde
-    // içerik taşımaz: kurumsal grupta boş (ad yeter), özel grupta açıklama,
-    // 1:1'de "Ünvan · Bölüm".
+    // showActivity: alt yazı = son mesaj önizlemesi (mesaj yoksa boş). false
+    // (eski dizin düzeni): kurumsal grupta boş, özel grupta açıklama, 1:1'de
+    // "Ünvan · Bölüm".
     final subtitle =
         showActivity
             ? (summary.lastMessageText ?? '')
