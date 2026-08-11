@@ -5,6 +5,7 @@ import '../../models/enums.dart';
 import '../../state/app_scope.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/common.dart';
 import 'blocked_screen.dart';
 import 'muted_screen.dart';
 
@@ -181,44 +182,17 @@ class SettingsBody extends StatelessWidget {
           // "Çoklu" (varsayılan) = birden çok bölüm açık kalabilir.
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Text(
-                    'Akordiyon açılışı',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: double.infinity,
-                  child: SegmentedButton<bool>(
-                    showSelectedIcon: false,
-                    style: const ButtonStyle(
-                      textStyle:
-                          WidgetStatePropertyAll(TextStyle(fontSize: 13)),
-                    ),
-                    segments: const [
-                      ButtonSegment(
-                        value: true,
-                        label: Text('Tekli Akordiyon'),
-                      ),
-                      ButtonSegment(
-                        value: false,
-                        label: Text('Çoklu Akordiyon'),
-                      ),
-                    ],
-                    selected: {state.accordionSingle},
-                    onSelectionChanged:
-                        (v) => AppScope.of(
-                          context,
-                          listen: false,
-                        ).setAccordionSingle(v.first),
-                  ),
-                ),
+            child: BoxedChoice<bool>(
+              title: 'Akordiyon açılışı',
+              value: state.accordionSingle,
+              onChanged:
+                  (v) => AppScope.of(
+                    context,
+                    listen: false,
+                  ).setAccordionSingle(v),
+              segments: const [
+                (true, 'Tekli Akordiyon'),
+                (false, 'Çoklu Akordiyon'),
               ],
             ),
           ),
@@ -359,14 +333,14 @@ class _AppearanceUser extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Arkaplan rengi.
+        // Arkaplan rengi — başlık elipsi (renk seçici bir toggle değil, altında
+        // renk yuvarlakları kalır).
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-          child: Row(
-            children: [
-              const Text('Arkaplan rengi'),
-              if (!state.canUserSetAccent) lockedNote(),
-            ],
+          child: boxedChoiceTitle(
+            context,
+            'Arkaplan rengi',
+            trailing: state.canUserSetAccent ? null : lockedNote(),
           ),
         ),
         if (state.canUserSetAccent)
@@ -423,59 +397,33 @@ class _AppearanceUser extends StatelessWidget {
           ),
         const SizedBox(height: 8),
 
-        // Yazı boyutu.
+        // Yazı boyutu — eşit-genişlik toggle (başlık elipsi üstte).
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-          child: Row(
-            children: [
-              const Text('Yazı boyutu'),
-              if (!state.canUserSetTextScale) lockedNote(),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Wrap(
-            spacing: 8,
-            children: [
-              for (final sc in AppTextScale.values)
-                ChoiceChip(
-                  label: Text(sc.labelTr),
-                  selected: eff.scale == sc,
-                  onSelected:
-                      state.canUserSetTextScale
-                          ? (_) => state.setUserTextScale(sc)
-                          : null,
-                ),
+          child: BoxedChoice<AppTextScale>(
+            title: 'Yazı boyutu',
+            titleTrailing: state.canUserSetTextScale ? null : lockedNote(),
+            enabled: state.canUserSetTextScale,
+            value: eff.scale,
+            onChanged: (sc) => state.setUserTextScale(sc),
+            segments: [
+              for (final sc in AppTextScale.values) (sc, sc.labelTr),
             ],
           ),
         ),
         const SizedBox(height: 8),
 
-        // Yazı tipi.
+        // Yazı tipi — eşit-genişlik toggle.
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-          child: Row(
-            children: [
-              const Text('Yazı tipi'),
-              if (!state.canUserSetFont) lockedNote(),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Wrap(
-            spacing: 8,
-            children: [
-              for (final (label, family) in kFontOptions)
-                ChoiceChip(
-                  label: Text(label, style: TextStyle(fontFamily: family)),
-                  selected: eff.fontFamily == family,
-                  onSelected:
-                      state.canUserSetFont
-                          ? (_) => state.setUserFont(family)
-                          : null,
-                ),
+          child: BoxedChoice<String?>(
+            title: 'Yazı tipi',
+            titleTrailing: state.canUserSetFont ? null : lockedNote(),
+            enabled: state.canUserSetFont,
+            value: eff.fontFamily,
+            onChanged: (f) => state.setUserFont(f),
+            segments: [
+              for (final (label, family) in kFontOptions) (family, label),
             ],
           ),
         ),

@@ -60,20 +60,11 @@ class AdminSettingsScreen extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Row(
-              children: [
-                const Expanded(child: Text('Seviye sayısı')),
-                SegmentedButton<int>(
-                  showSelectedIcon: false,
-                  segments: const [
-                    ButtonSegment(value: 1, label: Text('1')),
-                    ButtonSegment(value: 2, label: Text('2')),
-                    ButtonSegment(value: 3, label: Text('3')),
-                  ],
-                  selected: {admin.groupMaxDepth},
-                  onSelectionChanged: (v) => state.setGroupMaxDepth(v.first),
-                ),
-              ],
+            child: BoxedChoice<int>(
+              title: 'Seviye sayısı',
+              value: admin.groupMaxDepth,
+              onChanged: state.setGroupMaxDepth,
+              segments: const [(1, '1'), (2, '2'), (3, '3')],
             ),
           ),
           // Kullanım-öncesi kilit: kullanımdaki en derin seviyenin altına inilemez.
@@ -362,17 +353,16 @@ class _AppearanceAdmin extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Arkaplan rengi paleti.
+        // Arkaplan rengi paleti — başlık elipsi (+ kilit sağda).
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-          child: Row(
-            children: [
-              const Expanded(child: Text('Arkaplan rengi')),
-              _LockChip(
-                locked: admin.accentLocked,
-                onChanged: state.setAccentLocked,
-              ),
-            ],
+          child: boxedChoiceTitle(
+            context,
+            'Arkaplan rengi',
+            trailing: _LockChip(
+              locked: admin.accentLocked,
+              onChanged: state.setAccentLocked,
+            ),
           ),
         ),
         SizedBox(
@@ -392,62 +382,37 @@ class _AppearanceAdmin extends StatelessWidget {
         ),
         const SizedBox(height: 8),
 
-        // Yazı boyutu.
+        // Yazı boyutu — eşit-genişlik toggle (+ kilit sağda).
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-          child: Row(
-            children: [
-              const Expanded(child: Text('Yazı boyutu')),
-              _LockChip(
-                locked: admin.textScaleLocked,
-                onChanged: state.setTextScaleLocked,
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Wrap(
-            spacing: 8,
-            children: [
-              for (final sc in AppTextScale.values)
-                ChoiceChip(
-                  label: Text(sc.labelTr),
-                  selected: admin.textScale == sc,
-                  onSelected: (_) => state.setAdminTextScale(sc),
-                ),
+          child: BoxedChoice<AppTextScale>(
+            title: 'Yazı boyutu',
+            titleTrailing: _LockChip(
+              locked: admin.textScaleLocked,
+              onChanged: state.setTextScaleLocked,
+            ),
+            value: admin.textScale,
+            onChanged: state.setAdminTextScale,
+            segments: [
+              for (final sc in AppTextScale.values) (sc, sc.labelTr),
             ],
           ),
         ),
         const SizedBox(height: 8),
 
-        // Yazı tipi.
+        // Yazı tipi — eşit-genişlik toggle (+ kilit sağda).
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-          child: Row(
-            children: [
-              const Expanded(child: Text('Yazı tipi')),
-              _LockChip(
-                locked: admin.fontLocked,
-                onChanged: state.setFontLocked,
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Wrap(
-            spacing: 8,
-            children: [
-              for (final (label, family) in kFontOptions)
-                ChoiceChip(
-                  label: Text(
-                    label,
-                    style: TextStyle(fontFamily: family),
-                  ),
-                  selected: admin.fontFamily == family,
-                  onSelected: (_) => state.setAdminFont(family),
-                ),
+          child: BoxedChoice<String?>(
+            title: 'Yazı tipi',
+            titleTrailing: _LockChip(
+              locked: admin.fontLocked,
+              onChanged: state.setFontLocked,
+            ),
+            value: admin.fontFamily,
+            onChanged: state.setAdminFont,
+            segments: [
+              for (final (label, family) in kFontOptions) (family, label),
             ],
           ),
         ),

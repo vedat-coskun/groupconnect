@@ -429,6 +429,126 @@ class BoxedBinaryChoice extends StatelessWidget {
   }
 }
 
+/// Başlık "elipsi" — bir seçenek satırının ÜSTÜNDE, tam-genişlik **tek parça
+/// (bölünmemiş)** yuvarlak kutu; başlık ortada. Altındaki seçenek kutusuna
+/// **yapışık** durması için aralarında yalnız küçük bir boşluk bırakılır
+/// (kullanıcı hükmü 2026-08-06). [trailing] sağa yaslanır (ör. kilit anahtarı).
+Widget boxedChoiceTitle(
+  BuildContext context,
+  String title, {
+  Widget? trailing,
+}) {
+  final scheme = Theme.of(context).colorScheme;
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+    decoration: BoxDecoration(
+      color: scheme.surfaceContainerHigh,
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Stack(
+      alignment: Alignment.center,
+      children: [
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+        if (trailing != null)
+          Align(alignment: Alignment.centerRight, child: trailing),
+      ],
+    ),
+  );
+}
+
+/// Çok-seçenekli "kutu" toggle (2/3/4… seçenek) — segmentler **her zaman EŞİT
+/// genişlikte** (Expanded). İsteğe bağlı [title] üstte tek parça başlık-elipsi
+/// olarak çizilir (bkz. [boxedChoiceTitle]) ve seçenek kutusuna yapışır.
+/// [enabled] false ise segmentler tıklanamaz ve soluk gösterilir (kilitli eksen).
+/// Kullanıcı hükmü 2026-08-06 (BoxedBinaryChoice'ın çok-seçenekli genellemesi).
+class BoxedChoice<T> extends StatelessWidget {
+  const BoxedChoice({
+    super.key,
+    this.title,
+    this.titleTrailing,
+    required this.value,
+    required this.onChanged,
+    required this.segments,
+    this.enabled = true,
+  });
+
+  final String? title;
+  final Widget? titleTrailing;
+  final T value;
+  final ValueChanged<T> onChanged;
+  final List<(T, String)> segments;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (title != null) ...[
+          boxedChoiceTitle(context, title!, trailing: titleTrailing),
+          const SizedBox(height: 3), // iki elips "yapışık"
+        ],
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            children: [
+              for (final (v, label) in segments)
+                Expanded(child: _segment(context, v, label)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _segment(BuildContext context, T v, String label) {
+    final scheme = Theme.of(context).colorScheme;
+    final selected = value == v;
+    return Material(
+      color: selected ? scheme.secondaryContainer : Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: enabled ? () => onChanged(v) : null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          child: Center(
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color:
+                    !enabled
+                        ? scheme.onSurfaceVariant.withValues(alpha: 0.5)
+                        : selected
+                        ? scheme.onSecondaryContainer
+                        : scheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Rol/bölüm başlığı — **ince kutu** içinde (kullanıcı tercihi 2026-07-19),
 /// isteğe bağlı **katlanır** (chevron): Kişiler → Herkes/Rehberim ve Kurum
 /// Yapısı yaprak üye rol başlıkları bunu kullanır. [collapsed] null ise katlanmaz
