@@ -314,7 +314,9 @@ class AppState extends ChangeNotifier {
   bool isEveryoneRoleExpanded(String label) =>
       _everyoneExpandedRoles.contains(label);
   void toggleEveryoneRole(String label) {
-    if (!_everyoneExpandedRoles.remove(label)) {
+    final wasOpen = _everyoneExpandedRoles.remove(label);
+    if (!wasOpen) {
+      if (accordionSingle) _everyoneExpandedRoles.clear(); // tekli akordiyon
       _everyoneExpandedRoles.add(label);
     }
     notifyListeners();
@@ -353,7 +355,24 @@ class AppState extends ChangeNotifier {
   bool isChatSectionExpanded(String key) =>
       _expandedChatSections.contains(key);
   void toggleChatSection(String key) {
-    if (!_expandedChatSections.remove(key)) _expandedChatSections.add(key);
+    final wasOpen = _expandedChatSections.remove(key);
+    if (!wasOpen) {
+      if (accordionSingle) _expandedChatSections.clear(); // tekli akordiyon
+      _expandedChatSections.add(key);
+    }
+    notifyListeners();
+  }
+
+  // ---- TEKLİ / ÇOKLU AKORDİYON (kişisel ayar, kimlik başına saklanır) -------
+  // true = tekli: akordiyonlu sayfalarda (Sohbetler kategorileri, Kişiler→
+  // Herkes rolleri) bir bölüm açılınca kardeşleri kapanır. false = çoklu
+  // (varsayılan): birden çok bölüm açık kalabilir. Kullanıcı hükmü 2026-08-06.
+  bool get accordionSingle =>
+      _activeTenantId == null ? false : td.accordionSingle;
+  void setAccordionSingle(bool value) {
+    if (_activeTenantId == null) return;
+    td.accordionSingle = value;
+    _saveUser();
     notifyListeners();
   }
 
@@ -451,6 +470,7 @@ class AppState extends ChangeNotifier {
     d.passiveIds
       ..clear()
       ..addAll((blob['p'] as List?)?.cast<String>() ?? const []);
+    d.accordionSingle = blob['as'] as bool? ?? false;
     // Görünüm override'ları (kimlik başına). Yoksa null = kurum varsayılanı.
     d.userAccent =
         blob['ua'] is int ? Color(blob['ua'] as int) : null;
@@ -478,6 +498,7 @@ class AppState extends ChangeNotifier {
       'md': d.mutedDms.toList(),
       'mg': d.mutedGroupIds.toList(),
       'p': d.passiveIds.toList(),
+      'as': d.accordionSingle,
       if (d.userAccent != null) 'ua': d.userAccent!.toARGB32(),
       if (d.userTextScale != null) 'us': d.userTextScale!.name,
       if (d.userFont != null) 'uf': d.userFont,

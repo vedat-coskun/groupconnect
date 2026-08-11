@@ -26,6 +26,7 @@ class TenantData {
     Set<String>? mutedDms,
     Set<String>? mutedGroupIds,
     Set<String>? passiveIds,
+    this.accordionSingle = false,
     this.profileComplete = false,
   }) : threads = threads ?? {},
        contactIds = contactIds ?? [],
@@ -91,6 +92,11 @@ class TenantData {
   Color? userAccent;
   AppTextScale? userTextScale;
   String? userFont;
+
+  /// TEKLİ AKORDİYON tercihi (kişisel, kimlik başına — kullanıcı 2026-08-06):
+  /// true ise akordiyonlu sayfalarda bir bölüm açılınca kardeşleri kapanır;
+  /// false (varsayılan) = çoklu (birden çok bölüm açık kalabilir). blob 'as'.
+  bool accordionSingle;
 
   /// False until the first-login profile setup is confirmed (FR-9).
   bool profileComplete;

@@ -176,6 +176,53 @@ class SettingsBody extends StatelessWidget {
             ),
           ),
 
+          // Akordiyon davranışı (kişisel — kullanıcı 2026-08-06): "Tekli" =
+          // akordiyonlu sayfalarda bir bölüm açılınca kardeşleri kapanır;
+          // "Çoklu" (varsayılan) = birden çok bölüm açık kalabilir.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    'Akordiyon açılışı',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  child: SegmentedButton<bool>(
+                    showSelectedIcon: false,
+                    style: const ButtonStyle(
+                      textStyle:
+                          WidgetStatePropertyAll(TextStyle(fontSize: 13)),
+                    ),
+                    segments: const [
+                      ButtonSegment(
+                        value: true,
+                        label: Text('Tekli Akordiyon'),
+                      ),
+                      ButtonSegment(
+                        value: false,
+                        label: Text('Çoklu Akordiyon'),
+                      ),
+                    ],
+                    selected: {state.accordionSingle},
+                    onSelectionChanged:
+                        (v) => AppScope.of(
+                          context,
+                          listen: false,
+                        ).setAccordionSingle(v.first),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           // Switch organization — only when registered to multiple (FR-8)
           if (state.isMultiTenant)
             ListTile(
