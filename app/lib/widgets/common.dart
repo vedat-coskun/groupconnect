@@ -442,7 +442,9 @@ Widget boxedChoiceTitle(
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
     decoration: BoxDecoration(
-      color: scheme.surfaceContainerHigh,
+      // Başlık, seçenek kutusunun grisinden VE seçili segmentin renginden
+      // (secondaryContainer) ayrı bir ton olsun (kullanıcı hükmü 2026-08-06).
+      color: scheme.tertiaryContainer,
       borderRadius: BorderRadius.circular(14),
     ),
     child: Stack(
@@ -454,7 +456,7 @@ Widget boxedChoiceTitle(
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 13,
-            color: scheme.onSurfaceVariant,
+            color: scheme.onTertiaryContainer,
           ),
         ),
         if (trailing != null)
